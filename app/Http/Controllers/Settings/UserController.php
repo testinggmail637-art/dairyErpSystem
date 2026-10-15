@@ -5,13 +5,13 @@ namespace App\Http\Controllers\Settings;
 use App\Enums\RoleName;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Settings\UserRequest;
+use App\Models\Role;
 use App\Models\User;
 use App\Services\UserService;
 use App\Support\CurrentFarm;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
-use Spatie\Permission\Models\Role;
 
 /**
  * Settings → Users: users linked to the current farm. No hard delete (deactivate instead).

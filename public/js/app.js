@@ -120,6 +120,7 @@
         App.initWidgets(document);
 
         // <form data-confirm="Delete this?">: ask before submitting. Bound before the double-submit guard.
+        // Add data-confirm-reason to also ask for a reason (min 3 chars), sent as a hidden "reason" field.
         $(document).on('submit', 'form[data-confirm]', function (e) {
             const form = this;
             if (form.dataset.confirmed === '1') return;
@@ -127,16 +128,36 @@
             e.preventDefault();
             e.stopImmediatePropagation();
 
+            const askReason = form.hasAttribute('data-confirm-reason');
+
             Swal.fire({
                 text: form.dataset.confirm,
                 icon: 'warning',
+                input: askReason ? 'textarea' : undefined,
+                inputLabel: askReason ? 'Reason (saved in the audit log)' : undefined,
+                inputAttributes: askReason ? { maxlength: 500 } : undefined,
+                inputValidator: askReason
+                    ? (value) => ((value || '').trim().length < 3 ? 'Please enter a reason (at least 3 characters).' : null)
+                    : undefined,
                 showCancelButton: true,
                 confirmButtonText: form.dataset.confirmButton || 'Yes, continue',
                 cancelButtonText: 'Cancel',
                 buttonsStyling: false,
-                customClass: { confirmButton: 'btn btn-danger', cancelButton: 'btn btn-outline-secondary ms-2' },
+                customClass: { confirmButton: 'btn btn-danger', cancelButton: 'btn btn-outline-secondary ms-2', input: 'form-control' },
             }).then(function (result) {
                 if (!result.isConfirmed) return;
+
+                if (askReason) {
+                    let input = form.querySelector('input[name="reason"]');
+                    if (!input) {
+                        input = document.createElement('input');
+                        input.type = 'hidden';
+                        input.name = 'reason';
+                        form.appendChild(input);
+                    }
+                    input.value = result.value.trim();
+                }
+
                 form.dataset.confirmed = '1';
                 form.requestSubmit();
             });

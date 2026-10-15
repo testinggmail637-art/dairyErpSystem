@@ -2,6 +2,7 @@
 
 namespace App\Providers;
 
+use App\Support\AuditReason;
 use App\Support\CurrentFarm;
 use App\Support\Menu;
 use Illuminate\Cache\RateLimiting\Limit;
@@ -19,6 +20,7 @@ class AppServiceProvider extends ServiceProvider
     {
         // One instance per request (scoped, so queue workers start fresh for each job).
         $this->app->scoped(CurrentFarm::class);
+        $this->app->scoped(AuditReason::class);
     }
 
     public function boot(): void

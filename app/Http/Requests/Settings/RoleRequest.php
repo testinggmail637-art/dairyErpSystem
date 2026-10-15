@@ -2,13 +2,16 @@
 
 namespace App\Http\Requests\Settings;
 
+use App\Http\Requests\Concerns\RequiresReason;
+use App\Models\Role;
 use App\Support\Permissions;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
-use Spatie\Permission\Models\Role;
 
 class RoleRequest extends FormRequest
 {
+    use RequiresReason;
+
     public function authorize(): bool
     {
         return $this->user()->can('roles.manage');
@@ -29,7 +32,10 @@ class RoleRequest extends FormRequest
     {
         $role = $this->route('role');
 
-        return [
+        // Editing a role is audit-logged and needs a reason (spec 4.4).
+        $reason = $role instanceof Role ? $this->reasonRules() : [];
+
+        return $reason + [
             'name' => [
                 'required', 'string', 'max:50', 'regex:/^[a-z][a-z0-9_]*$/',
                 Rule::unique('roles', 'name')->where('guard_name', 'web')->ignore($role instanceof Role ? $role->id : null),

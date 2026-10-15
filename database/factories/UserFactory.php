@@ -4,12 +4,12 @@ namespace Database\Factories;
 
 use App\Enums\RoleName;
 use App\Models\Farm;
+use App\Models\Role;
 use App\Models\User;
 use Database\Seeders\RolesAndPermissionsSeeder;
 use Illuminate\Database\Eloquent\Factories\Factory;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Str;
-use Spatie\Permission\Models\Role;
 
 /**
  * @extends Factory<User>

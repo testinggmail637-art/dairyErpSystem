@@ -1,12 +1,12 @@
 <?php
 
 use App\Enums\RoleName;
+use App\Models\Role;
 use App\Models\User;
 use App\Support\Permissions;
 use Database\Seeders\DatabaseSeeder;
 use Database\Seeders\RolesAndPermissionsSeeder;
 use Spatie\Permission\Models\Permission;
-use Spatie\Permission\Models\Role;
 
 function rolePermissions(RoleName $role): array
 {

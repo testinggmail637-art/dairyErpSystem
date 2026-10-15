@@ -1,9 +1,9 @@
 <?php
 
 use App\Enums\RoleName;
+use App\Models\Role;
 use App\Models\User;
 use App\Support\Permissions;
-use Spatie\Permission\Models\Role;
 
 beforeEach(function () {
     $this->owner = User::factory()->forFarm()->withRole(RoleName::Owner)->create();
@@ -40,7 +40,7 @@ it('edits the permissions of a seeded role but not its code', function () {
     $role = Role::findByName('herd_staff');
 
     $this->actingAs($this->owner)
-        ->put(route('roles.update', $role), ['name' => 'renamed', 'permissions' => ['dashboard.view']])
+        ->put(route('roles.update', $role), ['name' => 'renamed', 'permissions' => ['dashboard.view'], 'reason' => 'Herd staff no longer feed'])
         ->assertRedirect(route('roles.index'));
 
     $role->refresh();
@@ -55,8 +55,8 @@ it('locks the owner role', function () {
         ->assertOk()
         ->assertSee(__('The owner role is locked: it always has every permission and cannot be changed.'));
 
-    $this->actingAs($this->owner)->put(route('roles.update', $owner), ['name' => 'owner', 'permissions' => []])->assertForbidden();
-    $this->actingAs($this->owner)->delete(route('roles.destroy', $owner))->assertForbidden();
+    $this->actingAs($this->owner)->put(route('roles.update', $owner), ['name' => 'owner', 'permissions' => [], 'reason' => 'Trying to edit owner'])->assertForbidden();
+    $this->actingAs($this->owner)->delete(route('roles.destroy', $owner), ['reason' => 'Not needed any more'])->assertForbidden();
 
     expect($owner->permissions()->count())->toBe(count(Permissions::all()));
 });
@@ -66,8 +66,8 @@ it('deletes a role only when no user has it', function () {
     $used = Role::findByName('herd_staff');
     User::factory()->create()->assignRole($used);
 
-    $this->actingAs($this->owner)->delete(route('roles.destroy', $used))->assertSessionHas('error');
-    $this->actingAs($this->owner)->delete(route('roles.destroy', $empty))->assertRedirect(route('roles.index'));
+    $this->actingAs($this->owner)->delete(route('roles.destroy', $used), ['reason' => 'Not needed any more'])->assertSessionHas('error');
+    $this->actingAs($this->owner)->delete(route('roles.destroy', $empty), ['reason' => 'Not needed any more'])->assertRedirect(route('roles.index'));
 
     expect(Role::where('name', 'temp_role')->exists())->toBeFalse()
         ->and(Role::where('name', 'herd_staff')->exists())->toBeTrue();
