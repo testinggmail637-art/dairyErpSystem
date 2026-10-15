@@ -21,7 +21,7 @@ it('shows the unread count and recent notifications in the bell', function () {
     notifyUser($user, ['message' => 'Vaccination due for C-101']);
     notifyUser($user, ['message' => 'Feed stock low'], read: true);
 
-    $this->actingAs($user)->get(route('dashboard'))
+    $this->actingAs($user)->get(route('profile.edit'))
         ->assertSee('Vaccination due for C-101')
         ->assertSee('Feed stock low')
         ->assertSee('data-testid="unread-count">1</span>', false);

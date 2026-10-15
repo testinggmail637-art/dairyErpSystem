@@ -2,6 +2,7 @@
 
 namespace Database\Seeders;
 
+use App\Enums\RoleName;
 use App\Models\Farm;
 use App\Models\User;
 use Illuminate\Database\Seeder;
@@ -9,7 +10,7 @@ use RuntimeException;
 
 /**
  * Creates the owner account from OWNER_* env values. The local defaults must never reach production.
- * Linked to every farm (run DefaultFarmSeeder first). Role assignment is added in Phase 0 · Task 5.
+ * Linked to every farm and given the owner role (run DefaultFarmSeeder and RolesAndPermissionsSeeder first).
  */
 class OwnerUserSeeder extends Seeder
 {
@@ -32,7 +33,8 @@ class OwnerUserSeeder extends Seeder
             ],
         );
 
-        // The owner works in every farm.
+        // The owner works in every farm and has the owner role (all permissions).
         $owner->farms()->syncWithoutDetaching(Farm::query()->pluck('id'));
+        $owner->assignRole(RoleName::Owner->value);
     }
 }

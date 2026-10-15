@@ -7,7 +7,7 @@ use Database\Seeders\DatabaseSeeder;
 
 it('blocks a user who is not linked to any farm', function () {
     $this->actingAs(User::factory()->create())
-        ->get(route('dashboard'))
+        ->get(route('profile.edit'))
         ->assertForbidden();
 });
 
@@ -16,7 +16,7 @@ it('uses the first active farm of the user and shows its name', function () {
     $user = User::factory()->forFarm($farm)->create();
     $user->farms()->attach(Farm::factory()->inactive()->create(['name' => 'Closed Farm']));
 
-    $this->actingAs($user)->get(route('dashboard'))
+    $this->actingAs($user)->get(route('profile.edit'))
         ->assertOk()
         ->assertSessionHas(CurrentFarm::SESSION_KEY, $farm->id)
         ->assertSee('data-testid="farm-name"', false)
@@ -29,7 +29,7 @@ it('returns 403 and resets the session when the session farm is not linked to th
     $otherFarm = Farm::factory()->create();
 
     $this->actingAs($user)->withSession([CurrentFarm::SESSION_KEY => $otherFarm->id])
-        ->get(route('dashboard'))
+        ->get(route('profile.edit'))
         ->assertForbidden()
         ->assertSessionMissing(CurrentFarm::SESSION_KEY);
 });
@@ -40,12 +40,12 @@ it('shows a switcher for a user with several farms and switches farm', function 
     $user = User::factory()->forFarm($farmA)->create();
     $user->farms()->attach($farmB);
 
-    $this->actingAs($user)->get(route('dashboard'))
+    $this->actingAs($user)->get(route('profile.edit'))
         ->assertSee('data-testid="farm-switcher"', false)
         ->assertSee('Beta Farm');
 
     $this->actingAs($user)->post(route('farm.switch'), ['farm_id' => $farmB->id])
-        ->assertRedirect(route('dashboard'))
+        ->assertRedirect(route('home'))
         ->assertSessionHas(CurrentFarm::SESSION_KEY, $farmB->id);
 });
 

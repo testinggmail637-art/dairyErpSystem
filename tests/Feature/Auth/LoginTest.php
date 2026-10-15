@@ -18,7 +18,7 @@ it('logs in with email', function () {
     $user = User::factory()->forFarm()->create(['email' => 'ram@example.com']);
 
     $this->post(route('login.store'), ['login' => 'Ram@Example.com ', 'password' => 'password'])
-        ->assertRedirect(route('dashboard'));
+        ->assertRedirect(route('home'));
 
     $this->assertAuthenticatedAs($user);
     expect($user->fresh()->last_login_at)->not->toBeNull();
@@ -28,7 +28,7 @@ it('logs in with phone in any common format', function (string $typed) {
     $user = User::factory()->forFarm()->create(['phone' => '9876543210']);
 
     $this->post(route('login.store'), ['login' => $typed, 'password' => 'password'])
-        ->assertRedirect(route('dashboard'));
+        ->assertRedirect(route('home'));
 
     $this->assertAuthenticatedAs($user);
 })->with(['9876543210', '+91 98765 43210', '09876543210', '98765-43210']);

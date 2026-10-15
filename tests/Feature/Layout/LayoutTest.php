@@ -6,7 +6,7 @@ use Illuminate\Support\Facades\Gate;
 it('renders the app layout for a logged-in user', function () {
     $user = User::factory()->forFarm()->create(['name' => 'Ramesh Kumar']);
 
-    $this->actingAs($user)->get(route('dashboard'))
+    $this->actingAs($user)->get(route('profile.edit'))
         ->assertOk()
         ->assertSee('id="appSidebar"', false)
         ->assertSee('Ramesh Kumar')
@@ -47,7 +47,7 @@ it('marks the current page as active', function () {
 it('shows flash messages', function () {
     $this->actingAs(User::factory()->forFarm()->create())
         ->withSession(['success' => 'Expense saved.', 'warning' => 'Stock is low.'])
-        ->get(route('dashboard'))
+        ->get(route('profile.edit'))
         ->assertSee('Expense saved.')
         ->assertSee('Stock is low.')
         ->assertSee('alert-success', false)
