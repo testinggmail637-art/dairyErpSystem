@@ -36,3 +36,7 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 ### Changed
 - `/dashboard` requires `dashboard.view`; after login users go to `/` (`home`), which opens the dashboard or the first
   screen they are allowed to see.
+
+### Fixed
+- Sidebar invisible on desktop (Bootstrap `.offcanvas-lg` forced a transparent background from 992px up).
+- Sidebar groups (e.g. Settings) opened with a jumpy sideways animation (collapse moved off the flex `.nav` list).
