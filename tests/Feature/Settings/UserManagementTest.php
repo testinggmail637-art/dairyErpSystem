@@ -21,6 +21,7 @@ function userPayload(array $overrides = []): array
         'is_active' => '1',
         'roles' => ['herd_staff'],
         'farms' => [test()->farm->id],
+        'reason' => 'Details corrected',
     ], $overrides);
 }
 

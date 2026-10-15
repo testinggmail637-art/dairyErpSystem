@@ -49,6 +49,29 @@ if (! function_exists('role_label')) {
     }
 }
 
+if (! function_exists('audit_model_label')) {
+    /** "App\Models\PaymentMode" → "Payment Mode" (for the audit log). */
+    function audit_model_label(?string $type): string
+    {
+        return $type === null ? '—' : Str::headline(class_basename($type));
+    }
+}
+
+if (! function_exists('audit_value')) {
+    /** A logged attribute value as display text: booleans as Yes/No, lists comma-separated, null as —. */
+    function audit_value(mixed $value): string
+    {
+        return match (true) {
+            $value === null || $value === '' => '—',
+            is_bool($value) => $value ? __('Yes') : __('No'),
+            is_array($value) => array_is_list($value)
+                ? implode(', ', array_map(fn ($v) => is_scalar($v) ? (string) $v : json_encode($v), $value))
+                : json_encode($value, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES),
+            default => (string) $value,
+        };
+    }
+}
+
 if (! function_exists('fmt_datetime')) {
     /** DD-MM-YYYY hh:mm AM — see App\Support\Format::dateTime(). */
     function fmt_datetime(mixed $value): string

@@ -74,6 +74,14 @@
     @error('permissions.*')<div class="text-danger small mt-2">{{ $message }}</div>@enderror
 
     @unless ($locked)
+        @if ($role->exists)
+            <div class="card mt-3">
+                <div class="card-body pb-0">
+                    <x-reason-field />
+                </div>
+            </div>
+        @endif
+
         <div class="mt-3 d-flex gap-2">
             <button type="submit" class="btn btn-primary"><i class="bi bi-check2 me-1"></i>{{ __('Save') }}</button>
             <a href="{{ route('roles.index') }}" class="btn btn-outline-secondary">{{ __('Cancel') }}</a>

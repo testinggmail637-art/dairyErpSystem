@@ -3,9 +3,9 @@
 namespace App\Services;
 
 use App\Enums\RoleName;
+use App\Models\Role;
 use DomainException;
 use Illuminate\Support\Facades\DB;
-use Spatie\Permission\Models\Role;
 
 /**
  * Roles & permission matrix (spec 5.3). The owner role is locked: it always has every permission and cannot be
@@ -18,7 +18,7 @@ class RoleService
     {
         return DB::transaction(function () use ($name, $permissions) {
             $role = Role::create(['name' => $name, 'guard_name' => 'web']);
-            $role->syncPermissions($permissions);
+            $this->syncPermissions($role, $permissions);
 
             return $role;
         });
@@ -35,7 +35,7 @@ class RoleService
                 $role->update(['name' => $name]);
             }
 
-            $role->syncPermissions($permissions);
+            $this->syncPermissions($role, $permissions);
 
             return $role;
         });
@@ -55,6 +55,26 @@ class RoleService
     public static function isLocked(Role $role): bool
     {
         return $role->name === RoleName::Owner->value;
+    }
+
+    /**
+     * Sync permissions and write an audit entry with the old → new permission list when it changed.
+     *
+     * @param  list<string>  $permissions
+     */
+    private function syncPermissions(Role $role, array $permissions): void
+    {
+        $old = $role->permissions()->pluck('name')->sort()->values()->all();
+        $role->syncPermissions($permissions);
+        $new = $role->permissions()->pluck('name')->sort()->values()->all();
+
+        if ($old !== $new) {
+            activity()
+                ->performedOn($role)
+                ->event('updated')
+                ->withProperties(['old' => ['permissions' => $old], 'attributes' => ['permissions' => $new]])
+                ->log('permissions');
+        }
     }
 
     private function ensureNotLocked(Role $role): void

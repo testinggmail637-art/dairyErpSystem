@@ -8,10 +8,10 @@
 | Item | Value |
 |---|---|
 | Current phase | Phase 0 — Foundation (🟡 in progress) |
-| Last completed task | 0.7 — Users CRUD, roles & permission matrix, farm settings, sections & payment modes screens |
-| Next task | 0.8 — Activity log + audit log screen + reason capture |
-| Overall progress | 7 / 88 tasks (8%) |
-| Tests passing | 137 |
+| Last completed task | 0.8 — Activity log (users, roles, farm settings), reason capture on edits/deletes, Settings → Audit Log screen |
+| Next task | 0.9 — Backups (daily 02:00, 14 days) + docs/BACKUP_RESTORE.md |
+| Overall progress | 8 / 88 tasks (9%) |
+| Tests passing | 144 |
 | Last updated (IST) | 2026-10-15 |
 
 ## Phase overview
@@ -42,7 +42,7 @@ Status legend: ⬜ Not started · 🟡 In progress · ✅ Done · ⏸ On hold
 - [x] 0.5 Spatie permissions + roles seeder, owner user from env
 - [x] 0.6 Login by email or phone, inactive user block, last_login_at (login itself built in 0.1; 0.6 added sign-out of users deactivated mid-session)
 - [x] 0.7 Users CRUD, roles & permission matrix, farm settings, sections & payment modes CRUD
-- [ ] 0.8 Activity log + audit log screen + reason capture
+- [x] 0.8 Activity log + audit log screen + reason capture
 - [ ] 0.9 Backups (daily 02:00, 14 days) + `docs/BACKUP_RESTORE.md`
 - [ ] 0.10 Common Blade components (fields, money, date, Select2, DataTable, confirm-with-reason)
 - [ ] 0.11 Monitoring: Pulse (`/pulse` owner only), Sentry (DSN-gated), Telescope (local), `docs/DEPLOYMENT.md`

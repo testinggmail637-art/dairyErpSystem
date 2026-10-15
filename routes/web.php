@@ -5,6 +5,7 @@ use App\Http\Controllers\Account\ProfileController;
 use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\Farm\FarmSwitchController;
 use App\Http\Controllers\HomeController;
+use App\Http\Controllers\Settings\AuditLogController;
 use App\Http\Controllers\Settings\FarmSettingsController;
 use App\Http\Controllers\Settings\PaymentModeController;
 use App\Http\Controllers\Settings\RoleController;
@@ -60,5 +61,7 @@ Route::middleware(['auth', 'active', 'farm'])->group(function () {
 
         Route::resource('users', UserController::class)->except(['show', 'destroy'])->middleware('can:users.manage');
         Route::resource('roles', RoleController::class)->except(['show'])->middleware('can:roles.manage');
+
+        Route::get('audit-log', [AuditLogController::class, 'index'])->middleware('can:audit_logs.view')->name('audit-logs.index');
     });
 });

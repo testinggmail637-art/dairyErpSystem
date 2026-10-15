@@ -3,13 +3,14 @@
 namespace App\Http\Controllers\Settings;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Settings\DeleteRoleRequest;
 use App\Http\Requests\Settings\RoleRequest;
+use App\Models\Role;
 use App\Services\RoleService;
 use App\Support\Permissions;
 use DomainException;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\View\View;
-use Spatie\Permission\Models\Role;
 
 /**
  * Settings → Roles: list roles and edit the permission matrix (grouped by module).
@@ -50,7 +51,7 @@ class RoleController extends Controller
         return redirect()->route('roles.index')->with('success', __('Role :name updated.', ['name' => role_label($role->name)]));
     }
 
-    public function destroy(Role $role): RedirectResponse
+    public function destroy(DeleteRoleRequest $request, Role $role): RedirectResponse
     {
         try {
             $this->roles->delete($role);

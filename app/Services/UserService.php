@@ -29,6 +29,8 @@ class UserService
             $user->syncRoles($data['roles']);
             $user->farms()->sync($data['farms']);
 
+            $this->logAccessChange($user, [], [], false);
+
             return $user;
         });
     }
@@ -56,12 +58,17 @@ class UserService
                 $user->setRememberToken(Str::random(60));
             }
 
+            $oldRoles = $user->getRoleNames()->sort()->values()->all();
+            $oldFarms = $user->farms()->pluck('farms.id')->sort()->values()->all();
+
             $user->save();
 
             $user->syncRoles($data['roles']);
 
             $hiddenFarmIds = $user->farms()->pluck('farms.id')->diff($editorFarmIds);
             $user->farms()->sync($hiddenFarmIds->merge($data['farms'])->unique()->values()->all());
+
+            $this->logAccessChange($user, $oldRoles, $oldFarms, $passwordChanged);
 
             // A reset password or a deactivation signs the user out everywhere.
             if ($passwordChanged || ! $user->is_active) {
@@ -79,6 +86,42 @@ class UserService
             ->active()
             ->whereKeyNot($except->getKey())
             ->exists();
+    }
+
+    /**
+     * Roles and farms live in pivot tables, so the model's own audit entry misses them: log old → new here.
+     * A password reset is recorded as an event only — the password itself is never logged.
+     *
+     * @param  list<string>  $oldRoles
+     * @param  list<int>  $oldFarms
+     */
+    private function logAccessChange(User $user, array $oldRoles, array $oldFarms, bool $passwordChanged): void
+    {
+        $newRoles = $user->roles()->pluck('name')->sort()->values()->all();
+        $newFarms = $user->farms()->pluck('farms.id')->map(fn ($id) => (int) $id)->sort()->values()->all();
+        $oldFarms = array_map('intval', $oldFarms);
+
+        $old = $new = [];
+
+        if ($oldRoles !== $newRoles) {
+            [$old['roles'], $new['roles']] = [$oldRoles, $newRoles];
+        }
+
+        if ($oldFarms !== $newFarms) {
+            [$old['farms'], $new['farms']] = [$oldFarms, $newFarms];
+        }
+
+        if ($passwordChanged) {
+            [$old['password'], $new['password']] = ['••••••', __('reset')];
+        }
+
+        if ($new !== []) {
+            activity()
+                ->performedOn($user)
+                ->event('updated')
+                ->withProperties(['old' => $old, 'attributes' => $new])
+                ->log('access');
+        }
     }
 
     private function endSessions(User $user): void

@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Models\Concerns\Auditable;
 use App\Models\Concerns\TracksUser;
 use Database\Factories\FarmFactory;
 use Illuminate\Database\Eloquent\Builder;
@@ -17,7 +18,7 @@ use Illuminate\Support\Arr;
 class Farm extends Model
 {
     /** @use HasFactory<FarmFactory> */
-    use HasFactory, SoftDeletes, TracksUser;
+    use Auditable, HasFactory, SoftDeletes, TracksUser;
 
     /** Defaults for the `settings` JSON (spec Section 6, Phase 0). Stored values override these. */
     public const DEFAULT_SETTINGS = [

@@ -3,6 +3,7 @@
 namespace App\Http\Requests\Settings;
 
 use App\Enums\RoleName;
+use App\Http\Requests\Concerns\RequiresReason;
 use App\Models\User;
 use App\Services\UserService;
 use Illuminate\Foundation\Http\FormRequest;
@@ -18,6 +19,8 @@ use Illuminate\Validation\Validator;
  */
 class UserRequest extends FormRequest
 {
+    use RequiresReason;
+
     public function authorize(): bool
     {
         $target = $this->targetUser();
@@ -46,7 +49,10 @@ class UserRequest extends FormRequest
     {
         $ignore = $this->targetUser()?->getKey();
 
-        return [
+        // Editing an existing user is audit-logged and needs a reason (spec 4.4).
+        $reason = $ignore ? $this->reasonRules() : [];
+
+        return $reason + [
             'name' => ['required', 'string', 'max:100'],
             'email' => ['nullable', 'required_without:phone', 'email', 'max:150', Rule::unique('users', 'email')->ignore($ignore)],
             'phone' => ['nullable', 'required_without:email', 'digits:10', Rule::unique('users', 'phone')->ignore($ignore)],

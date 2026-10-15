@@ -32,6 +32,10 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   password reset that signs the user out, owner-role protection), Roles (permission matrix grouped by module, custom
   roles, locked owner role, delete when unused), Farm settings (details + settings keys with validation), Sections and
   Payment Modes (list, add, edit, activate/deactivate); `data-confirm` confirmation dialog in `app.js`.
+- Phase 0 · Task 8: audit log with `spatie/laravel-activitylog` — users, roles (incl. permission changes) and farm
+  settings logged with old → new values, user and reason; required reason on user edit and role edit/delete
+  (`RequiresReason`, `<x-reason-field />`, `data-confirm-reason`); Settings → Audit Log screen with user, record type,
+  action and date filters; `activity_log.farm_id` keeps farms apart.
 
 ### Changed
 - `/dashboard` requires `dashboard.view`; after login users go to `/` (`home`), which opens the dashboard or the first

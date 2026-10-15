@@ -39,7 +39,7 @@
                             </a>
                             @unless ($locked || $role->users_count > 0)
                                 <form method="POST" action="{{ route('roles.destroy', $role) }}" class="d-inline"
-                                      data-confirm="{{ __('Delete the role :name?', ['name' => role_label($role->name)]) }}">
+                                      data-confirm="{{ __('Delete the role :name?', ['name' => role_label($role->name)]) }}" data-confirm-reason>
                                     @csrf
                                     @method('DELETE')
                                     <button type="submit" class="btn btn-outline-danger btn-sm"><i class="bi bi-trash"></i></button>
