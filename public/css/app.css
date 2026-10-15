@@ -276,3 +276,7 @@ body {
 .app-col-shrink {
     width: 1%;
 }
+
+.app-money-preview:empty {
+    display: none;
+}

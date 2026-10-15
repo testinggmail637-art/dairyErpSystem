@@ -77,7 +77,7 @@
         @if ($role->exists)
             <div class="card mt-3">
                 <div class="card-body pb-0">
-                    <x-reason-field />
+                    <x-form.reason />
                 </div>
             </div>
         @endif

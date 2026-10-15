@@ -16,43 +16,28 @@
             <div class="card h-100">
                 <div class="card-header fw-semibold">{{ __('Account') }}</div>
                 <div class="card-body">
-                    <div class="mb-3">
-                        <label for="name" class="form-label">{{ __('Name') }} <span class="text-danger">*</span></label>
-                        <input type="text" id="name" name="name" value="{{ old('name', $user->name) }}" maxlength="100"
-                               class="form-control @error('name') is-invalid @enderror" required>
-                        @error('name')<div class="invalid-feedback">{{ $message }}</div>@enderror
-                    </div>
+                    <x-form.input name="name" :label="__('Name')" :value="$user->name" maxlength="100" required />
 
                     <div class="row g-3 mb-1">
                         <div class="col-12 col-md-6">
-                            <label for="email" class="form-label">{{ __('Email') }}</label>
-                            <input type="email" id="email" name="email" value="{{ old('email', $user->email) }}" maxlength="150"
-                                   class="form-control @error('email') is-invalid @enderror" autocomplete="off">
-                            @error('email')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                            <x-form.input name="email" type="email" :label="__('Email')" :value="$user->email" maxlength="150"
+                                          autocomplete="off" group-class="mb-0" />
                         </div>
                         <div class="col-12 col-md-6">
-                            <label for="phone" class="form-label">{{ __('Mobile number') }}</label>
-                            <input type="tel" id="phone" name="phone" value="{{ old('phone', $user->phone) }}" inputmode="numeric" maxlength="16"
-                                   class="form-control @error('phone') is-invalid @enderror" autocomplete="off">
-                            @error('phone')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                            <x-form.input name="phone" type="tel" :label="__('Mobile number')" :value="$user->phone" maxlength="16"
+                                          inputmode="numeric" autocomplete="off" group-class="mb-0" />
                         </div>
                     </div>
                     <p class="form-text mb-3">{{ __('Enter an email, a mobile number, or both. The user logs in with either one.') }}</p>
 
                     <div class="row g-3 mb-1">
                         <div class="col-12 col-md-6">
-                            <label for="password" class="form-label">
-                                {{ $user->exists ? __('New password') : __('Password') }}
-                                @unless ($user->exists)<span class="text-danger">*</span>@endunless
-                            </label>
-                            <input type="password" id="password" name="password" autocomplete="new-password" minlength="8"
-                                   class="form-control @error('password') is-invalid @enderror" @required(! $user->exists)>
-                            @error('password')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                            <x-form.input name="password" type="password" :label="$user->exists ? __('New password') : __('Password')"
+                                          :required="! $user->exists" minlength="8" autocomplete="new-password" group-class="mb-0" />
                         </div>
                         <div class="col-12 col-md-6">
-                            <label for="password_confirmation" class="form-label">{{ __('Confirm password') }}</label>
-                            <input type="password" id="password_confirmation" name="password_confirmation" autocomplete="new-password"
-                                   class="form-control" @required(! $user->exists)>
+                            <x-form.input name="password_confirmation" type="password" :label="__('Confirm password')"
+                                          :required="! $user->exists" autocomplete="new-password" group-class="mb-0" />
                         </div>
                     </div>
                     <p class="form-text mb-3">
@@ -61,13 +46,7 @@
                             : __('At least 8 characters. Share it with the user; they can change it from their profile.') }}
                     </p>
 
-                    <div class="form-check form-switch">
-                        <input type="hidden" name="is_active" value="0">
-                        <input class="form-check-input @error('is_active') is-invalid @enderror" type="checkbox" role="switch"
-                               id="is_active" name="is_active" value="1" @checked(old('is_active', $user->is_active))>
-                        <label class="form-check-label" for="is_active">{{ __('Active (can log in)') }}</label>
-                        @error('is_active')<div class="invalid-feedback">{{ $message }}</div>@enderror
-                    </div>
+                    <x-form.switch name="is_active" :label="__('Active (can log in)')" :checked="$user->is_active" group-class="mb-0" />
                 </div>
             </div>
         </div>
@@ -108,7 +87,7 @@
     @if ($user->exists)
         <div class="card mt-3">
             <div class="card-body pb-0">
-                <x-reason-field />
+                <x-form.reason />
             </div>
         </div>
     @endif
