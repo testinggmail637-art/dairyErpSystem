@@ -8,10 +8,10 @@
 | Item | Value |
 |---|---|
 | Current phase | Phase 0 — Foundation (🟡 in progress) |
-| Last completed task | 0.3 — Money helper, Enums, BelongsToFarm + TracksUser traits, CurrentFarm, EnsureFarmSelected (+ farms, farm_user, default farm, farm switcher) |
-| Next task | 0.4 — sections, payment_modes, document_sequences (migrations, models, seeders) |
-| Overall progress | 3 / 88 tasks (3%) |
-| Tests passing | 85 |
+| Last completed task | 0.4 — sections, payment_modes, document_sequences + DocumentNumberService, FinancialYear helper |
+| Next task | 0.5 — Spatie permissions + roles seeder, owner user from env |
+| Overall progress | 4 / 88 tasks (5%) |
+| Tests passing | 103 |
 | Last updated (IST) | 2026-10-15 |
 
 ## Phase overview
@@ -38,7 +38,7 @@ Status legend: ⬜ Not started · 🟡 In progress · ✅ Done · ⏸ On hold
 - [x] 0.1 Laravel project, MySQL (app + `dairy_erp_test`), Pest, Pint, remove Vite/npm, `public/vendor/` libraries, hand-built login
 - [x] 0.2 Base layout: sidebar (permission-filtered), top bar, flash messages, responsive, Indian number/date helpers
 - [x] 0.3 Money helper, Enums, BelongsToFarm + TracksUser traits, CurrentFarm, EnsureFarmSelected middleware (also `farms` + `farm_user` tables, default farm seeder, farm switcher — moved here from 0.4, Decision #19)
-- [ ] 0.4 farms, farm_user, sections, payment_modes, document_sequences (migrations, models, seeders) — farms & farm_user already done in 0.3
+- [x] 0.4 farms, farm_user, sections, payment_modes, document_sequences (migrations, models, seeders) — farms & farm_user already done in 0.3
 - [ ] 0.5 Spatie permissions + roles seeder, owner user from env
 - [ ] 0.6 Login by email or phone, inactive user block, last_login_at
 - [ ] 0.7 Users CRUD, roles & permission matrix, farm settings, sections & payment modes CRUD

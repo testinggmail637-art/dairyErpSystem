@@ -6,6 +6,7 @@ use App\Support\CurrentFarm;
 use App\Support\Menu;
 use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Http\Request;
 use Illuminate\Pagination\Paginator;
 use Illuminate\Support\Facades\RateLimiter;
@@ -26,6 +27,18 @@ class AppServiceProvider extends ServiceProvider
         Model::preventSilentlyDiscardingAttributes(! $this->app->isProduction());
 
         Paginator::useBootstrapFive();
+
+        // Standard columns of every business table (spec Section 4.1): `$table->farmScoped(); … $table->userStamps();`
+        Blueprint::macro('farmScoped', function () {
+            /** @var Blueprint $this */
+            return $this->foreignId('farm_id')->constrained()->restrictOnDelete();
+        });
+
+        Blueprint::macro('userStamps', function () {
+            /** @var Blueprint $this */
+            $this->foreignId('created_by')->nullable()->constrained('users')->restrictOnDelete();
+            $this->foreignId('updated_by')->nullable()->constrained('users')->restrictOnDelete();
+        });
 
         // Route-level limit on the login form per IP (per-account limit is in LoginRequest).
         RateLimiter::for('login', fn (Request $request) => Limit::perMinute(20)->by($request->ip()));

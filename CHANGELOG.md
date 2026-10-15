@@ -19,3 +19,7 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   (My Dairy Farm / MDF, owner linked); `BelongsToFarm` (farm global scope + auto `farm_id`) and `TracksUser`
   (`created_by` / `updated_by`) traits; `CurrentFarm` service; `EnsureFarmSelected` middleware (`farm`) on all app
   routes (403 when not linked, other farm's records 404); farm name / switcher in the top bar.
+- Phase 0 · Task 4: `sections` and `payment_modes` tables, models, factories and per-farm default seeding
+  (HERD, COLLECTION, DELIVERY, TRADING, OFFICE · CASH, UPI, BANK, CHEQUE, CARD); `document_sequences` table,
+  `DocumentType` enum and `DocumentNumberService` (BILL/2026-27/0001, locked, per farm and financial year);
+  `App\Support\FinancialYear`; Blueprint macros `farmScoped()` and `userStamps()`.
