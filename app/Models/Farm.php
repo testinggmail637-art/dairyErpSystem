@@ -4,6 +4,7 @@ namespace App\Models;
 
 use App\Models\Concerns\Auditable;
 use App\Models\Concerns\TracksUser;
+use App\Services\AppearanceService;
 use Database\Factories\FarmFactory;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -11,6 +12,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Support\Arr;
+use Illuminate\Support\Facades\Cache;
 
 /**
  * A farm (business unit). Not farm-scoped itself; every business table points to it via farm_id.
@@ -51,6 +53,12 @@ class Farm extends Model
     /**
      * @return array<string, string>
      */
+    protected static function booted(): void
+    {
+        // Name, address or appearance changed → rebuild the cached appearance (print header uses name/address).
+        static::saved(fn (Farm $farm) => Cache::forget(AppearanceService::cacheKey($farm)));
+    }
+
     protected function casts(): array
     {
         return [

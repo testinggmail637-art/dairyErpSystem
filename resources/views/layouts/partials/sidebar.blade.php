@@ -2,8 +2,13 @@
 <aside class="app-sidebar offcanvas-lg offcanvas-start" tabindex="-1" id="appSidebar" aria-labelledby="appSidebarLabel">
     <div class="app-sidebar-header">
         <a href="{{ route('home') }}" class="app-brand" id="appSidebarLabel">
-            <i class="bi bi-droplet-half"></i>
-            <span>{{ config('app.name') }}</span>
+            {{-- The sidebar is dark by default, so prefer the "dark" logo (falls back to the normal logo). --}}
+            @if ($appearance['logo_dark_path'])
+                <img src="{{ branding_url($appearance['logo_dark_path']) }}" alt="" class="app-brand-logo">
+            @else
+                <i class="bi bi-droplet-half"></i>
+            @endif
+            <span>{{ $appearance['app_name'] }}</span>
         </a>
         <button type="button" class="btn-close btn-close-white d-lg-none" data-bs-dismiss="offcanvas"
                 data-bs-target="#appSidebar" aria-label="{{ __('Close menu') }}"></button>

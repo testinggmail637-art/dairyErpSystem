@@ -47,8 +47,15 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   slow requests > 1000 ms, slow queries > 500 ms, slow jobs > 1000 ms, 7-day retention), Sentry wired into exception
   handling (inactive without `SENTRY_LARAVEL_DSN`, no personal data, 20 % tracing), Telescope for local development
   only; `docs/DEPLOYMENT.md` (Nginx, PHP-FPM, cron, Supervisor for `queue:work` and `pulse:check`, `.env` checklist).
+- Phase 0 · Task 12: appearance & branding — `AppearanceService` (defaults, 4 presets, cache per farm, CSS variables
+  incl. hover/active shades, readable text and dark-mode palette, contrast warnings), Settings → Appearance with live
+  preview, presets, reset, logo / dark logo / favicon / login background uploads (resized; SVG sanitized), sample PDF;
+  branded sidebar, browser title, favicon, login page and shared PDF layout; per-user theme in My profile;
+  self-hosted fonts (Inter, Roboto, Poppins, Noto Sans); `App.chartColors()`.
+
 
 ### Changed
+- `public/css/app.css` contains no colour values any more; buttons, badges and table density follow the appearance variables.
 - `/dashboard` requires `dashboard.view`; after login users go to `/` (`home`), which opens the dashboard or the first
   screen they are allowed to see.
 

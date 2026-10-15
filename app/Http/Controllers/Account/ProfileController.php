@@ -19,7 +19,10 @@ class ProfileController extends Controller
 
     public function update(UpdateProfileRequest $request): RedirectResponse
     {
-        $request->user()->update($request->validated());
+        $user = $request->user();
+        $preferences = array_replace((array) $user->preferences, ['theme_mode' => $request->validated('theme_mode')]);
+
+        $user->update(['name' => $request->validated('name'), 'preferences' => array_filter($preferences, fn ($v) => $v !== null)]);
 
         return back()->with('success', __('Profile updated.'));
     }

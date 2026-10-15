@@ -1,6 +1,7 @@
 <?php
 
 use App\Enums\RoleName;
+use App\Services\AppearanceService;
 use App\Support\Format;
 use Illuminate\Support\Str;
 
@@ -46,6 +47,14 @@ if (! function_exists('role_label')) {
     function role_label(string $name): string
     {
         return RoleName::tryFrom($name)?->label() ?? Str::headline($name);
+    }
+}
+
+if (! function_exists('branding_url')) {
+    /** Public URL of an uploaded logo / favicon / background (Settings → Appearance), or null. */
+    function branding_url(?string $path): ?string
+    {
+        return app(AppearanceService::class)->url($path);
     }
 }
 
