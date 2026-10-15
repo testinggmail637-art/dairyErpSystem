@@ -56,6 +56,7 @@ _Nothing yet — Phase 1 (Expense Management) is next._
   preview, presets, reset, logo / dark logo / favicon / login background uploads (resized; SVG sanitized), sample PDF;
   branded sidebar, browser title, favicon, login page and shared PDF layout; per-user theme in My profile;
   self-hosted fonts (Inter, Roboto, Poppins, Noto Sans); `App.chartColors()`.
+- Performance rules for large data in `CLAUDE.md` (owner requirement) and server tuning in `docs/DEPLOYMENT.md`.
 - Phase 0 · Task 13: `tests/Feature/Phase0AcceptanceTest.php` (every Phase 0 acceptance criterion end to end), Phase 0 log in
   `docs/PROGRESS.md`, README completed for Phase 0.
 

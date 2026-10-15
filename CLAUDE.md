@@ -110,6 +110,27 @@ Before every commit, quickly check: is PROGRESS ticked, is README still true, is
   Sentry for error alerts (inactive when `SENTRY_LARAVEL_DSN` is empty), Telescope in local only
   (spec Section 4.10). Pulse/Telescope disabled in tests.
 
+## Performance rules (owner's requirement — the site must stay fast with large data)
+
+The app will hold years of daily records (milk entries, collections, deliveries, bills, expenses) for many animals,
+farmers and customers. Every task must keep pages under Pulse's 1000 ms slow-request threshold with that volume.
+
+- **Never load a whole table.** Every list is paginated on the server (`paginate()` or server-side `<x-data-table>`,
+  25–100 rows). Large dropdowns (farmers, customers, animals, vendors) use Select2 remote search (`data-ajax-url`),
+  not a full `<option>` list.
+- **Indexes:** FKs, `(farm_id, <date>)` on every transaction table, plus composite indexes for the filters a screen
+  actually uses (e.g. `(farm_id, customer_id, date)`). Check the query plan (`EXPLAIN`) of every report/list query.
+- **No N+1 queries:** eager-load relations (`with()`); lazy loading already throws outside production. Feature tests
+  for list pages assert the query count stays flat as rows grow.
+- **Totals and reports are calculated in SQL** (`SUM`/`COUNT`/`GROUP BY`, date ranges on indexed columns), never by
+  loading rows into PHP collections. Select only the columns needed.
+- **Big jobs run in the background:** Excel/PDF exports of large ranges, imports (chunked, `chunkById`/`lazyById`),
+  bulk bill generation and other heavy work go through the `database` queue with progress/notification.
+- **Cache wisely:** dashboard cards and repeated lookups use short-lived cache keyed by farm and cleared on writes;
+  production runs `php artisan optimize`, OPcache on.
+- **Measure:** `DemoSeeder` creates a realistic year of data; before closing a phase, check its main screens and reports
+  against that data (Pulse / query log) and fix anything slow.
+
 ## Commands
 
 ```bash
