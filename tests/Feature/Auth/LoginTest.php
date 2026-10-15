@@ -53,6 +53,45 @@ it('blocks inactive users even with the right password', function () {
     $this->assertGuest();
 });
 
+it('does not touch last_login_at when login fails or the user is inactive', function () {
+    $active = User::factory()->forFarm()->create(['email' => 'ram@example.com']);
+    $inactive = User::factory()->forFarm()->inactive()->create(['email' => 'sita@example.com']);
+
+    $this->post(route('login.store'), ['login' => 'ram@example.com', 'password' => 'wrong']);
+    $this->post(route('login.store'), ['login' => 'sita@example.com', 'password' => 'password']);
+
+    expect($active->fresh()->last_login_at)->toBeNull()
+        ->and($inactive->fresh()->last_login_at)->toBeNull();
+});
+
+it('remembers the login when asked', function () {
+    User::factory()->forFarm()->create(['email' => 'ram@example.com']);
+
+    $response = $this->post(route('login.store'), ['login' => 'ram@example.com', 'password' => 'password', 'remember' => '1']);
+
+    $response->assertCookie(auth()->guard('web')->getRecallerName());
+});
+
+it('signs out a user who is deactivated while logged in', function () {
+    $user = User::factory()->forFarm()->create();
+
+    $this->actingAs($user)->get(route('profile.edit'))->assertOk();
+
+    $user->update(['is_active' => false]);
+
+    $this->actingAs($user->fresh())->get(route('profile.edit'))
+        ->assertRedirect(route('login'))
+        ->assertSessionHasErrors(['login' => __('Your account is inactive. Please contact the owner.')]);
+
+    $this->assertGuest();
+});
+
+it('answers 401 to AJAX requests from a deactivated user', function () {
+    $user = User::factory()->forFarm()->inactive()->create();
+
+    $this->actingAs($user)->getJson(route('profile.edit'))->assertUnauthorized();
+});
+
 it('locks the account after too many failed attempts', function () {
     $user = User::factory()->forFarm()->create(['email' => 'ram@example.com']);
 
