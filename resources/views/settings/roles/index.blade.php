@@ -38,12 +38,9 @@
                                 <span class="d-none d-sm-inline">{{ $locked ? __('View') : __('Edit') }}</span>
                             </a>
                             @unless ($locked || $role->users_count > 0)
-                                <form method="POST" action="{{ route('roles.destroy', $role) }}" class="d-inline"
-                                      data-confirm="{{ __('Delete the role :name?', ['name' => role_label($role->name)]) }}" data-confirm-reason>
-                                    @csrf
-                                    @method('DELETE')
-                                    <button type="submit" class="btn btn-outline-danger btn-sm"><i class="bi bi-trash"></i></button>
-                                </form>
+                                <x-confirm-form :action="route('roles.destroy', $role)" reason
+                                                :message="__('Delete the role :name?', ['name' => role_label($role->name)])" />
+
                             @endunless
                         </td>
                     </tr>

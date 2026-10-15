@@ -39,6 +39,10 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - Phase 0 · Task 9: daily backups with `spatie/laravel-backup` — database + uploads at 02:00 IST, kept 14 days
   (cleanup 02:30, health check 03:00) on the `backups` disk; owners get a bell notification when a backup fails or is
   too old (no email); `DB_DUMP_BINARY_PATH` + `mysqldump` fallback for XAMPP MariaDB; `docs/BACKUP_RESTORE.md`.
+- Phase 0 · Task 10: common Blade components — `x-form.input`, `textarea`, `select` (Select2, remote search), `money`
+  (live ₹ preview), `quantity`, `date` (DD-MM-YYYY), `switch`, `reason`, `group`; `x-confirm-form` (confirm with optional
+  reason), `x-data-table` (server-side or client-side DataTables), `x-money`; `App.reloadTable()`; Users, Roles and
+  Sections/Payment Modes forms now use them.
 
 ### Changed
 - `/dashboard` requires `dashboard.view`; after login users go to `/` (`home`), which opens the dashboard or the first

@@ -8,10 +8,10 @@
 | Item | Value |
 |---|---|
 | Current phase | Phase 0 — Foundation (🟡 in progress) |
-| Last completed task | 0.9 — Daily backups (02:00 IST, 14 days, DB + uploads), failure alerts in the bell, docs/BACKUP_RESTORE.md |
-| Next task | 0.10 — Common Blade components (fields, money, date, Select2, DataTable, confirm-with-reason) |
-| Overall progress | 9 / 88 tasks (10%) |
-| Tests passing | 149 |
+| Last completed task | 0.10 — Common Blade components (form fields, money, quantity, date, select/Select2, switch, reason, confirm form, data table, money display) |
+| Next task | 0.11 — Monitoring: Pulse (/pulse owner only), Sentry (DSN-gated), Telescope (local), docs/DEPLOYMENT.md |
+| Overall progress | 10 / 88 tasks (11%) |
+| Tests passing | 162 |
 | Last updated (IST) | 2026-10-15 |
 
 ## Phase overview
@@ -44,7 +44,7 @@ Status legend: ⬜ Not started · 🟡 In progress · ✅ Done · ⏸ On hold
 - [x] 0.7 Users CRUD, roles & permission matrix, farm settings, sections & payment modes CRUD
 - [x] 0.8 Activity log + audit log screen + reason capture
 - [x] 0.9 Backups (daily 02:00, 14 days) + `docs/BACKUP_RESTORE.md`
-- [ ] 0.10 Common Blade components (fields, money, date, Select2, DataTable, confirm-with-reason)
+- [x] 0.10 Common Blade components (fields, money, date, Select2, DataTable, confirm-with-reason)
 - [ ] 0.11 Monitoring: Pulse (`/pulse` owner only), Sentry (DSN-gated), Telescope (local), `docs/DEPLOYMENT.md`
 - [ ] 0.12 Appearance & branding: AppearanceService, CSS variables, Settings → Appearance with live preview, presets, uploads, user theme
 - [ ] 0.13 Phase 0 acceptance tests pass + README/CHANGELOG updated

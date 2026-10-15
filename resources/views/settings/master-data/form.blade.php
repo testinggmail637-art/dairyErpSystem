@@ -19,27 +19,12 @@
                     @csrf
                     @if ($row->exists) @method('PUT') @endif
 
-                    <div class="mb-3">
-                        <label for="name" class="form-label">{{ __('Name') }} <span class="text-danger">*</span></label>
-                        <input type="text" id="name" name="name" value="{{ old('name', $row->name) }}" maxlength="100"
-                               class="form-control @error('name') is-invalid @enderror" required>
-                        @error('name')<div class="invalid-feedback">{{ $message }}</div>@enderror
-                    </div>
+                    <x-form.input name="name" :label="__('Name')" :value="$row->name" maxlength="100" required />
 
-                    <div class="mb-3">
-                        <label for="code" class="form-label">{{ __('Code') }} <span class="text-danger">*</span></label>
-                        <input type="text" id="code" name="code" value="{{ old('code', $row->code) }}" maxlength="20"
-                               class="form-control text-uppercase app-input-narrow @error('code') is-invalid @enderror" required>
-                        @error('code')<div class="invalid-feedback">{{ $message }}</div>@enderror
-                        <div class="form-text">{{ __('Short unique code, e.g. UPI or HERD.') }}</div>
-                    </div>
+                    <x-form.input name="code" :label="__('Code')" :value="$row->code" maxlength="20" required
+                                  class="text-uppercase app-input-narrow" :help="__('Short unique code, e.g. UPI or HERD.')" />
 
-                    <div class="form-check form-switch mb-3">
-                        <input type="hidden" name="is_active" value="0">
-                        <input class="form-check-input" type="checkbox" role="switch" id="is_active" name="is_active" value="1"
-                               @checked(old('is_active', $row->is_active))>
-                        <label class="form-check-label" for="is_active">{{ __('Active') }}</label>
-                    </div>
+                    <x-form.switch name="is_active" :label="__('Active')" :checked="$row->is_active" />
 
                     <div class="d-flex gap-2">
                         <button type="submit" class="btn btn-primary"><i class="bi bi-check2 me-1"></i>{{ __('Save') }}</button>

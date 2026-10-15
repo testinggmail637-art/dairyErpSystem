@@ -75,13 +75,24 @@
                 const $el = $(this);
                 if ($el.hasClass('select2-hidden-accessible')) return;
                 const $modal = $el.closest('.modal');
-                $el.select2({
+                const options = {
                     theme: 'bootstrap-5',
                     width: '100%',
                     allowClear: !$el.prop('required'),
                     placeholder: $el.data('placeholder') || '',
                     dropdownParent: $modal.length ? $modal : $(document.body),
-                });
+                };
+                // data-ajax-url: search on the server; endpoint gets ?q=…&page=… and returns {results: [{id, text}], pagination: {more}}.
+                if ($el.data('ajaxUrl')) {
+                    options.minimumInputLength = 1;
+                    options.ajax = {
+                        url: $el.data('ajaxUrl'),
+                        dataType: 'json',
+                        delay: 250,
+                        data: (params) => ({ q: params.term, page: params.page || 1 }),
+                    };
+                }
+                $el.select2(options);
             });
         }
 
@@ -102,6 +113,48 @@
         $root.find('input[data-client-uuid]').each(function () {
             if (!this.value) this.value = App.uuid();
         });
+
+        // <x-form.money>: live "₹1,25,000.00" preview under the field (display only; the raw value is submitted).
+        $root.find('input[data-money]').each(function () {
+            const $input = $(this);
+            if ($input.data('moneyReady')) return;
+            $input.data('moneyReady', true);
+
+            const $preview = $('<div class="form-text text-money app-money-preview" aria-live="polite"></div>');
+            $input.closest('.input-group').length ? $input.closest('.input-group').after($preview) : $input.after($preview);
+
+            const update = () => {
+                const raw = String($input.val() || '').trim();
+                $preview.text(/^-?\d*(\.\d+)?$/.test(raw) && raw !== '' && raw !== '-' ? App.formatMoney(raw) : '');
+            };
+            $input.on('input', update);
+            update();
+        });
+
+        // <x-data-table>: server-side when data-url is set, otherwise client-side over the existing rows.
+        if ($.fn.dataTable) {
+            $root.find('table.js-datatable').each(function () {
+                if ($.fn.dataTable.isDataTable(this)) return;
+                const $table = $(this);
+                const options = {
+                    columns: $table.data('columns') || undefined,
+                    order: $table.data('order') || [],
+                };
+                if ($table.data('pageLength')) options.pageLength = $table.data('pageLength');
+                if ($table.data('url')) {
+                    options.serverSide = true;
+                    options.ajax = { url: $table.data('url') };
+                }
+                $table.DataTable(options);
+            });
+        }
+    };
+
+    /** Reload a server-side <x-data-table> after an AJAX change: App.reloadTable('#expenses-table'). */
+    App.reloadTable = function (selector) {
+        if ($.fn.dataTable && $.fn.dataTable.isDataTable(selector)) {
+            $(selector).DataTable().ajax.reload(null, false);
+        }
     };
 
     /* ---------- DataTables defaults ---------- */
