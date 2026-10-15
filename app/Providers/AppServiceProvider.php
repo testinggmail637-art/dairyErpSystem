@@ -2,6 +2,7 @@
 
 namespace App\Providers;
 
+use App\Models\User;
 use App\Support\AuditReason;
 use App\Support\CurrentFarm;
 use App\Support\Menu;
@@ -10,6 +11,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Http\Request;
 use Illuminate\Pagination\Paginator;
+use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\Facades\View;
 use Illuminate\Support\ServiceProvider;
@@ -24,6 +26,12 @@ class AppServiceProvider extends ServiceProvider
         // One instance per request (scoped, so queue workers start fresh for each job).
         $this->app->scoped(CurrentFarm::class);
         $this->app->scoped(AuditReason::class);
+
+        // Telescope: local only, registered by hand (it is in composer.json "dont-discover"; dev dependency).
+        if ($this->app->environment('local') && class_exists(\Laravel\Telescope\TelescopeServiceProvider::class)) {
+            $this->app->register(\Laravel\Telescope\TelescopeServiceProvider::class);
+            $this->app->register(TelescopeServiceProvider::class);
+        }
     }
 
     public function boot(): void
@@ -52,6 +60,9 @@ class AppServiceProvider extends ServiceProvider
             $this->foreignId('created_by')->nullable()->constrained('users')->restrictOnDelete();
             $this->foreignId('updated_by')->nullable()->constrained('users')->restrictOnDelete();
         });
+
+        // /pulse (System Monitor): only users with monitoring.view — the owner by default (spec 4.10).
+        Gate::define('viewPulse', fn (User $user) => $user->can('monitoring.view'));
 
         // Route-level limit on the login form per IP (per-account limit is in LoginRequest).
         RateLimiter::for('login', fn (Request $request) => Limit::perMinute(20)->by($request->ip()));
