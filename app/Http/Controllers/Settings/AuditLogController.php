@@ -8,6 +8,7 @@ use App\Models\Activity;
 use App\Models\User;
 use App\Support\CurrentFarm;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Http\Response;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
 use Illuminate\View\View;
@@ -18,7 +19,7 @@ use Illuminate\View\View;
  */
 class AuditLogController extends Controller
 {
-    public function index(AuditLogIndexRequest $request, CurrentFarm $currentFarm): View
+    public function index(AuditLogIndexRequest $request, CurrentFarm $currentFarm): View|Response
     {
         $filters = $request->validated();
         $timezone = config('app.timezone');
@@ -41,7 +42,7 @@ class AuditLogController extends Controller
             ->simplePaginate(50) // no COUNT(*) over the ever-growing log; Previous / Next is enough here
             ->withQueryString();
 
-        return view('settings.audit-logs.index', [
+        return $this->listView($request, 'settings.audit-logs.index', [
             'activities' => $activities,
             'filters' => $filters,
             // Filter lists come from small tables / a fixed list — never from scanning the (very large) activity log.

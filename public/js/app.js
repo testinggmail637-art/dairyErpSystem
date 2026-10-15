@@ -186,6 +186,108 @@
         });
     }
 
+    /* ---------- AJAX lists: filter / search / paginate without reloading the page ----------
+     * <form method="GET" data-ajax-list="#results"> + <div id="results" data-ajax-results> around the
+     * @fragment('results') of the view. The controller returns only that fragment when it sees X-Ajax-List.
+     * The URL is kept in sync (history.pushState, empty filters dropped) so refresh, Back and shared links work.
+     */
+    App.ajaxList = (function () {
+        let pending = null;
+
+        /** "?a=1&b=&c=x" → "?a=1&c=x" (and no "page" when filters change). */
+        function cleanUrl(action, params, keepPage) {
+            const url = new URL(action, window.location.href);
+            const query = new URLSearchParams();
+            params.forEach(([key, value]) => {
+                if (String(value).trim() !== '' && (keepPage || key !== 'page')) query.append(key, value);
+            });
+            url.search = query.toString();
+            return url.toString();
+        }
+
+        function load(target, url, push = true) {
+            const $target = $(target);
+            if (!$target.length) {
+                window.location.href = url;
+                return;
+            }
+            if (pending) pending.abort();
+            $target.addClass('app-loading').attr('aria-busy', 'true');
+
+            pending = $.ajax({ url: url, headers: { 'X-Ajax-List': '1', Accept: 'text/html' }, dataType: 'html' })
+                .done(function (html, _status, xhr) {
+                    // A redirect (e.g. invalid filter) cannot be shown as a fragment: let the browser follow it.
+                    if (xhr.getResponseHeader('X-Ajax-List-Fragment') !== '1') {
+                        window.location.href = url;
+                        return;
+                    }
+                    $target.html(html);
+                    App.initWidgets($target);
+                    if (push) history.pushState({ ajaxList: target }, '', url);
+                })
+                .fail(function (xhr) {
+                    if (xhr.statusText !== 'abort') window.location.href = url;
+                })
+                .always(function () {
+                    $target.removeClass('app-loading').removeAttr('aria-busy');
+                });
+        }
+
+        function submit(form, keepPage) {
+            const params = $(form).serializeArray().map((f) => [f.name, f.value]);
+            load($(form).data('ajaxList'), cleanUrl(form.action, params, keepPage));
+        }
+
+        $(document).on('submit', 'form[data-ajax-list]', function (e) {
+            e.preventDefault();
+            submit(this, false);
+        });
+
+        // Selects and dates filter straight away; search boxes after a short pause while typing.
+        let typingTimer = null;
+        $(document).on('change', 'form[data-ajax-list] select, form[data-ajax-list] input.js-date', function () {
+            submit(this.form, false);
+        });
+        $(document).on('input', 'form[data-ajax-list] input[type="search"]', function () {
+            const form = this.form;
+            clearTimeout(typingTimer);
+            typingTimer = setTimeout(() => submit(form, false), 400);
+        });
+
+        $(document).on('click', 'form[data-ajax-list] [data-ajax-clear]', function (e) {
+            e.preventDefault();
+            const form = $(this).closest('form')[0];
+            form.reset();
+            $(form).find('input:not([type=hidden]):not([type=submit]), select').val('').trigger('change.select2');
+            $(form).find('input.js-date').each(function () {
+                if (this._flatpickr) this._flatpickr.clear(false);
+            });
+            load($(form).data('ajaxList'), this.href);
+        });
+
+        $(document).on('click', '[data-ajax-results] .pagination a', function (e) {
+            e.preventDefault();
+            const target = '#' + $(this).closest('[data-ajax-results]').attr('id');
+            load(target, this.href);
+            const top = $(target).offset();
+            if (top && top.top < window.scrollY) window.scrollTo({ top: Math.max(0, top.top - 80), behavior: 'smooth' });
+        });
+
+        window.addEventListener('popstate', function (event) {
+            if (event.state && event.state.ajaxList) {
+                load(event.state.ajaxList, window.location.href, false);
+            }
+        });
+
+        // Remember the first page too, so Back from a filtered list returns to it.
+        $(function () {
+            const $list = $('form[data-ajax-list]').first();
+            if ($list.length) history.replaceState({ ajaxList: $list.data('ajaxList') }, '', window.location.href);
+        });
+
+        return { load: load };
+    })();
+
     /* ---------- Boot ---------- */
     $(function () {
         App.initWidgets(document);

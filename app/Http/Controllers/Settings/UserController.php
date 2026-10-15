@@ -11,6 +11,7 @@ use App\Services\UserService;
 use App\Support\CurrentFarm;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Http\Response;
 use Illuminate\View\View;
 
 /**
@@ -23,7 +24,7 @@ class UserController extends Controller
         private readonly CurrentFarm $currentFarm,
     ) {}
 
-    public function index(Request $request): View
+    public function index(Request $request): View|Response
     {
         $search = trim((string) $request->query('search'));
         $role = (string) $request->query('role');
@@ -43,7 +44,7 @@ class UserController extends Controller
             ->paginate(25)
             ->withQueryString();
 
-        return view('settings.users.index', [
+        return $this->listView($request, 'settings.users.index', [
             'users' => $users,
             'roles' => $this->roleOptions(),
             'filters' => compact('search', 'role', 'status'),

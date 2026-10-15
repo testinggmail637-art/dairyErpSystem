@@ -7,6 +7,7 @@ use App\Http\Requests\Settings\MasterDataRequest;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Http\Response;
 use Illuminate\View\View;
 
 /**
@@ -24,7 +25,7 @@ abstract class MasterDataController extends Controller
     /** @return array{plural: string, singular: string, icon: string} */
     abstract protected function labels(): array;
 
-    public function index(Request $request): View
+    public function index(Request $request): View|Response
     {
         $search = trim((string) $request->query('search'));
 
@@ -37,7 +38,7 @@ abstract class MasterDataController extends Controller
             ->paginate(50)
             ->withQueryString();
 
-        return view('settings.master-data.index', $this->viewData(['rows' => $rows, 'search' => $search]));
+        return $this->listView($request, 'settings.master-data.index', $this->viewData(['rows' => $rows, 'search' => $search]));
     }
 
     public function create(): View

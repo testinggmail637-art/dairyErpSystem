@@ -151,7 +151,7 @@ php artisan test        # uses dairy_erp_test (MySQL), never the main DB
 ./vendor/bin/pint
 ```
 
-Current: 193 tests passing (end of Phase 0).
+Current: 199 tests passing (end of Phase 0).
 
 ---
 

@@ -9,7 +9,7 @@
 @section('content')
 <div class="card">
     <div class="card-body border-bottom">
-        <form method="GET" action="{{ route('users.index') }}" class="row g-2 align-items-end" data-allow-resubmit>
+        <form method="GET" action="{{ route('users.index') }}" class="row g-2 align-items-end" data-allow-resubmit data-ajax-list="#users-results">
             <div class="col-12 col-md-5">
                 <label for="search" class="form-label small mb-1">{{ __('Search') }}</label>
                 <input type="search" id="search" name="search" value="{{ $filters['search'] }}" class="form-control form-control-sm"
@@ -34,11 +34,13 @@
             </div>
             <div class="col-12 col-md-2 d-flex gap-2">
                 <button type="submit" class="btn btn-outline-primary btn-sm flex-grow-1"><i class="bi bi-funnel me-1"></i>{{ __('Filter') }}</button>
-                <a href="{{ route('users.index') }}" class="btn btn-link btn-sm">{{ __('Clear') }}</a>
+                <a href="{{ route('users.index') }}" class="btn btn-link btn-sm" data-ajax-clear>{{ __('Clear') }}</a>
             </div>
         </form>
     </div>
 
+    <div id="users-results" data-ajax-results>
+    @fragment('results')
     <div class="table-responsive">
         <table class="table table-hover align-middle mb-0">
             <thead>
@@ -89,7 +91,8 @@
             </tbody>
         </table>
     </div>
+    @if ($users->hasPages())<div class="card-footer">{{ $users->links() }}</div>@endif
+    @endfragment
+    </div>
 </div>
-
-<div class="mt-3">{{ $users->links() }}</div>
 @endsection
