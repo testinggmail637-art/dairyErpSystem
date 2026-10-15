@@ -8,10 +8,10 @@
 | Item | Value |
 |---|---|
 | Current phase | Phase 0 — Foundation (🟡 in progress) |
-| Last completed task | 0.1 — Laravel setup, MariaDB/MySQL, Pest, vendor libraries, hand-built login |
-| Next task | 0.2 — Base layout (sidebar, top bar, flash messages, Indian number/date helpers) |
-| Overall progress | 1 / 88 tasks (1%) |
-| Tests passing | 18 |
+| Last completed task | 0.2 — Base layout, sidebar menu, top bar (bell + user menu), flash messages, profile, Indian formatting |
+| Next task | 0.3 — Money helper, Enums, BelongsToFarm + TracksUser traits, CurrentFarm, EnsureFarmSelected |
+| Overall progress | 2 / 88 tasks (2%) |
+| Tests passing | 57 |
 | Last updated (IST) | 2026-10-15 |
 
 ## Phase overview
@@ -36,7 +36,7 @@ Status legend: ⬜ Not started · 🟡 In progress · ✅ Done · ⏸ On hold
 
 ### Checklist
 - [x] 0.1 Laravel project, MySQL (app + `dairy_erp_test`), Pest, Pint, remove Vite/npm, `public/vendor/` libraries, hand-built login
-- [ ] 0.2 Base layout: sidebar (permission-filtered), top bar, flash messages, responsive, Indian number/date helpers
+- [x] 0.2 Base layout: sidebar (permission-filtered), top bar, flash messages, responsive, Indian number/date helpers
 - [ ] 0.3 Money helper, Enums, BelongsToFarm + TracksUser traits, CurrentFarm, EnsureFarmSelected middleware
 - [ ] 0.4 farms, farm_user, sections, payment_modes, document_sequences (migrations, models, seeders)
 - [ ] 0.5 Spatie permissions + roles seeder, owner user from env

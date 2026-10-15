@@ -35,14 +35,18 @@
 
         let [intPart, decPart = ''] = str.split('.');
 
-        intPart = intPart.replace(/^0+(?=\d)/, '') || '0';
-        decPart = (decPart + '00').slice(0, 2);
+        // Round half up to 2 decimals with BigInt (same result as the PHP side, no float errors).
+        const thousandths = BigInt((intPart || '0') + (decPart + '000').slice(0, 3));
+        const cents = ((thousandths + 5n) / 10n).toString().padStart(3, '0');
+        intPart = cents.slice(0, -2).replace(/^0+(?=\d)/, '') || '0';
+        decPart = cents.slice(-2);
+        const isZero = /^0+$/.test(intPart + decPart);
 
         const last3 = intPart.slice(-3);
         const rest = intPart.slice(0, -3);
         const grouped = rest ? rest.replace(/\B(?=(\d{2})+(?!\d))/g, ',') + ',' + last3 : last3;
 
-        return (negative ? '-' : '') + (withSymbol ? '₹' : '') + grouped + '.' + decPart;
+        return (negative && !isZero ? '-' : '') + (withSymbol ? '₹' : '') + grouped + '.' + decPart;
     };
 
     /** 'YYYY-MM-DD' → 'DD-MM-YYYY' (display format everywhere). */

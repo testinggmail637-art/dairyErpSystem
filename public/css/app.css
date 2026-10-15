@@ -17,6 +17,7 @@
 
     --app-primary-hover: #185848;
     --app-primary-active: #134739;
+    --app-on-primary: #FFFFFF;
     --sidebar-bg: #12332B;
     --sidebar-text: #FFFFFF;
     --topbar-bg: #FFFFFF;
@@ -61,6 +62,173 @@ body {
 .form-check-input:checked {
     background-color: var(--bs-primary);
     border-color: var(--bs-primary);
+}
+
+/* ---------- App shell: sidebar + top bar ---------- */
+.app-sidebar {
+    --bs-offcanvas-width: var(--sidebar-width);
+    --bs-offcanvas-bg: var(--sidebar-bg);
+    --bs-offcanvas-color: var(--sidebar-text);
+    background-color: var(--sidebar-bg);
+    color: var(--sidebar-text);
+    display: flex;
+    flex-direction: column;
+}
+
+@media (min-width: 992px) {
+    .app-sidebar {
+        position: fixed;
+        inset: 0 auto 0 0;
+        width: var(--sidebar-width);
+        z-index: 1030;
+    }
+
+    .app-main {
+        margin-left: var(--sidebar-width);
+    }
+}
+
+.app-sidebar-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    height: var(--topbar-height);
+    padding: 0 1rem;
+    border-bottom: 1px solid color-mix(in srgb, var(--sidebar-text) 12%, transparent);
+    flex-shrink: 0;
+}
+
+.app-brand {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    color: var(--sidebar-text);
+    font-weight: 600;
+    font-size: 1.1rem;
+    text-decoration: none;
+    min-width: 0;
+}
+
+.app-brand span {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.app-brand:hover {
+    color: var(--sidebar-text);
+}
+
+.app-sidebar-nav {
+    flex: 1;
+    overflow-y: auto;
+    padding: 0.75rem 0.5rem;
+}
+
+.app-sidebar-nav .nav-link {
+    display: flex;
+    align-items: center;
+    gap: 0.65rem;
+    width: 100%;
+    padding: 0.55rem 0.75rem;
+    margin-bottom: 2px;
+    border: 0;
+    border-radius: var(--bs-border-radius);
+    background: transparent;
+    color: var(--sidebar-text);
+    opacity: 0.85;
+    text-align: left;
+}
+
+.app-sidebar-nav .nav-link:hover,
+.app-sidebar-nav .nav-link:focus-visible {
+    opacity: 1;
+    background-color: color-mix(in srgb, var(--sidebar-text) 10%, transparent);
+}
+
+.app-sidebar-nav .nav-link.active {
+    opacity: 1;
+    background-color: var(--bs-primary);
+    color: var(--app-on-primary);
+}
+
+.app-sidebar-nav .nav-link .bi {
+    font-size: 1.05rem;
+    flex-shrink: 0;
+}
+
+.app-nav-caret {
+    margin-left: auto;
+    font-size: 0.75rem !important;
+    transition: transform 0.2s ease;
+}
+
+.app-nav-group.collapsed .app-nav-caret {
+    transform: rotate(-90deg);
+}
+
+.app-sidebar-nav .app-nav-sub {
+    padding-left: 2.6rem;
+    font-size: 0.95em;
+}
+
+.app-nav-empty {
+    padding: 0.75rem;
+    font-size: 0.85em;
+    opacity: 0.6;
+}
+
+.app-topbar {
+    position: sticky;
+    top: 0;
+    z-index: 1020;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    height: var(--topbar-height);
+    padding: 0 1rem;
+    background-color: var(--topbar-bg);
+    border-bottom: 1px solid var(--bs-border-color);
+}
+
+.app-topbar-icon,
+.app-topbar-user {
+    color: var(--bs-body-color);
+    text-decoration: none;
+    padding: 0.375rem 0.6rem;
+}
+
+.app-topbar-icon .bi {
+    font-size: 1.3rem;
+}
+
+.app-topbar-user .bi {
+    font-size: 1.2rem;
+    margin-right: 0.25rem;
+}
+
+.app-badge-count {
+    font-size: 0.65rem;
+}
+
+.app-notification-menu {
+    width: min(360px, calc(100vw - 2rem));
+}
+
+.app-notification-menu .dropdown-item {
+    white-space: normal;
+}
+
+.app-content {
+    padding-top: 1.25rem;
+    padding-bottom: 2rem;
+}
+
+@media (max-width: 575.98px) {
+    .app-content {
+        padding-left: 0.75rem;
+        padding-right: 0.75rem;
+    }
 }
 
 /* ---------- Login page ---------- */

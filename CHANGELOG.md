@@ -11,3 +11,6 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   Vite/npm removed; Bootstrap 5, Bootstrap Icons, jQuery, Select2, Flatpickr, DataTables, Chart.js, SweetAlert2
   in `public/vendor/` (see `public/vendor/VERSIONS.md`); `public/css/app.css`, `public/js/app.js`, `asset_v()` helper;
   hand-built login by email or phone with rate limiting and inactive-user block; owner user seeder.
+- Phase 0 · Task 2: app layout with permission-filtered sidebar (`config/menu.php`, off-canvas on mobile), top bar
+  with notifications bell and user menu, flash messages, own profile page (name, change password), notifications list,
+  Indian money/quantity/date formatting (`App\Support\Format`, `inr()`, `fmt_date()`, …).
