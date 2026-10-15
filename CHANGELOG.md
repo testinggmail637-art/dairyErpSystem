@@ -72,3 +72,5 @@ _Nothing yet — Phase 1 (Expense Management) is next._
 - `/pulse` crashed with "Table pulse_aggregates doesn't exist" (Pulse migrations were not published yet).
 - Current farm could carry over between requests in long-running processes; it is now resolved per request.
 - Logging in as another user in the same browser could 403 on the first page (previous user's farm kept in the session).
+- Audit log was very slow with large data (16–47 s at 200 000 entries): filter lists no longer scan the log, new composite indexes with index hints, Previous/Next paging; now under 1 s.
+- The user's farms were loaded twice on every page.

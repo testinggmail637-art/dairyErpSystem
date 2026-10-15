@@ -10,6 +10,13 @@ use Spatie\Activitylog\Models\Activity as BaseActivity;
  */
 class Activity extends BaseActivity
 {
+    /** Models using the Auditable trait — the audit screen's "Record type" filter. Add each new audited model here. */
+    public const AUDITED_MODELS = [
+        User::class,
+        Role::class,
+        Farm::class,
+    ];
+
     protected static function booted(): void
     {
         static::creating(function (Activity $activity) {
