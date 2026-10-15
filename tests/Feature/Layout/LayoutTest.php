@@ -4,7 +4,7 @@ use App\Models\User;
 use Illuminate\Support\Facades\Gate;
 
 it('renders the app layout for a logged-in user', function () {
-    $user = User::factory()->create(['name' => 'Ramesh Kumar']);
+    $user = User::factory()->forFarm()->create(['name' => 'Ramesh Kumar']);
 
     $this->actingAs($user)->get(route('dashboard'))
         ->assertOk()
@@ -16,7 +16,7 @@ it('renders the app layout for a logged-in user', function () {
 });
 
 it('shows only menu items the user is allowed to see', function () {
-    $user = User::factory()->create();
+    $user = User::factory()->forFarm()->create();
 
     // No permissions: Dashboard is hidden.
     $this->actingAs($user)->get(route('profile.edit'))
@@ -33,19 +33,19 @@ it('shows only menu items the user is allowed to see', function () {
 it('hides menu items whose module is not built yet even when permitted', function () {
     Gate::define('expenses.view', fn () => true);
 
-    $this->actingAs(User::factory()->create())->get(route('profile.edit'))
+    $this->actingAs(User::factory()->forFarm()->create())->get(route('profile.edit'))
         ->assertDontSee('>Expenses<', false);
 });
 
 it('marks the current page as active', function () {
     Gate::define('dashboard.view', fn () => true);
 
-    $this->actingAs(User::factory()->create())->get(route('dashboard'))
+    $this->actingAs(User::factory()->forFarm()->create())->get(route('dashboard'))
         ->assertSee('aria-current="page"', false);
 });
 
 it('shows flash messages', function () {
-    $this->actingAs(User::factory()->create())
+    $this->actingAs(User::factory()->forFarm()->create())
         ->withSession(['success' => 'Expense saved.', 'warning' => 'Stock is low.'])
         ->get(route('dashboard'))
         ->assertSee('Expense saved.')

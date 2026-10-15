@@ -4,8 +4,7 @@
         <i class="bi bi-list"></i>
     </button>
 
-    {{-- Farm name / switcher: added in Phase 0 · Task 4 (switcher only when the user has more than one farm). --}}
-    @stack('topbar-farm')
+    @include('layouts.partials.farm-switcher')
 
     <div class="ms-auto d-flex align-items-center gap-1">
         {{-- Notifications --}}

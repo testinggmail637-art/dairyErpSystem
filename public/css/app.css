@@ -192,6 +192,7 @@ body {
 }
 
 .app-topbar-icon,
+.app-topbar-farm,
 .app-topbar-user {
     color: var(--bs-body-color);
     text-decoration: none;
@@ -202,6 +203,11 @@ body {
     font-size: 1.3rem;
 }
 
+.app-topbar-farm {
+    font-weight: 600;
+}
+
+.app-topbar-farm .bi,
 .app-topbar-user .bi {
     font-size: 1.2rem;
     margin-right: 0.25rem;

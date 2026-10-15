@@ -68,7 +68,7 @@ _TODO: for each module, list the working features in plain language once its pha
 ## Installation (local)
 
 ```bash
-git clone _TODO_repo_url_ dairy-erp && cd dairy-erp
+git clone https://github.com/testinggmail637-art/dairyErpSystem.git dairy-erp && cd dairy-erp   # private repo
 composer install
 cp .env.example .env && php artisan key:generate
 # create databases: dairy_erp and dairy_erp_test
