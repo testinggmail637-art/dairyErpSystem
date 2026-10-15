@@ -136,9 +136,9 @@ _More jobs (delivery sheet generation, reminders) are added in later phases._ Re
 
 | Tool | URL / where | Who |
 |---|---|---|
-| Laravel Pulse | `/pulse` | Owner only (`monitoring.view`) |
-| Sentry | sentry.io project (if DSN set) | Owner/developer |
-| Telescope | `/telescope` | Local development only |
+| Laravel Pulse | `/pulse` (Settings → System Monitor) | Owner only (`monitoring.view`); admin/staff get 403. Slow requests > 1000 ms, slow queries > 500 ms, exceptions, queues, users, server stats (needs `php artisan pulse:check` running); 7 days of data |
+| Sentry | sentry.io project | Active only when `SENTRY_LARAVEL_DSN` is set; no personal data sent; 20 % tracing |
+| Telescope | `/telescope` | Local development only (`APP_ENV=local`); never installed in production (`composer install --no-dev`) |
 
 ---
 
@@ -149,7 +149,7 @@ php artisan test        # uses dairy_erp_test (MySQL), never the main DB
 ./vendor/bin/pint
 ```
 
-Current: 57 tests passing (Phase 0 · Task 2).
+Current: 167 tests passing (Phase 0 · Task 11).
 
 ---
 

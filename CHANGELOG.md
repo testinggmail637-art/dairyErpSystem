@@ -43,6 +43,10 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   (live ₹ preview), `quantity`, `date` (DD-MM-YYYY), `switch`, `reason`, `group`; `x-confirm-form` (confirm with optional
   reason), `x-data-table` (server-side or client-side DataTables), `x-money`; `App.reloadTable()`; Users, Roles and
   Sections/Payment Modes forms now use them.
+- Phase 0 · Task 11: monitoring — Laravel Pulse at `/pulse` (Settings → System Monitor, `monitoring.view` only;
+  slow requests > 1000 ms, slow queries > 500 ms, slow jobs > 1000 ms, 7-day retention), Sentry wired into exception
+  handling (inactive without `SENTRY_LARAVEL_DSN`, no personal data, 20 % tracing), Telescope for local development
+  only; `docs/DEPLOYMENT.md` (Nginx, PHP-FPM, cron, Supervisor for `queue:work` and `pulse:check`, `.env` checklist).
 
 ### Changed
 - `/dashboard` requires `dashboard.view`; after login users go to `/` (`home`), which opens the dashboard or the first
@@ -51,3 +55,4 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 ### Fixed
 - Sidebar invisible on desktop (Bootstrap `.offcanvas-lg` forced a transparent background from 992px up).
 - Sidebar groups (e.g. Settings) opened with a jumpy sideways animation (collapse moved off the flex `.nav` list).
+- `/pulse` crashed with "Table pulse_aggregates doesn't exist" (Pulse migrations were not published yet).
