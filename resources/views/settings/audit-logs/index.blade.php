@@ -9,7 +9,7 @@
 @section('content')
 <div class="card">
     <div class="card-body border-bottom">
-        <form method="GET" action="{{ route('audit-logs.index') }}" class="row g-2 align-items-end" data-allow-resubmit>
+        <form method="GET" action="{{ route('audit-logs.index') }}" class="row g-2 align-items-end" data-allow-resubmit data-ajax-list="#audit-results">
             <div class="col-6 col-md-3 col-xl-2">
                 <label for="user" class="form-label small mb-1">{{ __('User') }}</label>
                 <select id="user" name="user" class="form-select form-select-sm">
@@ -49,7 +49,7 @@
             </div>
             <div class="col-12 col-xl-2 d-flex gap-2">
                 <button type="submit" class="btn btn-outline-primary btn-sm flex-grow-1"><i class="bi bi-funnel me-1"></i>{{ __('Filter') }}</button>
-                <a href="{{ route('audit-logs.index') }}" class="btn btn-link btn-sm">{{ __('Clear') }}</a>
+                <a href="{{ route('audit-logs.index') }}" class="btn btn-link btn-sm" data-ajax-clear>{{ __('Clear') }}</a>
             </div>
         </form>
         @if ($errors->any())
@@ -57,6 +57,8 @@
         @endif
     </div>
 
+    <div id="audit-results" data-ajax-results>
+    @fragment('results')
     <div class="table-responsive">
         <table class="table align-middle mb-0">
             <thead>
@@ -113,7 +115,8 @@
             </tbody>
         </table>
     </div>
+    @if ($activities->hasPages())<div class="card-footer">{{ $activities->links() }}</div>@endif
+    @endfragment
+    </div>
 </div>
-
-<div class="mt-3">{{ $activities->links() }}</div>
 @endsection

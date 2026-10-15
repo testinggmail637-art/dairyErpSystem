@@ -118,6 +118,9 @@ farmers and customers. Every task must keep pages under Pulse's 1000 ms slow-req
 - **Never load a whole table.** Every list is paginated on the server (`paginate()` or server-side `<x-data-table>`,
   25–100 rows). Large dropdowns (farmers, customers, animals, vendors) use Select2 remote search (`data-ajax-url`),
   not a full `<option>` list.
+- **Lists filter, search and paginate with AJAX** (no full page reload): `<form method="GET" data-ajax-list="#id">`,
+  `<div id="id" data-ajax-results>` around `@fragment('results')`, and `return $this->listView($request, …)` in the
+  controller. Empty filters are dropped from the URL; the URL still holds the filters (refresh, Back, shared links).
 - **Indexes:** FKs, `(farm_id, <date>)` on every transaction table, plus composite indexes for the filters a screen
   actually uses (e.g. `(farm_id, customer_id, date)`). Check the query plan (`EXPLAIN`) of every report/list query.
 - **No N+1 queries:** eager-load relations (`with()`); lazy loading already throws outside production. Feature tests

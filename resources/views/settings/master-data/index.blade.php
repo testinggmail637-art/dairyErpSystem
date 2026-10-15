@@ -11,16 +11,16 @@
 @section('content')
 <div class="card">
     <div class="card-body border-bottom">
-        <form method="GET" action="{{ route($routePrefix.'.index') }}" class="d-flex gap-2" data-allow-resubmit>
+        <form method="GET" action="{{ route($routePrefix.'.index') }}" class="d-flex gap-2" data-allow-resubmit data-ajax-list="#master-results">
             <input type="search" name="search" value="{{ $search }}" class="form-control form-control-sm app-input-narrow"
                    placeholder="{{ __('Name or code') }}" aria-label="{{ __('Search') }}">
             <button type="submit" class="btn btn-outline-primary btn-sm"><i class="bi bi-search"></i></button>
-            @if ($search !== '')
-                <a href="{{ route($routePrefix.'.index') }}" class="btn btn-link btn-sm">{{ __('Clear') }}</a>
-            @endif
+            <a href="{{ route($routePrefix.'.index') }}" class="btn btn-link btn-sm" data-ajax-clear>{{ __('Clear') }}</a>
         </form>
     </div>
 
+    <div id="master-results" data-ajax-results>
+    @fragment('results')
     <div class="table-responsive">
         <table class="table table-hover align-middle mb-0">
             <thead>
@@ -65,8 +65,9 @@
             </tbody>
         </table>
     </div>
+    @if ($rows->hasPages())<div class="card-footer">{{ $rows->links() }}</div>@endif
+    @endfragment
+    </div>
 </div>
-
-<div class="mt-3">{{ $rows->links() }}</div>
 <p class="form-text">{{ __('Entries are never deleted, so old records keep their reference. Deactivate an entry to hide it from new forms.') }}</p>
 @endsection
