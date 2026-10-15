@@ -150,6 +150,24 @@
         }
     };
 
+    /**
+     * Chart.js colours from the Settings → Appearance CSS variables (never hard-coded):
+     * new Chart(el, { data: { datasets: [{ backgroundColor: App.chartColors()[0] }] } })
+     */
+    App.chartColors = function () {
+        const css = getComputedStyle(document.documentElement);
+        return ['primary', 'success', 'warning', 'danger', 'secondary']
+            .map((name) => css.getPropertyValue('--bs-' + name).trim())
+            .filter(Boolean);
+    };
+
+    if (window.Chart) {
+        const css = getComputedStyle(document.documentElement);
+        Chart.defaults.font.family = css.getPropertyValue('--bs-body-font-family').trim() || Chart.defaults.font.family;
+        Chart.defaults.color = css.getPropertyValue('--bs-body-color').trim() || Chart.defaults.color;
+        Chart.defaults.borderColor = css.getPropertyValue('--bs-border-color').trim() || Chart.defaults.borderColor;
+    }
+
     /** Reload a server-side <x-data-table> after an AJAX change: App.reloadTable('#expenses-table'). */
     App.reloadTable = function (selector) {
         if ($.fn.dataTable && $.fn.dataTable.isDataTable(selector)) {

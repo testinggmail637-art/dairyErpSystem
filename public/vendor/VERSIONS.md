@@ -15,5 +15,4 @@ To upgrade: download the same files for the new version, replace them, update th
 | DataTables (+ Bootstrap 5 integration) | 2.3.2 | `datatables/js/dataTables.min.js`, `datatables/js/dataTables.bootstrap5.min.js`, `datatables/css/dataTables.bootstrap5.min.css` |
 | Chart.js | 4.5.0 | `chartjs/chart.umd.min.js` |
 | SweetAlert2 | 11.22.0 | `sweetalert2/sweetalert2.all.min.js` |
-
-Fonts for Settings → Appearance (Inter, Roboto, Poppins, Noto Sans) are added under `fonts/` in Phase 0 · Task 12.
+| Fonts (Settings → Appearance): Inter, Roboto, Poppins, Noto Sans | @fontsource/*@5.1.0 (SIL OFL 1.1), latin, weights 400/500/600/700 (Roboto: no 600) | `fonts/fonts.css`, `fonts/<family>/*.woff2` |

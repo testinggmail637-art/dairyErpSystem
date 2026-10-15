@@ -1,0 +1,106 @@
+/* Self-hosted fonts for Settings → Appearance (no Google CDN). Source: @fontsource/*@5.1.0 (SIL Open Font License 1.1), latin subset. */
+@font-face {
+    font-family: 'Inter';
+    font-style: normal;
+    font-weight: 400;
+    font-display: swap;
+    src: url('inter/inter-latin-400-normal.woff2') format('woff2');
+}
+@font-face {
+    font-family: 'Inter';
+    font-style: normal;
+    font-weight: 500;
+    font-display: swap;
+    src: url('inter/inter-latin-500-normal.woff2') format('woff2');
+}
+@font-face {
+    font-family: 'Inter';
+    font-style: normal;
+    font-weight: 600;
+    font-display: swap;
+    src: url('inter/inter-latin-600-normal.woff2') format('woff2');
+}
+@font-face {
+    font-family: 'Inter';
+    font-style: normal;
+    font-weight: 700;
+    font-display: swap;
+    src: url('inter/inter-latin-700-normal.woff2') format('woff2');
+}
+@font-face {
+    font-family: 'Roboto';
+    font-style: normal;
+    font-weight: 400;
+    font-display: swap;
+    src: url('roboto/roboto-latin-400-normal.woff2') format('woff2');
+}
+@font-face {
+    font-family: 'Roboto';
+    font-style: normal;
+    font-weight: 500;
+    font-display: swap;
+    src: url('roboto/roboto-latin-500-normal.woff2') format('woff2');
+}
+@font-face {
+    font-family: 'Roboto';
+    font-style: normal;
+    font-weight: 700;
+    font-display: swap;
+    src: url('roboto/roboto-latin-700-normal.woff2') format('woff2');
+}
+@font-face {
+    font-family: 'Poppins';
+    font-style: normal;
+    font-weight: 400;
+    font-display: swap;
+    src: url('poppins/poppins-latin-400-normal.woff2') format('woff2');
+}
+@font-face {
+    font-family: 'Poppins';
+    font-style: normal;
+    font-weight: 500;
+    font-display: swap;
+    src: url('poppins/poppins-latin-500-normal.woff2') format('woff2');
+}
+@font-face {
+    font-family: 'Poppins';
+    font-style: normal;
+    font-weight: 600;
+    font-display: swap;
+    src: url('poppins/poppins-latin-600-normal.woff2') format('woff2');
+}
+@font-face {
+    font-family: 'Poppins';
+    font-style: normal;
+    font-weight: 700;
+    font-display: swap;
+    src: url('poppins/poppins-latin-700-normal.woff2') format('woff2');
+}
+@font-face {
+    font-family: 'Noto Sans';
+    font-style: normal;
+    font-weight: 400;
+    font-display: swap;
+    src: url('noto-sans/noto-sans-latin-400-normal.woff2') format('woff2');
+}
+@font-face {
+    font-family: 'Noto Sans';
+    font-style: normal;
+    font-weight: 500;
+    font-display: swap;
+    src: url('noto-sans/noto-sans-latin-500-normal.woff2') format('woff2');
+}
+@font-face {
+    font-family: 'Noto Sans';
+    font-style: normal;
+    font-weight: 600;
+    font-display: swap;
+    src: url('noto-sans/noto-sans-latin-600-normal.woff2') format('woff2');
+}
+@font-face {
+    font-family: 'Noto Sans';
+    font-style: normal;
+    font-weight: 700;
+    font-display: swap;
+    src: url('noto-sans/noto-sans-latin-700-normal.woff2') format('woff2');
+}

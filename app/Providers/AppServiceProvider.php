@@ -2,7 +2,9 @@
 
 namespace App\Providers;
 
+use App\Models\Farm;
 use App\Models\User;
+use App\Services\AppearanceService;
 use App\Support\AuditReason;
 use App\Support\CurrentFarm;
 use App\Support\Menu;
@@ -66,6 +68,19 @@ class AppServiceProvider extends ServiceProvider
 
         // Route-level limit on the login form per IP (per-account limit is in LoginRequest).
         RateLimiter::for('login', fn (Request $request) => Limit::perMinute(20)->by($request->ip()));
+
+        // Appearance (spec 4.11) for the layouts, the login page and PDFs. Guests (login page) see the first active farm's branding.
+        View::composer(['layouts.app', 'layouts.guest', 'auth.login', 'account.profile', 'pdf.*', 'settings.appearance.*'], function ($view) {
+            $service = app(AppearanceService::class);
+            $farm = app(CurrentFarm::class)->farm() ?? Farm::query()->active()->orderBy('id')->first();
+            $appearance = $service->get($farm); // cached per farm
+
+            $view->with([
+                'appearance' => $appearance,
+                'appearanceCss' => $service->styleBlock($appearance),
+                'themeMode' => $service->themeFor(auth()->user(), $appearance),
+            ]);
+        });
 
         View::composer('layouts.partials.sidebar', function ($view) {
             $view->with('menu', Menu::for(auth()->user()));

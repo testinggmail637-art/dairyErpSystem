@@ -8,10 +8,10 @@
 | Item | Value |
 |---|---|
 | Current phase | Phase 0 — Foundation (🟡 in progress) |
-| Last completed task | 0.11 — Monitoring: Pulse at /pulse (owner only), Sentry (DSN-gated), Telescope (local only), docs/DEPLOYMENT.md |
-| Next task | 0.12 — Appearance & branding (AppearanceService, CSS variables, Settings → Appearance with live preview, presets, uploads, user theme) |
-| Overall progress | 11 / 88 tasks (13%) |
-| Tests passing | 167 |
+| Last completed task | 0.12 — Appearance & branding: AppearanceService, CSS variables, Settings → Appearance (live preview, 4 presets, reset, uploads), per-user theme, branded login page and PDF |
+| Next task | 0.13 — Phase 0 acceptance tests + README/CHANGELOG (phase wrap-up) |
+| Overall progress | 12 / 88 tasks (14%) |
+| Tests passing | 182 |
 | Last updated (IST) | 2026-10-15 |
 
 ## Phase overview
@@ -46,7 +46,7 @@ Status legend: ⬜ Not started · 🟡 In progress · ✅ Done · ⏸ On hold
 - [x] 0.9 Backups (daily 02:00, 14 days) + `docs/BACKUP_RESTORE.md`
 - [x] 0.10 Common Blade components (fields, money, date, Select2, DataTable, confirm-with-reason)
 - [x] 0.11 Monitoring: Pulse (`/pulse` owner only), Sentry (DSN-gated), Telescope (local), `docs/DEPLOYMENT.md`
-- [ ] 0.12 Appearance & branding: AppearanceService, CSS variables, Settings → Appearance with live preview, presets, uploads, user theme
+- [x] 0.12 Appearance & branding: AppearanceService, CSS variables, Settings → Appearance with live preview, presets, uploads, user theme
 - [ ] 0.13 Phase 0 acceptance tests pass + README/CHANGELOG updated
 
 ### Phase log

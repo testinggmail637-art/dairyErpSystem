@@ -19,6 +19,9 @@
                         @error('name')<div class="invalid-feedback">{{ $message }}</div>@enderror
                     </div>
 
+                    <x-form.select name="theme_mode" :label="__('Theme')" :selected="$user->preferences['theme_mode'] ?? ''"
+                                   :options="['' => __('Farm default (:mode)', ['mode' => __(ucfirst($appearance['theme_mode']))]), 'light' => __('Light'), 'dark' => __('Dark'), 'auto' => __('Auto (follow my device)')]" />
+
                     <dl class="row small mb-3">
                         <dt class="col-4 text-body-secondary fw-normal">{{ __('Email') }}</dt>
                         <dd class="col-8">{{ $user->email ?: '—' }}</dd>

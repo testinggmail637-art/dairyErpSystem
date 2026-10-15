@@ -3,12 +3,17 @@
 @section('title', __('Login'))
 
 @section('content')
-<div class="auth-page">
+<div class="auth-page" @if ($appearance['login_background_path']) style="background-image: url('{{ branding_url($appearance['login_background_path']) }}')" @endif>
     <div class="card auth-card shadow border-0">
         <div class="card-body p-4 p-sm-5">
             <div class="text-center mb-4">
-                <h1 class="h4 fw-semibold text-primary mb-1">{{ config('app.name') }}</h1>
-                <p class="text-body-secondary mb-0">{{ __('Welcome to Dairy ERP') }}</p>
+                @if ($appearance['logo_path'])
+                    <img src="{{ branding_url($appearance['logo_path']) }}" alt="{{ $appearance['app_name'] }}" class="auth-logo mb-3">
+                @endif
+                <h1 class="h4 fw-semibold text-primary mb-1">{{ $appearance['app_name'] }}</h1>
+                @if ($appearance['login_welcome_text'])
+                    <p class="text-body-secondary mb-0">{{ $appearance['login_welcome_text'] }}</p>
+                @endif
             </div>
 
             <form method="POST" action="{{ route('login.store') }}" novalidate>

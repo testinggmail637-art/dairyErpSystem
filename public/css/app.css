@@ -1,56 +1,75 @@
 /*
  * Dairy ERP — application styles.
- * Never hard-code colors here: use the CSS variables below or Bootstrap classes.
- * The defaults are the spec's "Green Dairy" theme (Section 4.11); the layout overrides them per farm
- * from Settings → Appearance with a <style> block rendered by AppearanceService.
+ * Never hard-code colors here. Every color, font, size and radius comes from CSS variables printed by the layout
+ * (<style> from App\Services\AppearanceService, managed in Settings → Appearance, spec Section 4.11).
  */
 
 :root {
-    --bs-primary: #1F6F5C;
-    --bs-primary-rgb: 31, 111, 92;
-    --bs-link-color: var(--bs-primary);
-    --bs-link-color-rgb: var(--bs-primary-rgb);
-    --bs-link-hover-color: var(--app-primary-hover);
-    --bs-body-bg: #F5F7F6;
-    --bs-body-font-size: 14px;
-    --bs-border-radius: 6px;
-
-    --app-primary-hover: #185848;
-    --app-primary-active: #134739;
-    --app-on-primary: #FFFFFF;
-    --sidebar-bg: #12332B;
-    --sidebar-text: #FFFFFF;
-    --topbar-bg: #FFFFFF;
     --sidebar-width: 250px;
     --topbar-height: 56px;
 }
 
 body {
     background-color: var(--bs-body-bg);
+    font-family: var(--bs-body-font-family);
     font-size: var(--bs-body-font-size);
 }
 
-/* ---------- Bootstrap primary button, driven by variables ---------- */
-.btn-primary {
-    --bs-btn-bg: var(--bs-primary);
-    --bs-btn-border-color: var(--bs-primary);
-    --bs-btn-hover-bg: var(--app-primary-hover);
-    --bs-btn-hover-border-color: var(--app-primary-hover);
-    --bs-btn-active-bg: var(--app-primary-active);
-    --bs-btn-active-border-color: var(--app-primary-active);
-    --bs-btn-disabled-bg: var(--bs-primary);
-    --bs-btn-disabled-border-color: var(--bs-primary);
-    --bs-btn-focus-shadow-rgb: var(--bs-primary-rgb);
+/* ---------- Bootstrap buttons, driven by the appearance variables ---------- */
+.btn-primary,
+.btn-secondary,
+.btn-success,
+.btn-danger,
+.btn-warning {
+    --bs-btn-color: var(--app-btn-text);
+    --bs-btn-bg: var(--app-btn-bg);
+    --bs-btn-border-color: var(--app-btn-bg);
+    --bs-btn-hover-color: var(--app-btn-text);
+    --bs-btn-hover-bg: var(--app-btn-hover);
+    --bs-btn-hover-border-color: var(--app-btn-hover);
+    --bs-btn-active-color: var(--app-btn-text);
+    --bs-btn-active-bg: var(--app-btn-active);
+    --bs-btn-active-border-color: var(--app-btn-active);
+    --bs-btn-disabled-color: var(--app-btn-text);
+    --bs-btn-disabled-bg: var(--app-btn-bg);
+    --bs-btn-disabled-border-color: var(--app-btn-bg);
+    --bs-btn-focus-shadow-rgb: var(--app-btn-rgb);
 }
 
-.btn-outline-primary {
-    --bs-btn-color: var(--bs-primary);
-    --bs-btn-border-color: var(--bs-primary);
-    --bs-btn-hover-bg: var(--bs-primary);
-    --bs-btn-hover-border-color: var(--bs-primary);
-    --bs-btn-active-bg: var(--app-primary-active);
-    --bs-btn-active-border-color: var(--app-primary-active);
-    --bs-btn-focus-shadow-rgb: var(--bs-primary-rgb);
+.btn-outline-primary,
+.btn-outline-secondary,
+.btn-outline-success,
+.btn-outline-danger,
+.btn-outline-warning {
+    --bs-btn-color: var(--app-btn-bg);
+    --bs-btn-border-color: var(--app-btn-bg);
+    --bs-btn-hover-color: var(--app-btn-text);
+    --bs-btn-hover-bg: var(--app-btn-bg);
+    --bs-btn-hover-border-color: var(--app-btn-bg);
+    --bs-btn-active-color: var(--app-btn-text);
+    --bs-btn-active-bg: var(--app-btn-active);
+    --bs-btn-active-border-color: var(--app-btn-active);
+    --bs-btn-disabled-color: var(--app-btn-bg);
+    --bs-btn-disabled-border-color: var(--app-btn-bg);
+    --bs-btn-focus-shadow-rgb: var(--app-btn-rgb);
+}
+
+.btn-primary, .btn-outline-primary { --app-btn-bg: var(--bs-primary); --app-btn-hover: var(--app-primary-hover); --app-btn-active: var(--app-primary-active); --app-btn-text: var(--app-on-primary); --app-btn-rgb: var(--bs-primary-rgb); }
+.btn-secondary, .btn-outline-secondary { --app-btn-bg: var(--bs-secondary); --app-btn-hover: var(--app-secondary-hover); --app-btn-active: var(--app-secondary-active); --app-btn-text: var(--app-on-secondary); --app-btn-rgb: var(--bs-secondary-rgb); }
+.btn-success, .btn-outline-success { --app-btn-bg: var(--bs-success); --app-btn-hover: var(--app-success-hover); --app-btn-active: var(--app-success-active); --app-btn-text: var(--app-on-success); --app-btn-rgb: var(--bs-success-rgb); }
+.btn-danger, .btn-outline-danger { --app-btn-bg: var(--bs-danger); --app-btn-hover: var(--app-danger-hover); --app-btn-active: var(--app-danger-active); --app-btn-text: var(--app-on-danger); --app-btn-rgb: var(--bs-danger-rgb); }
+.btn-warning, .btn-outline-warning { --app-btn-bg: var(--bs-warning); --app-btn-hover: var(--app-warning-hover); --app-btn-active: var(--app-warning-active); --app-btn-text: var(--app-on-warning); --app-btn-rgb: var(--bs-warning-rgb); }
+
+/* Badges with background: readable text on any configured color */
+.text-bg-primary { color: var(--app-on-primary) !important; }
+.text-bg-secondary { color: var(--app-on-secondary) !important; }
+.text-bg-success { color: var(--app-on-success) !important; }
+.text-bg-danger { color: var(--app-on-danger) !important; }
+.text-bg-warning { color: var(--app-on-warning) !important; }
+
+/* Table density (Settings → Appearance → Layout) */
+.table > :not(caption) > * > * {
+    padding: var(--app-table-cell-py) var(--app-table-cell-px);
 }
 
 .form-control:focus,
@@ -279,4 +298,73 @@ body {
 
 .app-money-preview:empty {
     display: none;
+}
+
+/* ---------- Branding ---------- */
+.app-brand-logo {
+    max-height: 32px;
+    max-width: 120px;
+    object-fit: contain;
+}
+
+/* ---------- Settings → Appearance ---------- */
+.app-upload-preview {
+    max-height: 40px;
+    max-width: 120px;
+    object-fit: contain;
+    border: 1px solid var(--bs-border-color);
+    border-radius: var(--bs-border-radius-sm);
+    padding: 2px;
+    background-color: var(--bs-tertiary-bg);
+}
+
+.app-swatch {
+    display: inline-block;
+    width: 0.8rem;
+    height: 0.8rem;
+    border-radius: 50%;
+    border: 1px solid var(--bs-border-color);
+    vertical-align: -0.1em;
+}
+
+@media (min-width: 1200px) {
+    .app-preview-sticky {
+        position: sticky;
+        top: calc(var(--topbar-height) + 1rem);
+    }
+}
+
+.app-preview {
+    font-family: var(--bs-body-font-family);
+    font-size: var(--bs-body-font-size);
+    color: var(--bs-body-color);
+}
+
+.app-preview-sidebar {
+    width: 38%;
+    min-height: 100%;
+    background-color: var(--sidebar-bg);
+    color: var(--sidebar-text);
+}
+
+.app-preview-nav {
+    padding: 0.3rem 0.5rem;
+    margin-bottom: 2px;
+    border-radius: var(--bs-border-radius);
+    opacity: 0.85;
+    font-size: 0.9em;
+}
+
+.app-preview-nav.active {
+    opacity: 1;
+    background-color: var(--bs-primary);
+    color: var(--app-on-primary);
+}
+
+.app-preview-body {
+    background-color: var(--bs-body-bg);
+}
+
+.app-preview-topbar {
+    background-color: var(--topbar-bg);
 }
