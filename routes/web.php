@@ -21,10 +21,10 @@ Route::post('logout', [LoginController::class, 'destroy'])->middleware('auth')->
 
 /*
 |--------------------------------------------------------------------------
-| Application (authenticated, inside the current farm — EnsureFarmSelected)
+| Application (authenticated + active user, inside the current farm — EnsureUserIsActive, EnsureFarmSelected)
 |--------------------------------------------------------------------------
 */
-Route::middleware(['auth', 'farm'])->group(function () {
+Route::middleware(['auth', 'active', 'farm'])->group(function () {
     Route::get('/', HomeController::class)->name('home');
     Route::view('dashboard', 'dashboard')->middleware('can:dashboard.view')->name('dashboard');
 

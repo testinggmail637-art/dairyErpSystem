@@ -26,6 +26,8 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - Phase 0 · Task 5: `spatie/laravel-permission` tables and config; all 60 permissions (`App\Support\Permissions`) and
   the six default roles (`RoleName` enum: owner, admin, accountant, herd_staff, collection_operator, delivery_boy)
   seeded by `RolesAndPermissionsSeeder`; seeded owner user gets the owner role.
+- Phase 0 · Task 6: `EnsureUserIsActive` middleware — a user deactivated while logged in is signed out on the next
+  request (login by email/phone, inactive block and `last_login_at` were built in Task 1).
 
 ### Changed
 - `/dashboard` requires `dashboard.view`; after login users go to `/` (`home`), which opens the dashboard or the first
