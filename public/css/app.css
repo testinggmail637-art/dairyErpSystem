@@ -1,0 +1,93 @@
+/*
+ * Dairy ERP — application styles.
+ * Never hard-code colors here: use the CSS variables below or Bootstrap classes.
+ * The defaults are the spec's "Green Dairy" theme (Section 4.11); the layout overrides them per farm
+ * from Settings → Appearance with a <style> block rendered by AppearanceService.
+ */
+
+:root {
+    --bs-primary: #1F6F5C;
+    --bs-primary-rgb: 31, 111, 92;
+    --bs-link-color: var(--bs-primary);
+    --bs-link-color-rgb: var(--bs-primary-rgb);
+    --bs-link-hover-color: var(--app-primary-hover);
+    --bs-body-bg: #F5F7F6;
+    --bs-body-font-size: 14px;
+    --bs-border-radius: 6px;
+
+    --app-primary-hover: #185848;
+    --app-primary-active: #134739;
+    --sidebar-bg: #12332B;
+    --sidebar-text: #FFFFFF;
+    --topbar-bg: #FFFFFF;
+    --sidebar-width: 250px;
+    --topbar-height: 56px;
+}
+
+body {
+    background-color: var(--bs-body-bg);
+    font-size: var(--bs-body-font-size);
+}
+
+/* ---------- Bootstrap primary button, driven by variables ---------- */
+.btn-primary {
+    --bs-btn-bg: var(--bs-primary);
+    --bs-btn-border-color: var(--bs-primary);
+    --bs-btn-hover-bg: var(--app-primary-hover);
+    --bs-btn-hover-border-color: var(--app-primary-hover);
+    --bs-btn-active-bg: var(--app-primary-active);
+    --bs-btn-active-border-color: var(--app-primary-active);
+    --bs-btn-disabled-bg: var(--bs-primary);
+    --bs-btn-disabled-border-color: var(--bs-primary);
+    --bs-btn-focus-shadow-rgb: var(--bs-primary-rgb);
+}
+
+.btn-outline-primary {
+    --bs-btn-color: var(--bs-primary);
+    --bs-btn-border-color: var(--bs-primary);
+    --bs-btn-hover-bg: var(--bs-primary);
+    --bs-btn-hover-border-color: var(--bs-primary);
+    --bs-btn-active-bg: var(--app-primary-active);
+    --bs-btn-active-border-color: var(--app-primary-active);
+    --bs-btn-focus-shadow-rgb: var(--bs-primary-rgb);
+}
+
+.form-control:focus,
+.form-select:focus {
+    border-color: rgba(var(--bs-primary-rgb), 0.5);
+    box-shadow: 0 0 0 0.25rem rgba(var(--bs-primary-rgb), 0.25);
+}
+
+.form-check-input:checked {
+    background-color: var(--bs-primary);
+    border-color: var(--bs-primary);
+}
+
+/* ---------- Login page ---------- */
+.auth-page {
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 1rem;
+    background-color: var(--sidebar-bg);
+    background-size: cover;
+    background-position: center;
+}
+
+.auth-card {
+    width: 100%;
+    max-width: 400px;
+}
+
+.auth-logo {
+    max-height: 64px;
+    max-width: 220px;
+}
+
+/* ---------- Numbers ---------- */
+.text-money,
+.text-qty {
+    font-variant-numeric: tabular-nums;
+    white-space: nowrap;
+}
