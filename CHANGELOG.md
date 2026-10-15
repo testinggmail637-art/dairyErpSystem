@@ -36,6 +36,9 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   settings logged with old → new values, user and reason; required reason on user edit and role edit/delete
   (`RequiresReason`, `<x-reason-field />`, `data-confirm-reason`); Settings → Audit Log screen with user, record type,
   action and date filters; `activity_log.farm_id` keeps farms apart.
+- Phase 0 · Task 9: daily backups with `spatie/laravel-backup` — database + uploads at 02:00 IST, kept 14 days
+  (cleanup 02:30, health check 03:00) on the `backups` disk; owners get a bell notification when a backup fails or is
+  too old (no email); `DB_DUMP_BINARY_PATH` + `mysqldump` fallback for XAMPP MariaDB; `docs/BACKUP_RESTORE.md`.
 
 ### Changed
 - `/dashboard` requires `dashboard.view`; after login users go to `/` (`home`), which opens the dashboard or the first

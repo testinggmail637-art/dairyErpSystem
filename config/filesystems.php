@@ -47,6 +47,14 @@ return [
             'report' => false,
         ],
 
+        // Daily backups (spatie/laravel-backup). Copy them off the server too — see docs/BACKUP_RESTORE.md.
+        'backups' => [
+            'driver' => 'local',
+            'root' => env('BACKUP_PATH') ?: storage_path('app/backups'),
+            'throw' => false,
+            'report' => false,
+        ],
+
         's3' => [
             'driver' => 's3',
             'key' => env('AWS_ACCESS_KEY_ID'),
