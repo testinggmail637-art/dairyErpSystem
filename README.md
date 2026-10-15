@@ -106,6 +106,8 @@ http://localhost/<folder>/public (set `APP_URL` to the same). Tests: keep `APP_U
 | `PULSE_SLOW_REQUESTS_THRESHOLD` | `1000` | ms |
 | `PULSE_SLOW_QUERIES_THRESHOLD` | `500` | ms |
 | `SENTRY_LARAVEL_DSN` | _(empty = disabled)_ | Error alerts |
+| `DB_DUMP_BINARY_PATH` | `C:/xampp/mysql/bin` (XAMPP) / empty (Linux) | Folder with `mysqldump`, for backups |
+| `BACKUP_DISKS`, `BACKUP_PATH`, `BACKUP_ARCHIVE_PASSWORD` | `backups`, empty, empty | Where backups go / optional zip password — see `docs/BACKUP_RESTORE.md` |
 | _TODO: any other keys added during build_ | | |
 
 ---
@@ -118,7 +120,15 @@ php artisan queue:work        # production: under Supervisor
 php artisan pulse:check       # production: under Supervisor (server stats)
 ```
 
-Scheduled jobs: _TODO: list with times (delivery sheet generation, daily reminders, backups, …)_
+Scheduled jobs (IST, defined in `routes/console.php`):
+
+| Time | Command | What |
+|---|---|---|
+| 02:00 | `backup:run` | Database + uploads backup to `storage/app/backups` (kept 14 days) |
+| 02:30 | `backup:clean` | Delete backups older than 14 days |
+| 03:00 | `backup:monitor` | Health check; owners get a bell notification if a backup failed or is too old |
+
+_More jobs (delivery sheet generation, reminders) are added in later phases._ Restore steps: `docs/BACKUP_RESTORE.md`.
 
 ---
 

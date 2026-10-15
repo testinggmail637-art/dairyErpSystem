@@ -13,6 +13,9 @@ use Illuminate\Pagination\Paginator;
 use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\Facades\View;
 use Illuminate\Support\ServiceProvider;
+use Spatie\Backup\Tasks\Backup\DbDumperFactory;
+use Spatie\DbDumper\Databases\MariaDb;
+use Spatie\DbDumper\Databases\MySql;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -29,6 +32,14 @@ class AppServiceProvider extends ServiceProvider
         Model::preventSilentlyDiscardingAttributes(! $this->app->isProduction());
 
         Paginator::useBootstrapFive();
+
+        // Backups on MariaDB: older MariaDB (e.g. XAMPP's 10.4) ships only `mysqldump`, not `mariadb-dump`.
+        DbDumperFactory::extend('mariadb', function () {
+            $path = rtrim((string) config('database.connections.mariadb.dump.dump_binary_path'), '/\\');
+            $hasMariaDbDump = $path !== '' && (is_file("{$path}/mariadb-dump") || is_file("{$path}/mariadb-dump.exe"));
+
+            return $path === '' || $hasMariaDbDump ? new MariaDb : new MySql;
+        });
 
         // Standard columns of every business table (spec Section 4.1): `$table->farmScoped(); … $table->userStamps();`
         Blueprint::macro('farmScoped', function () {
