@@ -119,6 +119,29 @@
     $(function () {
         App.initWidgets(document);
 
+        // <form data-confirm="Delete this?">: ask before submitting. Bound before the double-submit guard.
+        $(document).on('submit', 'form[data-confirm]', function (e) {
+            const form = this;
+            if (form.dataset.confirmed === '1') return;
+
+            e.preventDefault();
+            e.stopImmediatePropagation();
+
+            Swal.fire({
+                text: form.dataset.confirm,
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonText: form.dataset.confirmButton || 'Yes, continue',
+                cancelButtonText: 'Cancel',
+                buttonsStyling: false,
+                customClass: { confirmButton: 'btn btn-danger', cancelButton: 'btn btn-outline-secondary ms-2' },
+            }).then(function (result) {
+                if (!result.isConfirmed) return;
+                form.dataset.confirmed = '1';
+                form.requestSubmit();
+            });
+        });
+
         // Prevent double submits on normal (non-AJAX) forms.
         $(document).on('submit', 'form:not([data-allow-resubmit])', function () {
             const $btn = $(this).find('[type="submit"]');

@@ -40,6 +40,14 @@ final class Permissions
         return array_merge(...array_values(self::GROUPS));
     }
 
+    /** "vendor_payments.create" → "Vendor payments: create" (for the permission matrix). */
+    public static function label(string $name): string
+    {
+        [$module, $action] = explode('.', $name, 2);
+
+        return __(ucfirst(str_replace('_', ' ', $module)).': '.str_replace('_', ' ', $action));
+    }
+
     /**
      * Expand patterns to permission names: "bills.*" → every bills.… permission; exact names pass through.
      *

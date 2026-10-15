@@ -5,6 +5,11 @@ use App\Http\Controllers\Account\ProfileController;
 use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\Farm\FarmSwitchController;
 use App\Http\Controllers\HomeController;
+use App\Http\Controllers\Settings\FarmSettingsController;
+use App\Http\Controllers\Settings\PaymentModeController;
+use App\Http\Controllers\Settings\RoleController;
+use App\Http\Controllers\Settings\SectionController;
+use App\Http\Controllers\Settings\UserController;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -40,4 +45,20 @@ Route::middleware(['auth', 'active', 'farm'])->group(function () {
     Route::get('notifications', [NotificationController::class, 'index'])->name('notifications.index');
     Route::get('notifications/{id}/open', [NotificationController::class, 'open'])->name('notifications.open');
     Route::post('notifications/read-all', [NotificationController::class, 'readAll'])->name('notifications.read-all');
+
+    /*
+    | Settings
+    */
+    Route::prefix('settings')->group(function () {
+        Route::middleware('can:settings.manage')->group(function () {
+            Route::get('farm', [FarmSettingsController::class, 'edit'])->name('settings.farm.edit');
+            Route::put('farm', [FarmSettingsController::class, 'update'])->name('settings.farm.update');
+
+            Route::resource('sections', SectionController::class)->except(['show', 'destroy']);
+            Route::resource('payment-modes', PaymentModeController::class)->except(['show', 'destroy']);
+        });
+
+        Route::resource('users', UserController::class)->except(['show', 'destroy'])->middleware('can:users.manage');
+        Route::resource('roles', RoleController::class)->except(['show'])->middleware('can:roles.manage');
+    });
 });
