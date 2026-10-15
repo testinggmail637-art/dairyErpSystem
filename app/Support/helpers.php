@@ -1,6 +1,8 @@
 <?php
 
+use App\Enums\RoleName;
 use App\Support\Format;
+use Illuminate\Support\Str;
 
 if (! function_exists('asset_v')) {
     /**
@@ -36,6 +38,14 @@ if (! function_exists('fmt_date')) {
     function fmt_date(mixed $value): string
     {
         return Format::date($value);
+    }
+}
+
+if (! function_exists('role_label')) {
+    /** "herd_staff" → "Herd Staff" (translated label for seeded roles, headline for custom ones). */
+    function role_label(string $name): string
+    {
+        return RoleName::tryFrom($name)?->label() ?? Str::headline($name);
     }
 }
 

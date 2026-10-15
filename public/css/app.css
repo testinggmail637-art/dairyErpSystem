@@ -265,3 +265,12 @@ body {
     font-variant-numeric: tabular-nums;
     white-space: nowrap;
 }
+
+/* ---------- Forms ---------- */
+.app-input-narrow {
+    max-width: 16rem;
+}
+
+.app-col-shrink {
+    width: 1%;
+}

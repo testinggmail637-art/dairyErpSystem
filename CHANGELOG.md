@@ -28,6 +28,10 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   seeded by `RolesAndPermissionsSeeder`; seeded owner user gets the owner role.
 - Phase 0 · Task 6: `EnsureUserIsActive` middleware — a user deactivated while logged in is signed out on the next
   request (login by email/phone, inactive block and `last_login_at` were built in Task 1).
+- Phase 0 · Task 7: Settings screens — Users (list with search/role/status filters, create, edit, deactivate,
+  password reset that signs the user out, owner-role protection), Roles (permission matrix grouped by module, custom
+  roles, locked owner role, delete when unused), Farm settings (details + settings keys with validation), Sections and
+  Payment Modes (list, add, edit, activate/deactivate); `data-confirm` confirmation dialog in `app.js`.
 
 ### Changed
 - `/dashboard` requires `dashboard.view`; after login users go to `/` (`home`), which opens the dashboard or the first
