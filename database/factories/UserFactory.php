@@ -2,6 +2,7 @@
 
 namespace Database\Factories;
 
+use App\Models\Farm;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Factories\Factory;
 use Illuminate\Support\Facades\Hash;
@@ -32,5 +33,11 @@ class UserFactory extends Factory
     public function inactive(): static
     {
         return $this->state(fn (array $attributes) => ['is_active' => false]);
+    }
+
+    /** Link the user to $farm (a new farm when null), so app routes pass EnsureFarmSelected. */
+    public function forFarm(?Farm $farm = null): static
+    {
+        return $this->hasAttached($farm ?? Farm::factory(), [], 'farms');
     }
 }

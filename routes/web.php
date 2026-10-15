@@ -3,6 +3,7 @@
 use App\Http\Controllers\Account\NotificationController;
 use App\Http\Controllers\Account\ProfileController;
 use App\Http\Controllers\Auth\LoginController;
+use App\Http\Controllers\Farm\FarmSwitchController;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -19,12 +20,15 @@ Route::post('logout', [LoginController::class, 'destroy'])->middleware('auth')->
 
 /*
 |--------------------------------------------------------------------------
-| Application (authenticated)
+| Application (authenticated, inside the current farm — EnsureFarmSelected)
 |--------------------------------------------------------------------------
 */
-Route::middleware('auth')->group(function () {
+Route::middleware(['auth', 'farm'])->group(function () {
     Route::redirect('/', '/dashboard');
     Route::view('dashboard', 'dashboard')->name('dashboard');
+
+    // Farm switcher (top bar; shown only when the user has more than one farm)
+    Route::post('farm/switch', FarmSwitchController::class)->name('farm.switch');
 
     // Own account
     Route::get('profile', [ProfileController::class, 'edit'])->name('profile.edit');

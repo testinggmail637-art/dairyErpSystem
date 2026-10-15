@@ -15,7 +15,7 @@ it('redirects guests away from the app', function () {
 });
 
 it('logs in with email', function () {
-    $user = User::factory()->create(['email' => 'ram@example.com']);
+    $user = User::factory()->forFarm()->create(['email' => 'ram@example.com']);
 
     $this->post(route('login.store'), ['login' => 'Ram@Example.com ', 'password' => 'password'])
         ->assertRedirect(route('dashboard'));
@@ -25,7 +25,7 @@ it('logs in with email', function () {
 });
 
 it('logs in with phone in any common format', function (string $typed) {
-    $user = User::factory()->create(['phone' => '9876543210']);
+    $user = User::factory()->forFarm()->create(['phone' => '9876543210']);
 
     $this->post(route('login.store'), ['login' => $typed, 'password' => 'password'])
         ->assertRedirect(route('dashboard'));
@@ -34,7 +34,7 @@ it('logs in with phone in any common format', function (string $typed) {
 })->with(['9876543210', '+91 98765 43210', '09876543210', '98765-43210']);
 
 it('rejects a wrong password', function () {
-    User::factory()->create(['email' => 'ram@example.com']);
+    User::factory()->forFarm()->create(['email' => 'ram@example.com']);
 
     $this->from(route('login'))
         ->post(route('login.store'), ['login' => 'ram@example.com', 'password' => 'wrong'])
@@ -54,7 +54,7 @@ it('blocks inactive users even with the right password', function () {
 });
 
 it('locks the account after too many failed attempts', function () {
-    $user = User::factory()->create(['email' => 'ram@example.com']);
+    $user = User::factory()->forFarm()->create(['email' => 'ram@example.com']);
 
     foreach (range(1, 5) as $i) {
         $this->post(route('login.store'), ['login' => 'ram@example.com', 'password' => 'wrong']);
@@ -69,7 +69,7 @@ it('locks the account after too many failed attempts', function () {
 });
 
 it('logs out', function () {
-    $this->actingAs(User::factory()->create())
+    $this->actingAs(User::factory()->forFarm()->create())
         ->post(route('logout'))
         ->assertRedirect(route('login'));
 

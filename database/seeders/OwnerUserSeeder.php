@@ -2,13 +2,14 @@
 
 namespace Database\Seeders;
 
+use App\Models\Farm;
 use App\Models\User;
 use Illuminate\Database\Seeder;
 use RuntimeException;
 
 /**
  * Creates the owner account from OWNER_* env values. The local defaults must never reach production.
- * (Role assignment and farm linking are added in Phase 0 · Tasks 4–5.)
+ * Linked to every farm (run DefaultFarmSeeder first). Role assignment is added in Phase 0 · Task 5.
  */
 class OwnerUserSeeder extends Seeder
 {
@@ -21,7 +22,7 @@ class OwnerUserSeeder extends Seeder
             throw new RuntimeException('Set OWNER_EMAIL and OWNER_PASSWORD in .env before seeding production.');
         }
 
-        User::query()->firstOrCreate(
+        $owner = User::query()->firstOrCreate(
             ['email' => strtolower($email)],
             [
                 'name' => config('dairy.owner.name'),
@@ -30,5 +31,8 @@ class OwnerUserSeeder extends Seeder
                 'is_active' => true,
             ],
         );
+
+        // The owner works in every farm.
+        $owner->farms()->syncWithoutDetaching(Farm::query()->pluck('id'));
     }
 }

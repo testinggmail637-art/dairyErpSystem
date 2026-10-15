@@ -17,7 +17,7 @@ function notifyUser(User $user, array $data, bool $read = false): DatabaseNotifi
 }
 
 it('shows the unread count and recent notifications in the bell', function () {
-    $user = User::factory()->create();
+    $user = User::factory()->forFarm()->create();
     notifyUser($user, ['message' => 'Vaccination due for C-101']);
     notifyUser($user, ['message' => 'Feed stock low'], read: true);
 
@@ -28,7 +28,7 @@ it('shows the unread count and recent notifications in the bell', function () {
 });
 
 it('opens a notification, marks it read and follows its link', function () {
-    $user = User::factory()->create();
+    $user = User::factory()->forFarm()->create();
     $n = notifyUser($user, ['message' => 'Go', 'url' => route('profile.edit')]);
 
     $this->actingAs($user)->get(route('notifications.open', $n->id))
@@ -38,7 +38,7 @@ it('opens a notification, marks it read and follows its link', function () {
 });
 
 it('does not redirect to external links', function () {
-    $user = User::factory()->create();
+    $user = User::factory()->forFarm()->create();
     $n = notifyUser($user, ['message' => 'Bad', 'url' => 'https://evil.example.com']);
 
     $this->actingAs($user)->get(route('notifications.open', $n->id))
@@ -46,7 +46,7 @@ it('does not redirect to external links', function () {
 });
 
 it('marks all notifications read', function () {
-    $user = User::factory()->create();
+    $user = User::factory()->forFarm()->create();
     notifyUser($user, ['message' => 'A']);
     notifyUser($user, ['message' => 'B']);
 
@@ -56,15 +56,15 @@ it('marks all notifications read', function () {
 });
 
 it('cannot open a notification of another user', function () {
-    $other = notifyUser(User::factory()->create(), ['message' => 'Private']);
+    $other = notifyUser(User::factory()->forFarm()->create(), ['message' => 'Private']);
 
-    $this->actingAs(User::factory()->create())
+    $this->actingAs(User::factory()->forFarm()->create())
         ->get(route('notifications.open', $other->id))
         ->assertNotFound();
 });
 
 it('lists notifications', function () {
-    $user = User::factory()->create();
+    $user = User::factory()->forFarm()->create();
     notifyUser($user, ['message' => 'Calving expected for B-07']);
 
     $this->actingAs($user)->get(route('notifications.index'))

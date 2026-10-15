@@ -2,6 +2,7 @@
 
 namespace App\Providers;
 
+use App\Support\CurrentFarm;
 use App\Support\Menu;
 use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Database\Eloquent\Model;
@@ -15,7 +16,8 @@ class AppServiceProvider extends ServiceProvider
 {
     public function register(): void
     {
-        //
+        // One instance per request (scoped, so queue workers start fresh for each job).
+        $this->app->scoped(CurrentFarm::class);
     }
 
     public function boot(): void
@@ -35,7 +37,11 @@ class AppServiceProvider extends ServiceProvider
         View::composer('layouts.partials.topbar', function ($view) {
             $user = auth()->user();
 
+            $currentFarm = app(CurrentFarm::class);
+
             $view->with([
+                'currentFarm' => $currentFarm->farm(),
+                'userFarms' => $user ? $currentFarm->availableFor($user) : collect(),
                 'unreadCount' => $user?->unreadNotifications()->count() ?? 0,
                 'recentNotifications' => $user?->notifications()->limit(5)->get() ?? collect(),
             ]);

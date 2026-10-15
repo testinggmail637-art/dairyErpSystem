@@ -4,7 +4,7 @@ use App\Models\User;
 use Illuminate\Support\Facades\Hash;
 
 it('shows the profile page', function () {
-    $user = User::factory()->create(['email' => 'sita@example.com']);
+    $user = User::factory()->forFarm()->create(['email' => 'sita@example.com']);
 
     $this->actingAs($user)->get(route('profile.edit'))
         ->assertOk()
@@ -12,7 +12,7 @@ it('shows the profile page', function () {
 });
 
 it('updates the own name only', function () {
-    $user = User::factory()->create(['email' => 'sita@example.com', 'is_active' => true]);
+    $user = User::factory()->forFarm()->create(['email' => 'sita@example.com', 'is_active' => true]);
 
     $this->actingAs($user)->put(route('profile.update'), [
         'name' => 'Sita Devi',
@@ -27,7 +27,7 @@ it('updates the own name only', function () {
 });
 
 it('changes the password with the current password', function () {
-    $user = User::factory()->create();
+    $user = User::factory()->forFarm()->create();
 
     $this->actingAs($user)->put(route('profile.password'), [
         'current_password' => 'password',
@@ -39,7 +39,7 @@ it('changes the password with the current password', function () {
 });
 
 it('refuses a password change with a wrong current password', function () {
-    $user = User::factory()->create();
+    $user = User::factory()->forFarm()->create();
 
     $this->actingAs($user)->put(route('profile.password'), [
         'current_password' => 'wrong',
@@ -51,7 +51,7 @@ it('refuses a password change with a wrong current password', function () {
 });
 
 it('requires a confirmed password of at least 8 characters', function () {
-    $this->actingAs(User::factory()->create())->put(route('profile.password'), [
+    $this->actingAs(User::factory()->forFarm()->create())->put(route('profile.password'), [
         'current_password' => 'password',
         'password' => 'short',
         'password_confirmation' => 'other',

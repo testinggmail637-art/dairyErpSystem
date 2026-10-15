@@ -5,6 +5,7 @@ namespace App\Models;
 use Database\Factories\UserFactory;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 
@@ -44,6 +45,16 @@ class User extends Authenticatable
             'last_login_at' => 'datetime',
             'preferences' => 'array',
         ];
+    }
+
+    /**
+     * Farms this user may work in (spec Section 2: a user can be linked to several farms).
+     *
+     * @return BelongsToMany<Farm, $this>
+     */
+    public function farms(): BelongsToMany
+    {
+        return $this->belongsToMany(Farm::class)->withTimestamps();
     }
 
     /**

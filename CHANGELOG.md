@@ -14,3 +14,8 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - Phase 0 · Task 2: app layout with permission-filtered sidebar (`config/menu.php`, off-canvas on mobile), top bar
   with notifications bell and user menu, flash messages, own profile page (name, change password), notifications list,
   Indian money/quantity/date formatting (`App\Support\Format`, `inr()`, `fmt_date()`, …).
+- Phase 0 · Task 3: `App\Support\Money` (bcmath, half-up rounding, rejects floats); `app/Enums` with `HasOptions`
+  (`MilkType`, `MilkSource`); `farms` + `farm_user` tables, `Farm` model with settings defaults, default farm seeder
+  (My Dairy Farm / MDF, owner linked); `BelongsToFarm` (farm global scope + auto `farm_id`) and `TracksUser`
+  (`created_by` / `updated_by`) traits; `CurrentFarm` service; `EnsureFarmSelected` middleware (`farm`) on all app
+  routes (403 when not linked, other farm's records 404); farm name / switcher in the top bar.
