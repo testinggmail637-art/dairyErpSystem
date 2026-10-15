@@ -22,11 +22,15 @@ class CurrentFarm
 
     private bool $resolved = false;
 
+    /** The request the farm was resolved or set for; a new request (long-running worker, tests) resolves again. */
+    private ?int $requestId = null;
+
     public function farm(): ?Farm
     {
-        if (! $this->resolved) {
+        if (! $this->resolved || $this->requestId !== spl_object_id(request())) {
             $this->farm = $this->resolve();
             $this->resolved = true;
+            $this->requestId = spl_object_id(request());
         }
 
         return $this->farm;
@@ -47,6 +51,7 @@ class CurrentFarm
     {
         $this->farm = $farm;
         $this->resolved = true;
+        $this->requestId = spl_object_id(request());
 
         if (app()->bound('session') && request()->hasSession()) {
             request()->session()->put(self::SESSION_KEY, $farm->id);

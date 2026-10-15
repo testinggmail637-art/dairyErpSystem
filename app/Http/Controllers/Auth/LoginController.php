@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Auth\LoginRequest;
+use App\Support\CurrentFarm;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -21,6 +22,8 @@ class LoginController extends Controller
         $request->authenticate();
 
         $request->session()->regenerate();
+        // A farm chosen by a previous user of this browser must not carry over (EnsureFarmSelected would 403).
+        $request->session()->forget(CurrentFarm::SESSION_KEY);
 
         $user = $request->user();
         $user->forceFill(['last_login_at' => now()])->saveQuietly();

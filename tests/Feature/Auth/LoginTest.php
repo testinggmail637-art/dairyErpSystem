@@ -1,6 +1,8 @@
 <?php
 
+use App\Models\Farm;
 use App\Models\User;
+use App\Support\CurrentFarm;
 use Illuminate\Support\Facades\RateLimiter;
 
 it('shows the login page to guests', function () {
@@ -105,6 +107,19 @@ it('locks the account after too many failed attempts', function () {
 
     $this->assertGuest();
     RateLimiter::clear('ram@example.com|127.0.0.1');
+});
+
+it('does not carry a previous user\'s farm into a new login', function () {
+    $user = User::factory()->forFarm()->create(['email' => 'ram@example.com']);
+    $foreignFarm = Farm::factory()->create();
+
+    $this->withSession([CurrentFarm::SESSION_KEY => $foreignFarm->id])
+        ->post(route('login.store'), ['login' => 'ram@example.com', 'password' => 'password'])
+        ->assertRedirect(route('home'))
+        ->assertSessionMissing(CurrentFarm::SESSION_KEY);
+
+    $this->get(route('profile.edit'))->assertOk();
+    expect(session(CurrentFarm::SESSION_KEY))->toBe($user->farms->first()->id);
 });
 
 it('logs out', function () {

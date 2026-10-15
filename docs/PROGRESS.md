@@ -7,18 +7,18 @@
 
 | Item | Value |
 |---|---|
-| Current phase | Phase 0 — Foundation (🟡 in progress) |
-| Last completed task | 0.12 — Appearance & branding: AppearanceService, CSS variables, Settings → Appearance (live preview, 4 presets, reset, uploads), per-user theme, branded login page and PDF |
-| Next task | 0.13 — Phase 0 acceptance tests + README/CHANGELOG (phase wrap-up) |
-| Overall progress | 12 / 88 tasks (14%) |
-| Tests passing | 182 |
+| Current phase | Phase 0 — Foundation (✅ done, PR waiting for merge) → next: Phase 1 — Expense Management |
+| Last completed task | 0.13 — Phase 0 acceptance tests, README, CHANGELOG 0.0.0 |
+| Next task | 1.1 — Expense categories & subcategories CRUD (tree view) + seeder |
+| Overall progress | 13 / 88 tasks (15%) |
+| Tests passing | 190 |
 | Last updated (IST) | 2026-10-15 |
 
 ## Phase overview
 
 | Phase | Name | Status | Started | Completed | Tag |
 |---|---|---|---|---|---|
-| 0 | Foundation | 🟡 In progress | 2026-10-15 | | |
+| 0 | Foundation | ✅ Done | 2026-10-15 | 2026-10-15 | `phase-0-done` (after merge) |
 | 1 | Expense Management (no approval) | ⬜ Not started | | | |
 | 2 | Animals, Milk Production, Milk Stock | ⬜ Not started | | | |
 | 3 | Customers, Delivery, Billing, Payments | ⬜ Not started | | | |
@@ -47,18 +47,50 @@ Status legend: ⬜ Not started · 🟡 In progress · ✅ Done · ⏸ On hold
 - [x] 0.10 Common Blade components (fields, money, date, Select2, DataTable, confirm-with-reason)
 - [x] 0.11 Monitoring: Pulse (`/pulse` owner only), Sentry (DSN-gated), Telescope (local), `docs/DEPLOYMENT.md`
 - [x] 0.12 Appearance & branding: AppearanceService, CSS variables, Settings → Appearance with live preview, presets, uploads, user theme
-- [ ] 0.13 Phase 0 acceptance tests pass + README/CHANGELOG updated
+- [x] 0.13 Phase 0 acceptance tests pass + README/CHANGELOG updated
 
 ### Phase log
-- **Completed on:** _TODO_
-- **What was built (plain language):** _TODO_
-- **Screens / URLs added:** _TODO_
-- **Tables / migrations added:** _TODO_
-- **Services / commands / jobs added:** _TODO_
-- **Tests added (count, all passing?):** _TODO_
-- **Decisions taken:** _TODO_ (see `docs/DECISIONS.md`)
-- **Known issues / pending:** _TODO_
-- **How to check it manually:** _TODO_
+- **Completed on:** 2026-10-15 (PR for Task 0.13; tag `phase-0-done` is added after it is merged)
+- **What was built (plain language):** The base of the ERP. Staff log in with email or mobile number; inactive users
+  are blocked (even mid-session). Every screen works inside a farm and never shows another farm's data. The owner
+  manages users, roles (permission matrix), farm settings, sections and payment modes; every change to users, roles
+  and settings is recorded in the audit log with old → new values and a reason. Money, quantities, dates and
+  document numbers (BILL/2026-27/0001) follow Indian conventions. The database and uploads are backed up every night
+  (kept 14 days) with owner alerts on failure. Pulse shows slow pages and errors to the owner; Sentry is ready for
+  production alerts. The look (logo, colours, font, theme, login page, PDF header) is fully managed from Settings →
+  Appearance, with a live preview, presets and reset. Reusable form components are ready for all later modules.
+- **Screens / URLs added:** `/login`, `/` (landing), `/dashboard`, `/profile` (incl. own theme), `/notifications`,
+  `/settings/farm`, `/settings/users` (+ create/edit), `/settings/roles` (+ create/edit/delete), `/settings/sections`,
+  `/settings/payment-modes`, `/settings/audit-log`, `/settings/appearance` (+ reset, sample PDF), `/pulse` (owner),
+  `/telescope` (local only), farm switcher (top bar, when a user has several farms).
+- **Tables / migrations added:** users (email/phone/is_active/last_login_at/preferences), cache, jobs, notifications,
+  permission tables (Spatie), activity_log (+ event, batch_uuid, farm_id), farms, farm_user, sections, payment_modes,
+  document_sequences, pulse_* tables, telescope_entries.
+- **Services / commands / jobs added:** `Money`, `Format`, `FinancialYear`, `Color`, `SvgSanitizer`, `CurrentFarm`,
+  `AuditReason`, `Permissions`; services `DocumentNumberService`, `UserService`, `RoleService`, `FarmSettingsService`,
+  `AppearanceService`; traits `BelongsToFarm`, `TracksUser`, `Auditable`, `HasFarmDefaults`, `RequiresReason`;
+  middleware `EnsureFarmSelected` (`farm`), `EnsureUserIsActive` (`active`); listener `NotifyOwnersOfBackupProblem`;
+  scheduled `backup:run` 02:00, `backup:clean` 02:30, `backup:monitor` 03:00 IST; seeders `RolesAndPermissionsSeeder`,
+  `DefaultFarmSeeder`, `OwnerUserSeeder`, `FarmMasterDataSeeder`; Blade components `x-form.*`, `x-confirm-form`,
+  `x-data-table`, `x-money`.
+- **Tests added (count, all passing?):** 190 tests, 665 assertions, all passing (incl. `tests/Feature/Phase0AcceptanceTest.php`
+  covering every Phase 0 acceptance criterion). Pint clean.
+- **Decisions taken:** #5–#74 in [`docs/DECISIONS.md`](DECISIONS.md) — notably farms built in Task 3 (#19), no owner
+  super-user bypass (#31), owner-role protection (#35), audit log farm isolation (#46), backups in-app alerts (#52),
+  appearance via CSS variables (#63).
+- **Known issues / pending:** Demo users/data arrive with `DemoSeeder` in a later phase. Backups stay on the same
+  server until an off-site copy is set up (`docs/BACKUP_RESTORE.md` §4). Pulse/Telescope dashboards load their font from
+  fonts.bunny.net (#62). Sentry needs a DSN from sentry.io before it reports anything.
+- **How to check it manually:**
+  1. `php artisan migrate --seed`, open http://127.0.0.1:8000/login and log in as `owner@dairy.test` / `password`.
+  2. Settings → Users → Add user: role *Herd Staff*, a mobile number and password. Log out and log in with that mobile
+     number: only Dashboard is in the menu; opening `/settings/users` shows 403.
+  3. As owner, edit that user (change the name, give a reason) → Settings → Audit Log shows old → new and the reason.
+  4. Settings → Farm: change "Bill due after" and save.
+  5. Settings → Appearance: choose "Dark Slate", upload a logo, Save → sidebar, buttons, login page and *Sample PDF*
+     change; "Reset to defaults" brings the green theme back.
+  6. Open `/pulse` as owner (works) and as an admin user (403).
+  7. Run `php artisan backup:run` → a zip appears in `storage/app/backups/dairy-erp/`.
 
 ---
 

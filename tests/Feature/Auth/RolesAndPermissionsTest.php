@@ -72,6 +72,7 @@ it('sends each user to a page they may open after login', function () {
     $delivery = User::factory()->forFarm()->withRole(RoleName::DeliveryBoy)->create();
 
     $this->actingAs($herd)->get(route('home'))->assertRedirect(route('dashboard'));
+    $this->flushSession(); // a different person: actingAs() skips the login controller, which clears the session farm
     // No delivery screens exist yet, so the delivery boy lands on the profile page.
     $this->actingAs($delivery)->get(route('home'))->assertRedirect(route('profile.edit'));
 });
