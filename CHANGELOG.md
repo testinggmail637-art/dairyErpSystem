@@ -5,6 +5,10 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+_Nothing yet — Phase 1 (Expense Management) is next._
+
+## [0.0.0] - 2026-10-15 — Phase 0: Foundation
+
 ### Added
 - Project specification (`docs/DAIRY_ERP_SPEC.md`), AI developer rules (`CLAUDE.md`), progress log, README template.
 - Phase 0 · Task 1: Laravel 12 on PHP 8.4 with MySQL/MariaDB (`dairy_erp`, tests on `dairy_erp_test`), Pest 4, Pint;
@@ -52,6 +56,8 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   preview, presets, reset, logo / dark logo / favicon / login background uploads (resized; SVG sanitized), sample PDF;
   branded sidebar, browser title, favicon, login page and shared PDF layout; per-user theme in My profile;
   self-hosted fonts (Inter, Roboto, Poppins, Noto Sans); `App.chartColors()`.
+- Phase 0 · Task 13: `tests/Feature/Phase0AcceptanceTest.php` (every Phase 0 acceptance criterion end to end), Phase 0 log in
+  `docs/PROGRESS.md`, README completed for Phase 0.
 
 
 ### Changed
@@ -63,3 +69,5 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - Sidebar invisible on desktop (Bootstrap `.offcanvas-lg` forced a transparent background from 992px up).
 - Sidebar groups (e.g. Settings) opened with a jumpy sideways animation (collapse moved off the flex `.nav` list).
 - `/pulse` crashed with "Table pulse_aggregates doesn't exist" (Pulse migrations were not published yet).
+- Current farm could carry over between requests in long-running processes; it is now resolved per request.
+- Logging in as another user in the same browser could 403 on the first page (previous user's farm kept in the session).

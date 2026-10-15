@@ -14,7 +14,7 @@ cow/buffalo buying & selling, expenses, staff, and profit reports — with every
 
 | Phase | Module | Status |
 |---|---|---|
-| 0 | Foundation (login, roles, settings, appearance, monitoring, audit log, backups) | ⬜ Not started |
+| 0 | Foundation (login, roles, settings, appearance, monitoring, audit log, backups) | ✅ Done (v0.0.0) |
 | 1 | Expense Management (no approval) + Excel import | ⬜ Not started |
 | 2 | Animals, Milk Production, Milk Stock | ⬜ Not started |
 | 3 | Customers, Delivery, Billing, Payments | ⬜ Not started |
@@ -40,8 +40,11 @@ _TODO: for each module, list the working features in plain language once its pha
 - **Animal trading** — _TODO_
 - **Staff & salary** — _TODO_
 - **Dashboard & reports** — _TODO_
-- **Admin panel** — users, roles & permissions, farm settings, **Appearance** (logo, colors, fonts, theme, login
-  page, PDF header/footer), audit log, system monitor.
+- **Admin panel** ✅ — login by email or mobile (inactive users blocked, even mid-session); users with roles and
+  farms, owner-role protection; roles with a permission matrix; farm settings; sections and payment modes; audit log
+  (who changed what, old → new, reason); **Appearance** (logo, colours, fonts, light/dark/auto theme, login page, PDF
+  header/footer, live preview, presets, reset; each user can pick their own theme); System Monitor (Pulse, owner only);
+  nightly backups with in-app alerts; every screen limited to the current farm (farm switcher when a user has several).
 
 ---
 
@@ -108,7 +111,6 @@ http://localhost/<folder>/public (set `APP_URL` to the same). Tests: keep `APP_U
 | `SENTRY_LARAVEL_DSN` | _(empty = disabled)_ | Error alerts |
 | `DB_DUMP_BINARY_PATH` | `C:/xampp/mysql/bin` (XAMPP) / empty (Linux) | Folder with `mysqldump`, for backups |
 | `BACKUP_DISKS`, `BACKUP_PATH`, `BACKUP_ARCHIVE_PASSWORD` | `backups`, empty, empty | Where backups go / optional zip password — see `docs/BACKUP_RESTORE.md` |
-| _TODO: any other keys added during build_ | | |
 
 ---
 
@@ -149,7 +151,7 @@ php artisan test        # uses dairy_erp_test (MySQL), never the main DB
 ./vendor/bin/pint
 ```
 
-Current: 182 tests passing (Phase 0 · Task 12).
+Current: 190 tests passing (end of Phase 0).
 
 ---
 
@@ -191,7 +193,37 @@ Full steps: [`docs/DEPLOYMENT.md`](docs/DEPLOYMENT.md) · Backups & restore: [`d
 
 ## Folder structure
 
-_TODO: short tree of `app/` modules, `resources/views/`, `public/vendor/`, `docs/` once they exist._
+```
+app/
+├── Enums/                  # backed enums for every status/type (RoleName, DocumentType, MilkType, MilkSource …)
+├── Http/
+│   ├── Controllers/        # Auth, Account (profile, notifications), Farm (switcher), Settings (users, roles, farm,
+│   │                       #   sections, payment modes, audit log, appearance); one folder per module later
+│   ├── Middleware/         # EnsureFarmSelected (farm), EnsureUserIsActive (active)
+│   └── Requests/           # all validation (Form Requests), Concerns/RequiresReason
+├── Listeners/              # NotifyOwnersOfBackupProblem
+├── Models/                 # Farm, User, Role, Activity, Section, PaymentMode, DocumentSequence
+│   ├── Concerns/           # BelongsToFarm, TracksUser, Auditable, HasFarmDefaults
+│   └── Scopes/             # FarmScope
+├── Notifications/          # in-app (bell) notifications
+├── Providers/              # AppServiceProvider (bindings, gates, view composers), TelescopeServiceProvider (local)
+├── Services/               # business logic: AppearanceService, DocumentNumberService, UserService, RoleService …
+└── Support/                # Money, Format, FinancialYear, Color, CurrentFarm, Permissions, SvgSanitizer, helpers.php
+config/                     # dairy.php (owner seed), menu.php (sidebar), backup, pulse, sentry, permission …
+database/
+├── factories/  migrations/  seeders/   # DatabaseSeeder = roles, default farm, owner, sections, payment modes
+docs/                       # spec, PROGRESS, DECISIONS, DEPLOYMENT, BACKUP_RESTORE
+public/
+├── css/app.css  js/app.js  js/modules/   # app code (no build step)
+└── vendor/                 # Bootstrap, jQuery, Select2, Flatpickr, DataTables, Chart.js, SweetAlert2, fonts (VERSIONS.md)
+resources/views/
+├── components/             # x-form.* fields, x-confirm-form, x-data-table, x-money
+├── layouts/                # app, guest, partials (sidebar, top bar, branding head, flash)
+├── pdf/                    # shared PDF layout + appearance sample
+└── auth/ account/ settings/ dashboard.blade.php
+routes/web.php  routes/console.php        # routes; scheduled jobs
+tests/Feature/ tests/Unit/ tests/Fixtures/ # Pest; Phase0AcceptanceTest covers the phase's acceptance criteria
+```
 
 ---
 
