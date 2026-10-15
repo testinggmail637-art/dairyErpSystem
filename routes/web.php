@@ -4,6 +4,7 @@ use App\Http\Controllers\Account\NotificationController;
 use App\Http\Controllers\Account\ProfileController;
 use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\Farm\FarmSwitchController;
+use App\Http\Controllers\HomeController;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -24,8 +25,8 @@ Route::post('logout', [LoginController::class, 'destroy'])->middleware('auth')->
 |--------------------------------------------------------------------------
 */
 Route::middleware(['auth', 'farm'])->group(function () {
-    Route::redirect('/', '/dashboard');
-    Route::view('dashboard', 'dashboard')->name('dashboard');
+    Route::get('/', HomeController::class)->name('home');
+    Route::view('dashboard', 'dashboard')->middleware('can:dashboard.view')->name('dashboard');
 
     // Farm switcher (top bar; shown only when the user has more than one farm)
     Route::post('farm/switch', FarmSwitchController::class)->name('farm.switch');

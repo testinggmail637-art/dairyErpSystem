@@ -16,8 +16,8 @@ class FarmSwitchController extends Controller
 
         $currentFarm->set($farm);
 
-        // Back to the dashboard: the previous page may show a record of the old farm.
-        return redirect()->route('dashboard')
+        // Back to the landing page: the previous page may show a record of the old farm.
+        return redirect()->route('home')
             ->with('success', __('Switched to :farm.', ['farm' => $farm->name]));
     }
 }

@@ -154,7 +154,9 @@ Current: 57 tests passing (Phase 0 · Task 2).
 | Collection operator | Farmer milk collection entry |
 | Delivery boy | Own route deliveries and payment collection |
 
-Full list: `docs/DAIRY_ERP_SPEC.md` Section 5. Permissions are editable from Settings → Roles.
+Full list: `docs/DAIRY_ERP_SPEC.md` Section 5; in code `app/Support/Permissions.php` (permissions) and
+`app/Enums/RoleName.php` (default role permissions). Permissions are editable from Settings → Roles.
+After adding a permission in code run `php artisan db:seed --class=RolesAndPermissionsSeeder` (keeps role edits).
 
 ---
 

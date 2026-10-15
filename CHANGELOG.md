@@ -23,3 +23,10 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   (HERD, COLLECTION, DELIVERY, TRADING, OFFICE · CASH, UPI, BANK, CHEQUE, CARD); `document_sequences` table,
   `DocumentType` enum and `DocumentNumberService` (BILL/2026-27/0001, locked, per farm and financial year);
   `App\Support\FinancialYear`; Blueprint macros `farmScoped()` and `userStamps()`.
+- Phase 0 · Task 5: `spatie/laravel-permission` tables and config; all 60 permissions (`App\Support\Permissions`) and
+  the six default roles (`RoleName` enum: owner, admin, accountant, herd_staff, collection_operator, delivery_boy)
+  seeded by `RolesAndPermissionsSeeder`; seeded owner user gets the owner role.
+
+### Changed
+- `/dashboard` requires `dashboard.view`; after login users go to `/` (`home`), which opens the dashboard or the first
+  screen they are allowed to see.

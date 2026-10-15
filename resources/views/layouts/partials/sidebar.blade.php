@@ -1,7 +1,7 @@
 {{-- Static on large screens, off-canvas drawer below lg. $menu comes from App\Support\Menu (view composer). --}}
 <aside class="app-sidebar offcanvas-lg offcanvas-start" tabindex="-1" id="appSidebar" aria-labelledby="appSidebarLabel">
     <div class="app-sidebar-header">
-        <a href="{{ route('dashboard') }}" class="app-brand" id="appSidebarLabel">
+        <a href="{{ route('home') }}" class="app-brand" id="appSidebarLabel">
             <i class="bi bi-droplet-half"></i>
             <span>{{ config('app.name') }}</span>
         </a>

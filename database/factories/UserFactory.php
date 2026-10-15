@@ -2,11 +2,14 @@
 
 namespace Database\Factories;
 
+use App\Enums\RoleName;
 use App\Models\Farm;
 use App\Models\User;
+use Database\Seeders\RolesAndPermissionsSeeder;
 use Illuminate\Database\Eloquent\Factories\Factory;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Str;
+use Spatie\Permission\Models\Role;
 
 /**
  * @extends Factory<User>
@@ -33,6 +36,18 @@ class UserFactory extends Factory
     public function inactive(): static
     {
         return $this->state(fn (array $attributes) => ['is_active' => false]);
+    }
+
+    /** Give the user a seeded role (roles and permissions are seeded on first use). */
+    public function withRole(RoleName $role): static
+    {
+        return $this->afterCreating(function (User $user) use ($role) {
+            if (! Role::query()->where('name', $role->value)->exists()) {
+                (new RolesAndPermissionsSeeder)->run();
+            }
+
+            $user->assignRole($role->value);
+        });
     }
 
     /** Link the user to $farm (a new farm when null), so app routes pass EnsureFarmSelected. */
