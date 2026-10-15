@@ -10,7 +10,7 @@
     </div>
 
     <nav class="app-sidebar-nav" aria-label="{{ __('Main menu') }}">
-        <ul class="nav flex-column">
+        <ul class="nav flex-column flex-nowrap">
             @forelse ($menu as $index => $entry)
                 @if (isset($entry['items']))
                     <li class="nav-item">
@@ -21,14 +21,17 @@
                             <span>{{ $entry['label'] }}</span>
                             <i class="bi bi-chevron-down app-nav-caret"></i>
                         </button>
-                        <ul class="nav flex-column collapse {{ $entry['active'] ? 'show' : '' }}" id="menu-group-{{ $index }}">
-                            @foreach ($entry['items'] as $item)
-                                <li class="nav-item">
-                                    <a href="{{ $item['url'] }}" class="nav-link app-nav-sub {{ $item['active'] ? 'active' : '' }}"
-                                       @if ($item['active']) aria-current="page" @endif>{{ $item['label'] }}</a>
-                                </li>
-                            @endforeach
-                        </ul>
+                        {{-- Collapse on a plain wrapper: on the flex .nav list itself the items wrap sideways while animating. --}}
+                        <div class="collapse {{ $entry['active'] ? 'show' : '' }}" id="menu-group-{{ $index }}">
+                            <ul class="nav flex-column flex-nowrap">
+                                @foreach ($entry['items'] as $item)
+                                    <li class="nav-item">
+                                        <a href="{{ $item['url'] }}" class="nav-link app-nav-sub {{ $item['active'] ? 'active' : '' }}"
+                                           @if ($item['active']) aria-current="page" @endif>{{ $item['label'] }}</a>
+                                    </li>
+                                @endforeach
+                            </ul>
+                        </div>
                     </li>
                 @else
                     <li class="nav-item">
