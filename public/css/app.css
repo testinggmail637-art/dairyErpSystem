@@ -77,6 +77,8 @@ body {
 
 @media (min-width: 992px) {
     .app-sidebar {
+        /* Bootstrap's .offcanvas-lg forces a transparent background at this width; keep the sidebar color. */
+        background-color: var(--sidebar-bg) !important;
         position: fixed;
         inset: 0 auto 0 0;
         width: var(--sidebar-width);
