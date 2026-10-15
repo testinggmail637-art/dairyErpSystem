@@ -19,12 +19,37 @@ It is the single source of truth. Every table, column, business rule, permission
    If you are resumed in a new session, read `docs/PROGRESS.md` and `docs/DECISIONS.md` first and continue
    from the next unticked task.
 4. After each task: run `php artisan test` and `./vendor/bin/pint`. Fix failures before moving on.
-   Commit with a clear message (`Phase 1: expense CRUD with receipts`). Small, frequent commits.
+   Then commit and push following **"Git workflow"** below (one branch + one Pull Request per task).
 5. **Never build anything listed under "Out of scope" in the spec**, even if it seems useful.
    In particular: **there is NO approval workflow for expenses** (no pending/approved/rejected status,
    no approved_by/approved_at fields, no approval inbox).
 6. If a migration from an earlier phase needs a change, create a **new migration** — never edit a
    migration that has been committed in an earlier phase.
+
+## Git workflow (owner's rule — always follow)
+
+Repo: private, `origin` = `git@github.com-me:testinggmail637-art/dairyErpSystem.git` (personal account;
+never use plain `git@github.com:` — that alias logs in with the company key). Default branch: `main`.
+
+**One branch per task, merged through a Pull Request that the owner reviews and merges on GitHub.**
+
+1. **Before writing any code for a task, always start from the latest `main`:**
+   ```bash
+   git checkout main
+   git pull --ff-only origin main
+   git checkout -b task/<task-no>-<short-name>      # e.g. task/0.3-money-enums-farm-scope
+   ```
+   If the working tree is not clean, or the previous task's PR is **not merged yet**, stop and ask the
+   owner to merge it first — never start a task on top of an unmerged branch.
+2. Branch names: `task/<n.m>-<kebab-summary>` for spec tasks; `fix/<summary>`, `docs/<summary>`,
+   `chore/<summary>` for anything else. Never commit directly to `main`.
+3. Do the task (tests + Pint pass, PROGRESS/README/CHANGELOG/DECISIONS updated), then commit on the branch:
+   `Phase <N> · Task <n.m>: <summary>`. Several commits on the branch are fine.
+4. Push the branch: `git push -u origin <branch>`. Tell the owner it is ready and give the PR link:
+   `https://github.com/testinggmail637-art/dairyErpSystem/compare/main...<branch>?expand=1`
+   (title = the commit title; body = what was built, how to check it, test count).
+5. The owner reviews and merges the PR on GitHub. Do not merge it yourself and do not push to `main`.
+6. When a phase's last PR is merged: pull `main`, tag `phase-<n>-done`, push the tag.
 
 ## Documentation you must keep up to date (part of "done")
 
