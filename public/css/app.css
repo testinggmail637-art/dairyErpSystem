@@ -137,7 +137,7 @@ body {
     border: 0;
     border-radius: var(--bs-border-radius);
     background: transparent;
-    color: var(--sidebar-text);
+    color: var(--bs-success); /* #198754 — owner's choice; becomes editable in Settings → Appearance (Task 12) */
     opacity: 0.85;
     text-align: left;
 }
