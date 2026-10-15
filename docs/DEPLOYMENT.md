@@ -32,6 +32,27 @@ expose_php = Off
 
 Restart: `sudo systemctl restart php8.3-fpm`.
 
+### Performance tuning (the app holds years of daily records — keep pages under 1 s)
+
+PHP OPcache (`/etc/php/8.3/fpm/conf.d/10-opcache.ini`):
+
+```ini
+opcache.enable=1
+opcache.memory_consumption=256
+opcache.interned_strings_buffer=16
+opcache.max_accelerated_files=20000
+opcache.validate_timestamps=0   ; code changes only on deploy → run `sudo systemctl reload php8.3-fpm` after each deploy
+```
+
+PHP-FPM pool (`/etc/php/8.3/fpm/pool.d/www.conf`), for a 4 GB VPS: `pm = dynamic`, `pm.max_children = 20`,
+`pm.start_servers = 4`, `pm.min_spare_servers = 2`, `pm.max_spare_servers = 6`, `pm.max_requests = 500`.
+
+MySQL (`/etc/mysql/mysql.conf.d/mysqld.cnf`): give InnoDB about half the RAM of a dedicated DB server
+(`innodb_buffer_pool_size = 2G` on 4 GB), `innodb_log_file_size = 256M`, and turn on the slow log to catch slow
+queries Pulse reports: `slow_query_log = 1`, `long_query_time = 0.5`.
+
+Always run `php artisan optimize` after deploying (cached config, routes, views, events).
+
 ---
 
 ## 2. Database
