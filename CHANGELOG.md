@@ -56,6 +56,9 @@ _Nothing yet — Phase 1 (Expense Management) is next._
   preview, presets, reset, logo / dark logo / favicon / login background uploads (resized; SVG sanitized), sample PDF;
   branded sidebar, browser title, favicon, login page and shared PDF layout; per-user theme in My profile;
   self-hosted fonts (Inter, Roboto, Poppins, Noto Sans); `App.chartColors()`.
+- Performance rules for large data in `CLAUDE.md` (owner requirement) and server tuning in `docs/DEPLOYMENT.md`.
+- AJAX lists: Users, Audit Log, Sections and Payment Modes filter, search and paginate without reloading the page;
+  clean URLs without empty filters (`Controller::listView()`, `data-ajax-list`, `@fragment('results')`).
 - Phase 0 · Task 13: `tests/Feature/Phase0AcceptanceTest.php` (every Phase 0 acceptance criterion end to end), Phase 0 log in
   `docs/PROGRESS.md`, README completed for Phase 0.
 
@@ -71,3 +74,5 @@ _Nothing yet — Phase 1 (Expense Management) is next._
 - `/pulse` crashed with "Table pulse_aggregates doesn't exist" (Pulse migrations were not published yet).
 - Current farm could carry over between requests in long-running processes; it is now resolved per request.
 - Logging in as another user in the same browser could 403 on the first page (previous user's farm kept in the session).
+- Audit log was very slow with large data (16–47 s at 200 000 entries): filter lists no longer scan the log, new composite indexes with index hints, Previous/Next paging; now under 1 s.
+- The user's farms were loaded twice on every page.

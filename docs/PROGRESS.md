@@ -7,12 +7,12 @@
 
 | Item | Value |
 |---|---|
-| Current phase | Phase 0 — Foundation (✅ done, PR waiting for merge) → next: Phase 1 — Expense Management |
+| Current phase | Phase 0 — Foundation ✅ done (tag `phase-0-done` after this PR) → next: Phase 1 — Expense Management |
 | Last completed task | 0.13 — Phase 0 acceptance tests, README, CHANGELOG 0.0.0 |
 | Next task | 1.1 — Expense categories & subcategories CRUD (tree view) + seeder |
 | Overall progress | 13 / 88 tasks (15%) |
-| Tests passing | 190 |
-| Last updated (IST) | 2026-10-15 |
+| Tests passing | 199 |
+| Last updated (IST) | 2026-10-16 |
 
 ## Phase overview
 
@@ -73,9 +73,9 @@ Status legend: ⬜ Not started · 🟡 In progress · ✅ Done · ⏸ On hold
   scheduled `backup:run` 02:00, `backup:clean` 02:30, `backup:monitor` 03:00 IST; seeders `RolesAndPermissionsSeeder`,
   `DefaultFarmSeeder`, `OwnerUserSeeder`, `FarmMasterDataSeeder`; Blade components `x-form.*`, `x-confirm-form`,
   `x-data-table`, `x-money`.
-- **Tests added (count, all passing?):** 190 tests, 665 assertions, all passing (incl. `tests/Feature/Phase0AcceptanceTest.php`
+- **Tests added (count, all passing?):** 199 tests, 716 assertions, all passing (incl. `tests/Feature/Phase0AcceptanceTest.php`
   covering every Phase 0 acceptance criterion). Pint clean.
-- **Decisions taken:** #5–#74 in [`docs/DECISIONS.md`](DECISIONS.md) — notably farms built in Task 3 (#19), no owner
+- **Decisions taken:** #5–#79 in [`docs/DECISIONS.md`](DECISIONS.md) — notably farms built in Task 3 (#19), no owner
   super-user bypass (#31), owner-role protection (#35), audit log farm isolation (#46), backups in-app alerts (#52),
   appearance via CSS variables (#63).
 - **Known issues / pending:** Demo users/data arrive with `DemoSeeder` in a later phase. Backups stay on the same

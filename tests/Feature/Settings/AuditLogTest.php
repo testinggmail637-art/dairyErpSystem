@@ -134,7 +134,7 @@ it('filters by user, record type, action and date, and hides other farms', funct
     ]))->assertSee('Ramu Changed');
 
     $this->actingAs($this->owner)->get(route('audit-logs.index', ['from' => '2026-10-11']))
-        ->assertDontSee('Ramu Changed');
+        ->assertDontSee('<span class="text-success">Ramu Changed</span>', false); // the name is still in the User filter list
 
     $this->actingAs($this->owner)->get(route('audit-logs.index', ['from' => '2026-10-12', 'to' => '2026-10-11']))
         ->assertSessionHasErrors('to');

@@ -368,3 +368,10 @@ body {
 .app-preview-topbar {
     background-color: var(--topbar-bg);
 }
+
+/* AJAX lists: dim the table while the next page/filter loads */
+.app-loading {
+    opacity: 0.5;
+    pointer-events: none;
+    transition: opacity 0.15s ease;
+}

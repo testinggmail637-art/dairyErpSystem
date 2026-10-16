@@ -25,6 +25,9 @@ class CurrentFarm
     /** The request the farm was resolved or set for; a new request (long-running worker, tests) resolves again. */
     private ?int $requestId = null;
 
+    /** @var array<string, Collection<int, Farm>> */
+    private array $farmsCache = [];
+
     public function farm(): ?Farm
     {
         if (! $this->resolved || $this->requestId !== spl_object_id(request())) {
@@ -63,6 +66,7 @@ class CurrentFarm
     {
         $this->farm = null;
         $this->resolved = false;
+        $this->farmsCache = [];
     }
 
     /**
@@ -72,7 +76,10 @@ class CurrentFarm
      */
     public function availableFor(User $user): Collection
     {
-        return $user->farms()->active()->orderBy('name')->get();
+        // Asked twice per page (farm resolution + top-bar switcher): load once per user and request.
+        $key = spl_object_id(request()).':'.$user->getKey();
+
+        return $this->farmsCache[$key] ??= $user->farms()->active()->orderBy('name')->get();
     }
 
     private function resolve(): ?Farm
