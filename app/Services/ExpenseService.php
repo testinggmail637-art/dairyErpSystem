@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use App\Models\Expense;
+use App\Models\User;
 use App\Support\CurrentFarm;
 use App\Support\Money;
 use App\Support\ReceiptStorage;
@@ -76,6 +77,21 @@ class ExpenseService
         if ($expense->isAutoCreated()) {
             throw new DomainException(__('This expense was created automatically. Change it from where it came from.'));
         }
+    }
+
+    /**
+     * A create-only user's own entries they may still change: today's (IST), or all of them when the farm
+     * setting staff_same_day_edit_only is off (spec 4.5).
+     *
+     * @return Builder<Expense>
+     */
+    public function ownEditableQuery(User $user): Builder
+    {
+        $sameDayOnly = (bool) ($this->currentFarm->farm()?->setting('staff_same_day_edit_only') ?? true);
+
+        return Expense::query()
+            ->where('created_by', $user->getKey())
+            ->when($sameDayOnly, fn ($q) => $q->where('created_at', '>=', now()->startOfDay()));
     }
 
     /**

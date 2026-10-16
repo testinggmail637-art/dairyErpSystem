@@ -121,6 +121,14 @@
         </div>
     </div>
 
+    @if ($expense->exists)
+        <div class="card mt-3">
+            <div class="card-body pb-0">
+                <x-form.reason :placeholder="__('e.g. Wrong amount entered earlier')" />
+            </div>
+        </div>
+    @endif
+
     <div class="mt-3 d-flex flex-wrap gap-2">
         <button type="submit" class="btn btn-primary"><i class="bi bi-check2 me-1"></i>{{ __('Save') }}</button>
         @unless ($expense->exists)

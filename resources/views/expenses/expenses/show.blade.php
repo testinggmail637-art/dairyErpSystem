@@ -4,20 +4,20 @@
 
 @section('page-actions')
     <a href="{{ route('expenses.index') }}" class="btn btn-outline-secondary btn-sm"><i class="bi bi-arrow-left me-1"></i>{{ __('Back to expenses') }}</a>
-    @unless ($expense->isAutoCreated())
-        @can('expenses.edit')
-            <a href="{{ route('expenses.edit', $expense) }}" class="btn btn-primary btn-sm"><i class="bi bi-pencil me-1"></i>{{ __('Edit') }}</a>
-        @endcan
-        @can('expenses.delete')
-            <x-confirm-form :action="route('expenses.destroy', $expense)" :label="__('Delete')"
-                            :message="__('Delete this expense of :amount?', ['amount' => inr($expense->amount)])" />
-        @endcan
-    @endunless
+    @can('update', $expense)
+        <a href="{{ route('expenses.edit', $expense) }}" class="btn btn-primary btn-sm"><i class="bi bi-pencil me-1"></i>{{ __('Edit') }}</a>
+    @endcan
+    @can('delete', $expense)
+        <x-confirm-form :action="route('expenses.destroy', $expense)" :label="__('Delete')" reason
+                        :message="__('Delete this expense of :amount?', ['amount' => inr($expense->amount)])" />
+    @endcan
 @endsection
 
 @section('content')
-@if ($expense->isAutoCreated())
-    <div class="alert alert-info"><i class="bi bi-info-circle me-1"></i>{{ __('This expense was created automatically. Change it from where it came from.') }}</div>
+@if ($lock = \App\Policies\ExpensePolicy::lockedBecause($expense))
+    <div class="alert alert-info"><i class="bi bi-lock-fill me-1"></i>{{ $lock }}</div>
+@elseif (! auth()->user()->can('update', $expense) && ! auth()->user()->can('expenses.edit'))
+    <div class="alert alert-secondary small"><i class="bi bi-clock-history me-1"></i>{{ __('You can only change your own entries, on the day you made them.') }}</div>
 @endif
 
 <div class="row g-3">

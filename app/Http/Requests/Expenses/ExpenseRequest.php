@@ -3,6 +3,7 @@
 namespace App\Http\Requests\Expenses;
 
 use App\Enums\ExpenseUnit;
+use App\Http\Requests\Concerns\RequiresReason;
 use App\Models\Expense;
 use App\Support\CurrentFarm;
 use Illuminate\Foundation\Http\FormRequest;
@@ -15,10 +16,14 @@ use Illuminate\Validation\Rules\Exists;
  */
 class ExpenseRequest extends FormRequest
 {
+    use RequiresReason;
+
     public function authorize(): bool
     {
-        // Who may edit which expense (own entry same day …) is decided in Task 1.4; route middleware covers the rest.
-        return $this->user()->can($this->expense() ? 'expenses.edit' : 'expenses.create');
+        // ExpensePolicy: edit permission, or a create-only user's own entry on the same day (spec 4.5).
+        $expense = $this->expense();
+
+        return $expense ? $this->user()->can('update', $expense) : $this->user()->can('create', Expense::class);
     }
 
     protected function prepareForValidation(): void
@@ -42,9 +47,10 @@ class ExpenseRequest extends FormRequest
      */
     public function rules(): array
     {
-        $expense = $this->expense();
+        // Editing an existing expense is audit-logged and needs a reason (spec 4.4).
+        $reason = $this->expense() ? $this->reasonRules() : [];
 
-        return [
+        return $reason + [
             'expense_date' => ['required', 'date_format:Y-m-d', 'before_or_equal:today'],
             'amount' => ['required', 'decimal:0,2', 'gt:0', 'max:9999999999.99'],
             // must be a top-level category …

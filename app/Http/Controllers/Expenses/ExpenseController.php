@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Expenses;
 use App\Enums\ExpenseUnit;
 use App\Exports\ExpensesExport;
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Expenses\DeleteExpenseRequest;
 use App\Http\Requests\Expenses\ExpenseIndexRequest;
 use App\Http\Requests\Expenses\ExpenseRequest;
 use App\Models\Expense;
@@ -40,7 +41,11 @@ class ExpenseController extends Controller
     public function index(ExpenseIndexRequest $request): View|Response
     {
         $filters = $request->filters();
-        $query = $this->expenses->applyFilters(Expense::query(), $filters);
+        $ownOnly = ! $request->user()->can('expenses.view'); // create-only staff: "my entries" (spec 4.5)
+        $query = $this->expenses->applyFilters(
+            $ownOnly ? $this->expenses->ownEditableQuery($request->user()) : Expense::query(),
+            $ownOnly ? array_merge($filters, ['from' => null, 'to' => null]) : $filters,
+        );
         $totals = $this->expenses->totals($query);
 
         $expenses = (clone $query)
@@ -54,6 +59,7 @@ class ExpenseController extends Controller
             'expenses' => $expenses,
             'totals' => $totals,
             'filters' => $filters,
+            'ownOnly' => $ownOnly,
         ] + $this->filterOptions($filters));
     }
 
@@ -91,13 +97,9 @@ class ExpenseController extends Controller
         ]);
     }
 
-    public function edit(Expense $expense): View|RedirectResponse
+    /** The route's policy check (ExpensePolicy::update) already refuses locked and other people's old entries. */
+    public function edit(Expense $expense): View
     {
-        if ($expense->isAutoCreated()) {
-            return redirect()->route('expenses.show', $expense)
-                ->with('warning', __('This expense was created automatically. Change it from where it came from.'));
-        }
-
         return view('expenses.expenses.form', $this->formData($expense));
     }
 
@@ -112,7 +114,7 @@ class ExpenseController extends Controller
         return redirect()->route('expenses.index')->with('success', __('Expense updated.'));
     }
 
-    public function destroy(Expense $expense): RedirectResponse
+    public function destroy(DeleteExpenseRequest $request, Expense $expense): RedirectResponse
     {
         try {
             $this->expenses->delete($expense);
