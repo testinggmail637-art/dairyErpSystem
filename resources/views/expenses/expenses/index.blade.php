@@ -1,6 +1,6 @@
 @extends('layouts.app')
 
-@section('title', __('Expenses'))
+@section('title', $ownOnly ? __('My expense entries') : __('Expenses'))
 
 @section('page-actions')
     @can('expenses.create')
@@ -10,6 +10,11 @@
 
 @section('content')
 <div class="card">
+    @if ($ownOnly)
+        <div class="card-body border-bottom small text-body-secondary">
+            <i class="bi bi-person-check me-1"></i>{{ __('Your own entries that you can still change. Entries can be edited or deleted on the day they were made.') }}
+        </div>
+    @else
     <div class="card-body border-bottom">
         <form method="GET" action="{{ route('expenses.index') }}" class="row g-2 align-items-end" data-allow-resubmit data-ajax-list="#expenses-results">
             <div class="col-6 col-md-3 col-xl-2">
@@ -59,6 +64,7 @@
         </form>
         @if ($errors->any())<div class="text-danger small mt-2">{{ $errors->first() }}</div>@endif
     </div>
+    @endif
 
     <div id="expenses-results" data-ajax-results>
     @fragment('results')
@@ -68,9 +74,11 @@
         <div><span class="small text-body-secondary">{{ __('Total') }}</span> <strong><x-money :value="$totals['total']" /></strong></div>
         <div><span class="small text-body-secondary">{{ __('Paid') }}</span> <x-money :value="$totals['paid']" /></div>
         <div><span class="small text-body-secondary">{{ __('Credit') }}</span> <x-money :value="$totals['credit']" /></div>
-        <a href="{{ route('expenses.export', array_filter($filters, fn ($v) => $v !== null && $v !== '')) }}" class="btn btn-outline-success btn-sm ms-auto">
-            <i class="bi bi-file-earmark-excel me-1"></i>{{ __('Excel') }}
-        </a>
+        @unless ($ownOnly)
+            <a href="{{ route('expenses.export', array_filter($filters, fn ($v) => $v !== null && $v !== '')) }}" class="btn btn-outline-success btn-sm ms-auto">
+                <i class="bi bi-file-earmark-excel me-1"></i>{{ __('Excel') }}
+            </a>
+        @endunless
     </div>
     <div class="table-responsive">
         <table class="table table-hover align-middle mb-0">
@@ -110,10 +118,10 @@
                         <td class="d-none d-lg-table-cell small">{{ $expense->creator?->name }}</td>
                         <td class="text-end text-nowrap">
                             <a href="{{ route('expenses.show', $expense) }}" class="btn btn-outline-secondary btn-sm" title="{{ __('View') }}"><i class="bi bi-eye"></i></a>
-                            @can('expenses.edit')
-                                @unless ($expense->isAutoCreated())
-                                    <a href="{{ route('expenses.edit', $expense) }}" class="btn btn-outline-primary btn-sm" title="{{ __('Edit') }}"><i class="bi bi-pencil"></i></a>
-                                @endunless
+                            @can('update', $expense)
+                                <a href="{{ route('expenses.edit', $expense) }}" class="btn btn-outline-primary btn-sm" title="{{ __('Edit') }}"><i class="bi bi-pencil"></i></a>
+                            @elseif ($lock = \App\Policies\ExpensePolicy::lockedBecause($expense))
+                                <span class="btn btn-sm text-body-secondary" title="{{ $lock }}"><i class="bi bi-lock-fill"></i></span>
                             @endcan
                         </td>
                     </tr>

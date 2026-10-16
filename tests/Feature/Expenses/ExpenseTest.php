@@ -48,6 +48,7 @@ function expensePayload(array $overrides = []): array
         'quantity' => '5',
         'unit' => 'bag',
         'note' => 'Five bags',
+        'reason' => 'Correction',   // needed on edit (spec 4.4), ignored on create
     ], $overrides);
 }
 
@@ -150,18 +151,23 @@ it('edits an expense (audit-logged) and soft-deletes it', function () {
     $log = Activity::where('subject_type', (new Expense)->getMorphClass())->where('event', 'updated')->firstOrFail();
     expect($log->properties['old']['amount'])->toBe('1250.50')->and($log->properties['attributes']['amount'])->toBe('2000.00');
 
-    $this->actingAs($this->accountant)->delete(route('expenses.destroy', $expense))->assertRedirect(route('expenses.index'));
+    $this->actingAs($this->accountant)->delete(route('expenses.destroy', $expense), ['reason' => 'Entered twice'])
+        ->assertRedirect(route('expenses.index'));
     expect(Expense::count())->toBe(0)->and(Expense::withTrashed()->count())->toBe(1);
     $this->actingAs($this->accountant)->get(route('expenses.index'))->assertDontSee('Local mandi');
 });
 
-it('does not allow editing or deleting auto-created expenses from the expense screen', function () {
+it('does not allow editing or deleting auto-created (locked) expenses from the expense screen', function () {
     $expense = Expense::factory()->create(['farm_id' => $this->farm->id]);
     $expense->forceFill(['source_type' => 'salary_run', 'source_id' => 1])->saveQuietly();
 
-    $this->actingAs($this->accountant)->get(route('expenses.edit', $expense))->assertRedirect(route('expenses.show', $expense));
-    $this->actingAs($this->accountant)->put(route('expenses.update', $expense), expensePayload())->assertSessionHas('error');
-    $this->actingAs($this->accountant)->delete(route('expenses.destroy', $expense))->assertSessionHas('error');
+    $this->actingAs($this->accountant)->get(route('expenses.edit', $expense))->assertForbidden();
+    $this->actingAs($this->accountant)->put(route('expenses.update', $expense), expensePayload())->assertForbidden();
+    $this->actingAs($this->accountant)->delete(route('expenses.destroy', $expense), ['reason' => 'Try'])->assertForbidden();
+    $this->actingAs($this->accountant)->get(route('expenses.show', $expense))
+        ->assertOk()
+        ->assertSee('bi-lock-fill', false)
+        ->assertSee(__('Created automatically — change it from where it came from.'));
     expect(Expense::count())->toBe(1);
 });
 
@@ -278,17 +284,14 @@ it('blocks deleting a category or vendor that expenses use', function () {
         ->and(Vendor::whereKey($this->vendor->id)->exists())->toBeTrue();
 });
 
-it('enforces permissions: herd staff may add but not list, edit or delete; other farms are 404', function () {
+it('sends create-only staff back to a new form after saving, keeps export for viewers, and 404s other farms', function () {
     $herdStaff = User::factory()->forFarm($this->farm)->withRole(RoleName::HerdStaff)->create();
     $foreign = Expense::factory()->create(['farm_id' => Farm::factory()->create()->id]);
 
     $this->actingAs($herdStaff)->post(route('expenses.store'), expensePayload())
         ->assertRedirect(route('expenses.create', ['section_id' => $this->herd->id, 'category_id' => $this->feed->id]));
-    $expense = Expense::firstOrFail();
 
-    $this->actingAs($herdStaff)->get(route('expenses.index'))->assertForbidden();
-    $this->actingAs($herdStaff)->get(route('expenses.edit', $expense))->assertForbidden();
-    $this->actingAs($herdStaff)->delete(route('expenses.destroy', $expense))->assertForbidden();
+    $this->actingAs($herdStaff)->get(route('expenses.export'))->assertForbidden();
 
     $this->actingAs($this->accountant)->get(route('expenses.show', $foreign))->assertNotFound();
     $this->actingAs($this->accountant)->get(route('expenses.receipt', $foreign))->assertNotFound();

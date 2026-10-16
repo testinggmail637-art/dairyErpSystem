@@ -16,6 +16,7 @@ use App\Http\Controllers\Settings\PaymentModeController;
 use App\Http\Controllers\Settings\RoleController;
 use App\Http\Controllers\Settings\SectionController;
 use App\Http\Controllers\Settings\UserController;
+use App\Models\Expense;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -66,16 +67,16 @@ Route::middleware(['auth', 'active', 'farm'])->group(function () {
         Route::get('categories/{expense_category}/children', [ExpenseCategoryController::class, 'children'])
             ->name('expense-categories.children'); // expenses.view or expenses.create, checked in the controller
 
-        Route::get('/', [ExpenseController::class, 'index'])->middleware('can:expenses.view')->name('expenses.index');
+        Route::get('/', [ExpenseController::class, 'index'])->middleware('can:viewAny,'.Expense::class)->name('expenses.index');
         Route::get('export', [ExpenseController::class, 'export'])->middleware('can:expenses.view')->name('expenses.export');
         Route::get('create', [ExpenseController::class, 'create'])->middleware('can:expenses.create')->name('expenses.create');
         Route::post('/', [ExpenseController::class, 'store'])->middleware('can:expenses.create')->name('expenses.store');
         Route::whereNumber('expense')->group(function () {
-            Route::get('{expense}', [ExpenseController::class, 'show'])->middleware('can:expenses.view')->name('expenses.show');
-            Route::get('{expense}/receipt', [ExpenseController::class, 'receipt'])->middleware('can:expenses.view')->name('expenses.receipt');
-            Route::get('{expense}/edit', [ExpenseController::class, 'edit'])->middleware('can:expenses.edit')->name('expenses.edit');
-            Route::put('{expense}', [ExpenseController::class, 'update'])->middleware('can:expenses.edit')->name('expenses.update');
-            Route::delete('{expense}', [ExpenseController::class, 'destroy'])->middleware('can:expenses.delete')->name('expenses.destroy');
+            Route::get('{expense}', [ExpenseController::class, 'show'])->middleware('can:view,expense')->name('expenses.show');
+            Route::get('{expense}/receipt', [ExpenseController::class, 'receipt'])->middleware('can:view,expense')->name('expenses.receipt');
+            Route::get('{expense}/edit', [ExpenseController::class, 'edit'])->middleware('can:update,expense')->name('expenses.edit');
+            Route::put('{expense}', [ExpenseController::class, 'update'])->middleware('can:update,expense')->name('expenses.update');
+            Route::delete('{expense}', [ExpenseController::class, 'destroy'])->middleware('can:delete,expense')->name('expenses.destroy');
         });
     });
 

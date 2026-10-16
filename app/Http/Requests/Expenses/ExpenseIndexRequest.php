@@ -2,6 +2,7 @@
 
 namespace App\Http\Requests\Expenses;
 
+use App\Models\Expense;
 use Illuminate\Foundation\Http\FormRequest;
 
 /** Filters of the expense list, totals and Excel export. */
@@ -9,7 +10,10 @@ class ExpenseIndexRequest extends FormRequest
 {
     public function authorize(): bool
     {
-        return $this->user()->can('expenses.view');
+        // Export: full viewers only. List: also create-only staff (the controller limits them to their own entries).
+        return $this->routeIs('expenses.export')
+            ? $this->user()->can('expenses.view')
+            : $this->user()->can('viewAny', Expense::class);
     }
 
     /**

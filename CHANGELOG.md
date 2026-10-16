@@ -17,6 +17,9 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   add/edit with paid-or-credit toggle, "add new vendor" modal, quantity + unit, receipt upload (private, images scaled to
   1600 px), "Save & add another"; detail page with receipt preview; soft delete; audit-logged. Opens on the current month;
   covering indexes keep totals and paging fast on large data.
+- Phase 1 · Task 4: staff edit rule (spec 4.5) — `ExpensePolicy` with the reusable `OwnEntrySameDay` rule (own entry, same day,
+  for create-only users; edit/delete permission for any unlocked entry; locked auto-created expenses for nobody, with a
+  lock icon); "My expense entries" list for create-only staff; reason required on expense edit and delete.
 
 ## [0.0.0] - 2026-10-15 — Phase 0: Foundation
 
