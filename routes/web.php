@@ -1,9 +1,11 @@
 <?php
 
+use App\Http\Controllers\Account\ExportDownloadController;
 use App\Http\Controllers\Account\NotificationController;
 use App\Http\Controllers\Account\ProfileController;
 use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\Expenses\ExpenseCategoryController;
+use App\Http\Controllers\Expenses\ExpenseController;
 use App\Http\Controllers\Expenses\VendorController;
 use App\Http\Controllers\Farm\FarmSwitchController;
 use App\Http\Controllers\HomeController;
@@ -61,10 +63,28 @@ Route::middleware(['auth', 'active', 'farm'])->group(function () {
             ->parameters(['categories' => 'expense_category'])
             ->names('expense-categories')
             ->middleware('can:expenses.edit');
+        Route::get('categories/{expense_category}/children', [ExpenseCategoryController::class, 'children'])
+            ->name('expense-categories.children'); // expenses.view or expenses.create, checked in the controller
+
+        Route::get('/', [ExpenseController::class, 'index'])->middleware('can:expenses.view')->name('expenses.index');
+        Route::get('export', [ExpenseController::class, 'export'])->middleware('can:expenses.view')->name('expenses.export');
+        Route::get('create', [ExpenseController::class, 'create'])->middleware('can:expenses.create')->name('expenses.create');
+        Route::post('/', [ExpenseController::class, 'store'])->middleware('can:expenses.create')->name('expenses.store');
+        Route::whereNumber('expense')->group(function () {
+            Route::get('{expense}', [ExpenseController::class, 'show'])->middleware('can:expenses.view')->name('expenses.show');
+            Route::get('{expense}/receipt', [ExpenseController::class, 'receipt'])->middleware('can:expenses.view')->name('expenses.receipt');
+            Route::get('{expense}/edit', [ExpenseController::class, 'edit'])->middleware('can:expenses.edit')->name('expenses.edit');
+            Route::put('{expense}', [ExpenseController::class, 'update'])->middleware('can:expenses.edit')->name('expenses.update');
+            Route::delete('{expense}', [ExpenseController::class, 'destroy'])->middleware('can:expenses.delete')->name('expenses.destroy');
+        });
     });
+
+    // Download a queued (large) export file made for the logged-in user
+    Route::get('exports/{file}', ExportDownloadController::class)->name('exports.download');
 
     Route::get('vendors', [VendorController::class, 'index'])->middleware('can:vendors.view')->name('vendors.index');
     Route::get('vendors/search', [VendorController::class, 'search'])->middleware('can:vendors.view')->name('vendors.search');
+    Route::post('vendors/quick', [VendorController::class, 'quickStore'])->middleware('can:vendors.manage')->name('vendors.quick-store');
     Route::resource('vendors', VendorController::class)->except(['index', 'show'])->middleware('can:vendors.manage');
 
     /*

@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\Expenses\VendorRequest;
 use App\Models\Vendor;
 use App\Services\VendorService;
+use DomainException;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -49,6 +50,14 @@ class VendorController extends Controller
         return redirect()->route('vendors.index')->with('success', __('Vendor :name added.', ['name' => $vendor->name]));
     }
 
+    /** "Add new vendor" modal in the expense form: create and return it for the Select2 box. */
+    public function quickStore(VendorRequest $request): JsonResponse
+    {
+        $vendor = $this->vendors->create($request->validated());
+
+        return response()->json(['id' => $vendor->id, 'text' => $vendor->name], 201);
+    }
+
     public function edit(Vendor $vendor): View
     {
         return view('expenses.vendors.form', ['vendor' => $vendor]);
@@ -63,7 +72,11 @@ class VendorController extends Controller
 
     public function destroy(Vendor $vendor): RedirectResponse
     {
-        $this->vendors->delete($vendor);
+        try {
+            $this->vendors->delete($vendor);
+        } catch (DomainException $e) {
+            return back()->with('error', $e->getMessage());
+        }
 
         return redirect()->route('vendors.index')->with('success', __('Vendor :name deleted.', ['name' => $vendor->name]));
     }

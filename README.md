@@ -111,6 +111,7 @@ http://localhost/<folder>/public (set `APP_URL` to the same). Tests: keep `APP_U
 | `SENTRY_LARAVEL_DSN` | _(empty = disabled)_ | Error alerts |
 | `DB_DUMP_BINARY_PATH` | `C:/xampp/mysql/bin` (XAMPP) / empty (Linux) | Folder with `mysqldump`, for backups |
 | `BACKUP_DISKS`, `BACKUP_PATH`, `BACKUP_ARCHIVE_PASSWORD` | `backups`, empty, empty | Where backups go / optional zip password — see `docs/BACKUP_RESTORE.md` |
+| `EXPORT_QUEUE_ABOVE` | `5000` | Excel exports with more rows are built in the background (needs `queue:work`) and announced in the bell |
 
 ---
 
@@ -129,6 +130,7 @@ Scheduled jobs (IST, defined in `routes/console.php`):
 | 02:00 | `backup:run` | Database + uploads backup to `storage/app/backups` (kept 14 days) |
 | 02:30 | `backup:clean` | Delete backups older than 14 days |
 | 03:00 | `backup:monitor` | Health check; owners get a bell notification if a backup failed or is too old |
+| 03:30 | `exports:prune` | Delete queued Excel export files older than 3 days |
 
 _More jobs (delivery sheet generation, reminders) are added in later phases._ Restore steps: `docs/BACKUP_RESTORE.md`.
 

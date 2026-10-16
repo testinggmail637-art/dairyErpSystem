@@ -168,6 +168,29 @@
         Chart.defaults.borderColor = css.getPropertyValue('--bs-border-color').trim() || Chart.defaults.borderColor;
     }
 
+    /**
+     * Dependent dropdowns: <select data-children-of="#category_id" data-children-url="/expenses/categories/__ID__/children">
+     * reloads its options ({"id": "name"} JSON) whenever the parent select changes; empty parent → only the placeholder.
+     */
+    $(document).on('change', 'select', function () {
+        const parentId = this.id;
+        if (!parentId) return;
+        const value = this.value;
+        $('select[data-children-of="#' + parentId + '"]').each(function () {
+            const $child = $(this);
+            const placeholder = $child.find('option[value=""]').first().text() || '';
+            $child.empty().append(new Option(placeholder, ''));
+            if (!value) {
+                $child.prop('disabled', true).trigger('change');
+                return;
+            }
+            $.getJSON($child.data('childrenUrl').replace('__ID__', encodeURIComponent(value))).done(function (items) {
+                Object.entries(items).forEach(([id, name]) => $child.append(new Option(name, id)));
+                $child.prop('disabled', Object.keys(items).length === 0);
+            });
+        });
+    });
+
     /** Reload a server-side <x-data-table> after an AJAX change: App.reloadTable('#expenses-table'). */
     App.reloadTable = function (selector) {
         if ($.fn.dataTable && $.fn.dataTable.isDataTable(selector)) {

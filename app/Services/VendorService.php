@@ -2,8 +2,10 @@
 
 namespace App\Services;
 
+use App\Models\Expense;
 use App\Models\Vendor;
 use App\Support\Money;
+use DomainException;
 
 /**
  * Vendors (spec Section 6, Phase 1). Balances (opening + credit expenses − payments) arrive with Task 1.5.
@@ -24,9 +26,17 @@ class VendorService
         return $vendor;
     }
 
-    /** Soft delete (master data). Expenses and payments (Tasks 1.3 / 1.5) will block deleting a vendor in use. */
+    /**
+     * Soft delete (master data) — only when no expense uses the vendor (vendor payments will block it too, Task 1.5).
+     *
+     * @throws DomainException
+     */
     public function delete(Vendor $vendor): void
     {
+        if (Expense::withTrashed()->where('vendor_id', $vendor->id)->exists()) {
+            throw new DomainException(__('This vendor has expenses, so it cannot be deleted. Deactivate it instead.'));
+        }
+
         $vendor->delete();
     }
 

@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\Models\Expense;
 use App\Models\ExpenseCategory;
 use DomainException;
 
@@ -35,7 +36,13 @@ class ExpenseCategoryService
             throw new DomainException(__('Delete or move its subcategories first, or deactivate the category instead.'));
         }
 
-        // Expenses (Task 1.3) will also block deletion here.
+        $used = Expense::withTrashed()
+            ->where(fn ($q) => $q->where('category_id', $category->id)->orWhere('subcategory_id', $category->id))
+            ->exists();
+
+        if ($used) {
+            throw new DomainException(__('Expenses use this category, so it cannot be deleted. Deactivate it instead.'));
+        }
 
         $category->delete();
     }

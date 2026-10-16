@@ -6,6 +6,7 @@
 */
 
 use App\Enums\RoleName;
+use App\Models\Expense;
 use App\Models\ExpenseCategory;
 use App\Models\Farm;
 use App\Models\User;
@@ -76,6 +77,26 @@ it('keeps the vendor list at a constant number of queries', function () {
 
     Vendor::factory()->count(40)->create(['farm_id' => $this->farm->id]);
     $many = queriesFor(route('vendors.index'), $this->owner);
+
+    expect($many)->toBe($few);
+});
+
+it('keeps the expense list at a constant number of queries', function () {
+    // Both sets contain every kind of row (paid, credit with vendor, with subcategory, with creator),
+    // so the same relations are loaded; only the number of rows differs.
+    $vendor = Vendor::factory()->create(['farm_id' => $this->farm->id]);
+    $parent = ExpenseCategory::factory()->create(['farm_id' => $this->farm->id]);
+    $sub = ExpenseCategory::factory()->childOf($parent)->create();
+    $make = function (int $n) use ($vendor, $parent, $sub) {
+        $this->actingAs($this->owner);
+        Expense::factory()->count($n)->create(['farm_id' => $this->farm->id, 'category_id' => $parent->id, 'subcategory_id' => $sub->id]);
+        Expense::factory()->count($n)->credit($vendor)->create();
+    };
+
+    $make(2);
+    $few = queriesFor(route('expenses.index', ['all' => 1]), $this->owner);
+    $make(20);
+    $many = queriesFor(route('expenses.index', ['all' => 1]), $this->owner);
 
     expect($many)->toBe($few);
 });

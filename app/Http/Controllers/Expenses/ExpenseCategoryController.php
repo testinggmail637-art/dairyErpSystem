@@ -7,6 +7,7 @@ use App\Http\Requests\Expenses\ExpenseCategoryRequest;
 use App\Models\ExpenseCategory;
 use App\Services\ExpenseCategoryService;
 use DomainException;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
@@ -71,6 +72,19 @@ class ExpenseCategoryController extends Controller
 
         return redirect()->route('expense-categories.index')
             ->with('success', __(':name deleted.', ['name' => $expenseCategory->name]));
+    }
+
+    /**
+     * Active subcategories of a category for the dependent dropdown (expense form and filters).
+     * {"12": "Cattle Feed", "13": "Silage"}
+     */
+    public function children(Request $request, ExpenseCategory $expenseCategory): JsonResponse
+    {
+        abort_unless($request->user()->canAny(['expenses.view', 'expenses.create']), 403);
+
+        return response()->json(
+            $expenseCategory->children()->where('is_active', true)->pluck('name', 'id')
+        );
     }
 
     /**

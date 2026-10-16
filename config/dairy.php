@@ -13,4 +13,11 @@ return [
         'password' => env('OWNER_PASSWORD', 'password'),
     ],
 
+    /*
+    | Excel exports with more rows than this are built by a queued job and announced in the bell (App\Support\Exporter).
+    */
+    'exports' => [
+        'queue_above' => (int) env('EXPORT_QUEUE_ABOVE', 5000),
+    ],
+
 ];

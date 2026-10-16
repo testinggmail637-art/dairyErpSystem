@@ -28,6 +28,12 @@ class NotificationController extends Controller
 
         $url = $notification->data['url'] ?? null;
 
+        // Only links inside this app: an absolute URL on this host, or a path like "/exports/…" (queued jobs store
+        // paths because they do not know the address the user browses on). "//host" is refused (open redirect).
+        if ($url && str_starts_with($url, '/') && ! str_starts_with($url, '//')) {
+            return redirect()->to(url($url));
+        }
+
         return $url && str_starts_with($url, url('/'))
             ? redirect()->to($url)
             : redirect()->route('notifications.index');
