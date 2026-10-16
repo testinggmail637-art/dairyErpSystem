@@ -9,6 +9,7 @@ use App\Enums\RoleName;
 use App\Models\ExpenseCategory;
 use App\Models\Farm;
 use App\Models\User;
+use App\Models\Vendor;
 use Illuminate\Support\Facades\DB;
 
 beforeEach(function () {
@@ -65,6 +66,16 @@ it('keeps the expense category tree at a constant number of queries', function (
     $few = queriesFor(route('expense-categories.index'), $this->owner);
     $make(15);
     $many = queriesFor(route('expense-categories.index'), $this->owner);
+
+    expect($many)->toBe($few);
+});
+
+it('keeps the vendor list at a constant number of queries', function () {
+    Vendor::factory()->count(3)->create(['farm_id' => $this->farm->id]);
+    $few = queriesFor(route('vendors.index'), $this->owner);
+
+    Vendor::factory()->count(40)->create(['farm_id' => $this->farm->id]);
+    $many = queriesFor(route('vendors.index'), $this->owner);
 
     expect($many)->toBe($few);
 });

@@ -4,6 +4,7 @@ use App\Http\Controllers\Account\NotificationController;
 use App\Http\Controllers\Account\ProfileController;
 use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\Expenses\ExpenseCategoryController;
+use App\Http\Controllers\Expenses\VendorController;
 use App\Http\Controllers\Farm\FarmSwitchController;
 use App\Http\Controllers\HomeController;
 use App\Http\Controllers\Settings\AppearanceController;
@@ -61,6 +62,10 @@ Route::middleware(['auth', 'active', 'farm'])->group(function () {
             ->names('expense-categories')
             ->middleware('can:expenses.edit');
     });
+
+    Route::get('vendors', [VendorController::class, 'index'])->middleware('can:vendors.view')->name('vendors.index');
+    Route::get('vendors/search', [VendorController::class, 'search'])->middleware('can:vendors.view')->name('vendors.search');
+    Route::resource('vendors', VendorController::class)->except(['index', 'show'])->middleware('can:vendors.manage');
 
     /*
     | Settings
