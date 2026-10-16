@@ -8,10 +8,10 @@
 | Item | Value |
 |---|---|
 | Current phase | Phase 1 — Expense Management (🟡 in progress) |
-| Last completed task | 1.1 — Expense categories & subcategories (tree view) + seeder |
-| Next task | 1.2 — Vendors CRUD |
-| Overall progress | 14 / 88 tasks (16%) |
-| Tests passing | 208 |
+| Last completed task | 1.2 — Vendors CRUD (AJAX list, search, Select2 search endpoint) |
+| Next task | 1.3 — Expenses CRUD (direct save, no approval) with receipts, filters, totals, Excel export |
+| Overall progress | 15 / 88 tasks (17%) |
+| Tests passing | 216 |
 | Last updated (IST) | 2026-10-16 |
 
 ## Phase overview
@@ -98,7 +98,7 @@ Status legend: ⬜ Not started · 🟡 In progress · ✅ Done · ⏸ On hold
 
 ### Checklist
 - [x] 1.1 Expense categories & subcategories CRUD (tree view) + seeder
-- [ ] 1.2 Vendors CRUD
+- [x] 1.2 Vendors CRUD
 - [ ] 1.3 Expenses CRUD (direct save, no approval) with receipts, filters, totals, Excel export
 - [ ] 1.4 Staff same-day edit rule + reason on edit/delete
 - [ ] 1.5 Vendor payments + vendor ledger with running balance

@@ -9,6 +9,9 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - Phase 1 · Task 1: expense categories and subcategories (`expense_categories`, two levels) with a tree view
   (quick search, add subcategory, edit, deactivate, delete when unused) under Expenses → Categories; 9 default
   categories with 25 subcategories seeded for every farm.
+- Phase 1 · Task 2: vendors (`vendors`: name, phone, address, GSTIN, opening balance, notes, active, soft delete) —
+  Expenses → Vendors with AJAX search/status filter and pagination, add/edit/delete, and a Select2 search endpoint
+  (`vendors.search`) for the expense form.
 
 ## [0.0.0] - 2026-10-15 — Phase 0: Foundation
 
