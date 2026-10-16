@@ -7,19 +7,19 @@
 
 | Item | Value |
 |---|---|
-| Current phase | Phase 0 — Foundation ✅ done (tag `phase-0-done` after this PR) → next: Phase 1 — Expense Management |
-| Last completed task | 0.13 — Phase 0 acceptance tests, README, CHANGELOG 0.0.0 |
-| Next task | 1.1 — Expense categories & subcategories CRUD (tree view) + seeder |
-| Overall progress | 13 / 88 tasks (15%) |
-| Tests passing | 199 |
+| Current phase | Phase 1 — Expense Management (🟡 in progress) |
+| Last completed task | 1.1 — Expense categories & subcategories (tree view) + seeder |
+| Next task | 1.2 — Vendors CRUD |
+| Overall progress | 14 / 88 tasks (16%) |
+| Tests passing | 208 |
 | Last updated (IST) | 2026-10-16 |
 
 ## Phase overview
 
 | Phase | Name | Status | Started | Completed | Tag |
 |---|---|---|---|---|---|
-| 0 | Foundation | ✅ Done | 2026-10-15 | 2026-10-15 | `phase-0-done` (after merge) |
-| 1 | Expense Management (no approval) | ⬜ Not started | | | |
+| 0 | Foundation | ✅ Done | 2026-10-15 | 2026-10-15 | `phase-0-done` |
+| 1 | Expense Management (no approval) | 🟡 In progress | 2026-10-16 | | |
 | 2 | Animals, Milk Production, Milk Stock | ⬜ Not started | | | |
 | 3 | Customers, Delivery, Billing, Payments | ⬜ Not started | | | |
 | 4 | Farmers & Collection Center | ⬜ Not started | | | |
@@ -97,7 +97,7 @@ Status legend: ⬜ Not started · 🟡 In progress · ✅ Done · ⏸ On hold
 ## Phase 1 — Expense Management (no approval)
 
 ### Checklist
-- [ ] 1.1 Expense categories & subcategories CRUD (tree view) + seeder
+- [x] 1.1 Expense categories & subcategories CRUD (tree view) + seeder
 - [ ] 1.2 Vendors CRUD
 - [ ] 1.3 Expenses CRUD (direct save, no approval) with receipts, filters, totals, Excel export
 - [ ] 1.4 Staff same-day edit rule + reason on edit/delete
