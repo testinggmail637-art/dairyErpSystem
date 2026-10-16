@@ -7,12 +7,12 @@
 
 | Item | Value |
 |---|---|
-| Current phase | Phase 0 — Foundation (✅ done, PR waiting for merge) → next: Phase 1 — Expense Management |
+| Current phase | Phase 0 — Foundation ✅ done (tag `phase-0-done` after this PR) → next: Phase 1 — Expense Management |
 | Last completed task | 0.13 — Phase 0 acceptance tests, README, CHANGELOG 0.0.0 |
 | Next task | 1.1 — Expense categories & subcategories CRUD (tree view) + seeder |
 | Overall progress | 13 / 88 tasks (15%) |
 | Tests passing | 199 |
-| Last updated (IST) | 2026-10-15 |
+| Last updated (IST) | 2026-10-16 |
 
 ## Phase overview
 
