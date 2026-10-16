@@ -12,6 +12,11 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - Phase 1 · Task 2: vendors (`vendors`: name, phone, address, GSTIN, opening balance, notes, active, soft delete) —
   Expenses → Vendors with AJAX search/status filter and pagination, add/edit/delete, and a Select2 search endpoint
   (`vendors.search`) for the expense form.
+- Phase 1 · Task 3: expenses (`expenses`, no approval columns) — list with filters, dependent subcategory, vendor
+  remote search, totals bar (count / total / paid / credit) and Excel export (queued with a bell link above 5 000 rows);
+  add/edit with paid-or-credit toggle, "add new vendor" modal, quantity + unit, receipt upload (private, images scaled to
+  1600 px), "Save & add another"; detail page with receipt preview; soft delete; audit-logged. Opens on the current month;
+  covering indexes keep totals and paging fast on large data.
 
 ## [0.0.0] - 2026-10-15 — Phase 0: Foundation
 

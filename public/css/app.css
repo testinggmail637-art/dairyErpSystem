@@ -375,3 +375,8 @@ body {
     pointer-events: none;
     transition: opacity 0.15s ease;
 }
+
+/* Totals bar above lists */
+.app-totals {
+    background-color: var(--bs-tertiary-bg);
+}

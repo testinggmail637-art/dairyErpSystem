@@ -15,6 +15,7 @@ class Activity extends BaseActivity
         User::class,
         Role::class,
         Farm::class,
+        Expense::class,
     ];
 
     protected static function booted(): void
