@@ -2,13 +2,14 @@
 
 namespace Database\Seeders;
 
+use App\Models\ExpenseCategory;
 use App\Models\Farm;
 use App\Models\PaymentMode;
 use App\Models\Section;
 use Illuminate\Database\Seeder;
 
 /**
- * Default sections and payment modes for every farm (spec Section 6, Phase 0). Safe to run again.
+ * Default sections, payment modes and expense categories for every farm (spec Section 6). Safe to run again.
  * Document sequences need no seeding: DocumentNumberService creates each row on first use.
  */
 class FarmMasterDataSeeder extends Seeder
@@ -18,6 +19,7 @@ class FarmMasterDataSeeder extends Seeder
         Farm::query()->each(function (Farm $farm) {
             Section::seedDefaultsFor($farm);
             PaymentMode::seedDefaultsFor($farm);
+            ExpenseCategory::seedDefaultsFor($farm);
         });
     }
 }

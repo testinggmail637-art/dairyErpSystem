@@ -5,7 +5,10 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
-_Nothing yet — Phase 1 (Expense Management) is next._
+### Added
+- Phase 1 · Task 1: expense categories and subcategories (`expense_categories`, two levels) with a tree view
+  (quick search, add subcategory, edit, deactivate, delete when unused) under Expenses → Categories; 9 default
+  categories with 25 subcategories seeded for every farm.
 
 ## [0.0.0] - 2026-10-15 — Phase 0: Foundation
 

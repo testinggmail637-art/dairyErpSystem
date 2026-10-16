@@ -6,6 +6,7 @@
 */
 
 use App\Enums\RoleName;
+use App\Models\ExpenseCategory;
 use App\Models\Farm;
 use App\Models\User;
 use Illuminate\Support\Facades\DB;
@@ -50,6 +51,22 @@ it('keeps the audit log at a constant number of queries', function () {
 
     // Can only drop (fewer record types on the newest page), never grow with the number of entries.
     expect($many)->toBeLessThanOrEqual($few)->toBeLessThanOrEqual(12);
+});
+
+it('keeps the expense category tree at a constant number of queries', function () {
+    $make = function (int $count) {
+        foreach (range(1, $count) as $i) {
+            $parent = ExpenseCategory::factory()->create(['farm_id' => $this->farm->id]);
+            ExpenseCategory::factory()->count(3)->childOf($parent)->create();
+        }
+    };
+
+    $make(2);
+    $few = queriesFor(route('expense-categories.index'), $this->owner);
+    $make(15);
+    $many = queriesFor(route('expense-categories.index'), $this->owner);
+
+    expect($many)->toBe($few);
 });
 
 it('loads the user\'s farms once per page', function () {

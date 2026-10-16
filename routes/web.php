@@ -3,6 +3,7 @@
 use App\Http\Controllers\Account\NotificationController;
 use App\Http\Controllers\Account\ProfileController;
 use App\Http\Controllers\Auth\LoginController;
+use App\Http\Controllers\Expenses\ExpenseCategoryController;
 use App\Http\Controllers\Farm\FarmSwitchController;
 use App\Http\Controllers\HomeController;
 use App\Http\Controllers\Settings\AppearanceController;
@@ -47,6 +48,19 @@ Route::middleware(['auth', 'active', 'farm'])->group(function () {
     Route::get('notifications', [NotificationController::class, 'index'])->name('notifications.index');
     Route::get('notifications/{id}/open', [NotificationController::class, 'open'])->name('notifications.open');
     Route::post('notifications/read-all', [NotificationController::class, 'readAll'])->name('notifications.read-all');
+
+    /*
+    | Expenses (Phase 1)
+    */
+    Route::prefix('expenses')->group(function () {
+        Route::get('categories', [ExpenseCategoryController::class, 'index'])
+            ->middleware('can:expenses.view')->name('expense-categories.index');
+        Route::resource('categories', ExpenseCategoryController::class)
+            ->except(['index', 'show'])
+            ->parameters(['categories' => 'expense_category'])
+            ->names('expense-categories')
+            ->middleware('can:expenses.edit');
+    });
 
     /*
     | Settings
