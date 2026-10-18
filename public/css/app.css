@@ -380,3 +380,7 @@ body {
 .app-totals {
     background-color: var(--bs-tertiary-bg);
 }
+
+.app-report-card:hover {
+    border-color: var(--bs-primary);
+}
