@@ -15,7 +15,7 @@ cow/buffalo buying & selling, expenses, staff, and profit reports — with every
 | Phase | Module | Status |
 |---|---|---|
 | 0 | Foundation (login, roles, settings, appearance, monitoring, audit log, backups) | ✅ Done (v0.0.0) |
-| 1 | Expense Management (no approval) + Excel import | 🟡 In progress |
+| 1 | Expense Management (no approval) + Excel import | ✅ Done (v0.1.0) |
 | 2 | Animals, Milk Production, Milk Stock | ⬜ Not started |
 | 3 | Customers, Delivery, Billing, Payments | ⬜ Not started |
 | 4 | Farmers & Collection Center | ⬜ Not started |
@@ -31,7 +31,13 @@ Detailed task-by-task progress: [`docs/PROGRESS.md`](docs/PROGRESS.md) · Versio
 
 _TODO: for each module, list the working features in plain language once its phase is done._
 
-- **Expenses** — _TODO_
+- **Expenses** ✅ — two-level categories (9 defaults, tree view); vendors with opening balance; expenses saved directly
+  (no approval) as paid (with payment mode) or credit (adds to what we owe the vendor), with quantity/unit, receipt
+  upload (private) and filters/totals/Excel export; staff without edit rights may change only their own entry on the
+  same day; reason required for edits/deletes (audit log); vendor payments and a vendor ledger with running balance;
+  reports — daily, monthly category × section, category-wise, vendor outstanding — on screen, Excel and PDF;
+  **Excel import** — template with dropdowns, upload up to 5,000 rows, preview with per-cell errors and duplicate
+  warnings, import valid rows, download error rows to fix and re-upload, import history, revert within 7 days.
 - **Herd & milk production** — _TODO_
 - **Milk stock** — _TODO_
 - **Customers, delivery & billing** — _TODO_
@@ -91,7 +97,14 @@ http://localhost/<folder>/public (set `APP_URL` to the same). Tests: keep `APP_U
 | Role | Email / Phone | Password |
 |---|---|---|
 | Owner | value of `OWNER_EMAIL` / `OWNER_PHONE` in `.env` | value of `OWNER_PASSWORD` |
-| _TODO: demo users created by DemoSeeder_ | | |
+| Accountant (demo) | `accountant@dairy.test` / `9876500001` | `password` |
+| Herd staff (demo) | `herd@dairy.test` / `9876500002` | `password` |
+| Collection operator (demo) | `collection@dairy.test` / `9876500003` | `password` |
+| Delivery boy (demo) | `delivery@dairy.test` / `9876500004` | `password` |
+
+Demo users and a year of demo data come from `php artisan db:seed --class=DemoSeeder` (local only — it refuses to run
+in production and skips itself if the demo data already exists). Phase 1 data: 25 vendors, ~2,700 expenses over the
+last 12 months, month-end vendor payments; later phases add their own demo data.
 
 ---
 
@@ -154,7 +167,8 @@ php artisan test        # uses dairy_erp_test (MySQL), never the main DB
 ./vendor/bin/pint
 ```
 
-Current: 199 tests passing (end of Phase 0).
+Current: 308 tests passing (end of Phase 1). `tests/Feature/Phase0AcceptanceTest.php` and
+`Phase1AcceptanceTest.php` walk through each phase's acceptance criteria end to end.
 
 ---
 
@@ -198,23 +212,32 @@ Full steps: [`docs/DEPLOYMENT.md`](docs/DEPLOYMENT.md) · Backups & restore: [`d
 
 ```
 app/
-├── Enums/                  # backed enums for every status/type (RoleName, DocumentType, MilkType, MilkSource …)
+├── Enums/                  # backed enums for every status/type (RoleName, ExpenseUnit, ImportBatchStatus …)
+├── Exports/                # Excel exports (expenses, report tables, import template, import error rows)
 ├── Http/
-│   ├── Controllers/        # Auth, Account (profile, notifications), Farm (switcher), Settings (users, roles, farm,
-│   │                       #   sections, payment modes, audit log, appearance); one folder per module later
+│   ├── Controllers/        # Auth, Account (profile, notifications, export downloads), Farm (switcher),
+│   │                       #   Settings (users, roles, farm, sections, payment modes, audit log, appearance),
+│   │                       #   Expenses (categories, expenses, vendors, vendor payments, import), Reports
 │   ├── Middleware/         # EnsureFarmSelected (farm), EnsureUserIsActive (active)
 │   └── Requests/           # all validation (Form Requests), Concerns/RequiresReason
-├── Listeners/              # NotifyOwnersOfBackupProblem
-├── Models/                 # Farm, User, Role, Activity, Section, PaymentMode, DocumentSequence
+├── Imports/                # ExpenseImportColumns, ExpenseImportReader (xlsx/xls/csv)
+├── Jobs/  Listeners/       # queued export notification; NotifyOwnersOfBackupProblem
+├── Models/                 # Farm, User, Role, Activity, Section, PaymentMode, ExpenseCategory, Vendor, Expense,
+│   │                       #   VendorPayment, ExpenseImportBatch, ExpenseImportRow …
 │   ├── Concerns/           # BelongsToFarm, TracksUser, Auditable, HasFarmDefaults
 │   └── Scopes/             # FarmScope
 ├── Notifications/          # in-app (bell) notifications
+├── Policies/               # ExpensePolicy, VendorPaymentPolicy (OwnEntrySameDay rule)
 ├── Providers/              # AppServiceProvider (bindings, gates, view composers), TelescopeServiceProvider (local)
-├── Services/               # business logic: AppearanceService, DocumentNumberService, UserService, RoleService …
-└── Support/                # Money, Format, FinancialYear, Color, CurrentFarm, Permissions, SvgSanitizer, helpers.php
+├── Reports/                # ReportTable (one definition → screen, Excel, PDF)
+├── Services/               # business logic: Expense, ExpenseImport, ExpenseReport, VendorLedger, VendorPayment,
+│                           #   Appearance, DocumentNumber, User, Role …
+└── Support/                # Money, Format, FinancialYear, Color, CurrentFarm, Permissions, Exporter, ReceiptStorage,
+                            #   SvgSanitizer, helpers.php
 config/                     # dairy.php (owner seed), menu.php (sidebar), backup, pulse, sentry, permission …
 database/
-├── factories/  migrations/  seeders/   # DatabaseSeeder = roles, default farm, owner, sections, payment modes
+├── factories/  migrations/  seeders/   # DatabaseSeeder = roles, default farm, owner, sections, payment modes,
+│                                       #   expense categories; DemoSeeder = local demo data (one year)
 docs/                       # spec, PROGRESS, DECISIONS, DEPLOYMENT, BACKUP_RESTORE
 public/
 ├── css/app.css  js/app.js  js/modules/   # app code (no build step)
@@ -222,10 +245,10 @@ public/
 resources/views/
 ├── components/             # x-form.* fields, x-confirm-form, x-data-table, x-money
 ├── layouts/                # app, guest, partials (sidebar, top bar, branding head, flash)
-├── pdf/                    # shared PDF layout + appearance sample
-└── auth/ account/ settings/ dashboard.blade.php
+├── pdf/                    # shared PDF layout, report PDF, appearance sample
+└── auth/ account/ settings/ expenses/ reports/ dashboard.blade.php
 routes/web.php  routes/console.php        # routes; scheduled jobs
-tests/Feature/ tests/Unit/ tests/Fixtures/ # Pest; Phase0AcceptanceTest covers the phase's acceptance criteria
+tests/Feature/ tests/Unit/ tests/Fixtures/ # Pest; PhaseNAcceptanceTest covers each phase's acceptance criteria
 ```
 
 ---

@@ -1,0 +1,36 @@
+<?php
+
+use App\Models\Expense;
+use App\Models\Farm;
+use App\Models\User;
+use App\Models\Vendor;
+use App\Models\VendorPayment;
+use Database\Seeders\DatabaseSeeder;
+use Database\Seeders\DemoSeeder;
+
+it('seeds a year of demo expenses, vendors, payments and users, once', function () {
+    $this->seed(DatabaseSeeder::class);
+    $this->seed(DemoSeeder::class);
+
+    $farm = Farm::where('code', 'MDF')->firstOrFail();
+    $expenses = Expense::allFarms()->where('farm_id', $farm->id);
+
+    expect(Vendor::allFarms()->where('notes', DemoSeeder::MARK)->count())->toBe(25)
+        ->and($expenses->count())->toBeGreaterThan(2000)
+        ->and((clone $expenses)->where('is_credit', true)->whereNull('vendor_id')->count())->toBe(0)
+        ->and((clone $expenses)->where('is_credit', false)->whereNull('payment_mode_id')->count())->toBe(0)
+        ->and((clone $expenses)->min('expense_date'))->toBeGreaterThanOrEqual(now()->subYear()->toDateString())
+        ->and(VendorPayment::allFarms()->count())->toBeGreaterThan(100)
+        ->and(User::where('email', 'accountant@dairy.test')->first()->hasRole('accountant'))->toBeTrue();
+
+    $count = $expenses->count();
+    $this->seed(DemoSeeder::class); // second run is skipped
+    expect(Expense::allFarms()->count())->toBe($count);
+});
+
+it('refuses to run in production', function () {
+    $this->seed(DatabaseSeeder::class);
+    app()->detectEnvironment(fn () => 'production');
+
+    expect(fn () => (new DemoSeeder)->run())->toThrow(RuntimeException::class, 'DemoSeeder is for local/testing only.');
+});

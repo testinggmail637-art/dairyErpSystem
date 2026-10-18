@@ -7,11 +7,11 @@
 
 | Item | Value |
 |---|---|
-| Current phase | Phase 1 — Expense Management (🟡 in progress) |
-| Last completed task | 1.10 — Import history + batch revert |
-| Next task | 1.11 — Phase 1 acceptance tests pass + README/CHANGELOG updated |
-| Overall progress | 23 / 88 tasks (26%) |
-| Tests passing | 300 |
+| Current phase | Phase 1 — Expense Management (✅ done, v0.1.0) → Phase 2 next |
+| Last completed task | 1.11 — Phase 1 acceptance tests pass + README/CHANGELOG updated |
+| Next task | 2.1 — Animal breeds + seeder |
+| Overall progress | 24 / 88 tasks (27%) |
+| Tests passing | 308 |
 | Last updated (IST) | 2026-10-18 |
 
 ## Phase overview
@@ -19,7 +19,7 @@
 | Phase | Name | Status | Started | Completed | Tag |
 |---|---|---|---|---|---|
 | 0 | Foundation | ✅ Done | 2026-10-15 | 2026-10-15 | `phase-0-done` |
-| 1 | Expense Management (no approval) | 🟡 In progress | 2026-10-16 | | |
+| 1 | Expense Management (no approval) | ✅ Done | 2026-10-16 | 2026-10-18 | `phase-1-done` (after merge) |
 | 2 | Animals, Milk Production, Milk Stock | ⬜ Not started | | | |
 | 3 | Customers, Delivery, Billing, Payments | ⬜ Not started | | | |
 | 4 | Farmers & Collection Center | ⬜ Not started | | | |
@@ -107,18 +107,45 @@ Status legend: ⬜ Not started · 🟡 In progress · ✅ Done · ⏸ On hold
 - [x] 1.8 Excel upload + row validation + preview (errors & duplicate warnings)
 - [x] 1.9 Import valid rows + error-rows download
 - [x] 1.10 Import history + batch revert
-- [ ] 1.11 Phase 1 acceptance tests pass + README/CHANGELOG updated
+- [x] 1.11 Phase 1 acceptance tests pass + README/CHANGELOG updated
 
 ### Phase log
-- **Completed on:** _TODO_
-- **What was built (plain language):** _TODO_
-- **Screens / URLs added:** _TODO_
-- **Tables / migrations added:** _TODO_
-- **Services / commands / jobs added:** _TODO_
-- **Tests added (count, all passing?):** _TODO_
-- **Decisions taken:** _TODO_
-- **Known issues / pending:** _TODO_
-- **How to check it manually:** _TODO_
+- **Completed on:** 2026-10-18 (v0.1.0)
+- **What was built (plain language):** Every rupee spent can now be recorded. Expenses go into two-level categories
+  (9 defaults such as Feed › Cattle Feed) and a section (herd, collection center, delivery, trading, office). An expense
+  is either paid now (cash/UPI/bank…) or on credit from a vendor — credit adds to what we owe that vendor, a vendor
+  payment reduces it, and each vendor has a ledger with a running balance. Expenses are saved and counted at once — there
+  is **no approval step**. Staff who may only add expenses can change their own entry on the same day; everyone else
+  needs edit rights, and every edit/delete asks for a reason that goes to the audit log. Four reports (daily, monthly
+  category × section, category-wise, vendor outstanding) open on screen and download as Excel or PDF. A whole sheet of
+  expenses can be imported from Excel: download the template, upload up to 5,000 rows, see errors per cell and possible
+  duplicates, import the good rows, download the bad rows to fix and upload again, and undo an import within 7 days.
+- **Screens / URLs added:** `/expenses` (list, filters, totals, export) · `/expenses/create`, `/expenses/{id}`,
+  `/expenses/{id}/edit` · `/expenses/categories` · `/vendors`, `/vendors/{id}` (ledger), `/vendor-payments/create` ·
+  `/reports` and `/reports/expenses/{daily|monthly|category|vendors}` (+ `?format=excel|pdf`) · `/expenses/import`
+  (template, upload, history) · `/expenses/import/{batch}` (preview, import, error rows, cancel, revert).
+- **Tables / migrations added:** `expense_categories`, `vendors`, `expenses` (+ covering/report indexes), `vendor_payments`,
+  `expense_import_batches`, `expense_import_rows` (+ FK `expenses.import_batch_id`), revert columns on import batches.
+- **Services / commands / jobs added:** ExpenseCategoryService, VendorService, ExpenseService, VendorPaymentService,
+  VendorLedgerService, ExpenseReportService, ExpenseImportService (+ ExpenseImportReader); ReportTable + ReportTableExport +
+  report PDF; Exporter (queued exports above 5,000 rows → NotifyExportReady job + bell link; `exports:prune` daily);
+  ReceiptStorage; ExpensePolicy / VendorPaymentPolicy with the OwnEntrySameDay rule; DemoSeeder (local demo year).
+- **Tests added (count, all passing?):** 109 new (199 → 308), all passing; `tests/Feature/Phase1AcceptanceTest.php`
+  covers the six acceptance criteria end to end.
+- **Decisions taken:** [DECISIONS](DECISIONS.md) #76–#109 (category tree, vendor balances, paid vs credit, staff edit rule,
+  report layouts and indexes, import reading/validation/duplicates, bulk import + batch audit, revert rules and 7-day window,
+  merge permission for 1.7–1.9, DemoSeeder started early).
+- **Known issues / pending:** `expenses.animal_id` select arrives in Phase 2 (task 2.4); auto-created expenses from
+  treatments/feed/salary arrive with those phases. Imported expenses are audit-logged as one batch entry, not per row.
+- **How to check it manually:**
+  1. `php artisan db:seed --class=DemoSeeder`, log in as `accountant@dairy.test` / `password`.
+  2. Expenses → add a ₹10,000 **credit** expense for a vendor; Vendors → open that vendor → Record payment ₹4,000 →
+     the ledger shows the balance up by ₹6,000.
+  3. Log in as `herd@dairy.test`, add an expense; it shows at once in the accountant's list and in Reports → Monthly.
+  4. Reports → each expense report → change dates → download Excel and PDF.
+  5. Expenses → Import → download the template, fill 3 good + 2 bad rows, upload → preview shows 2 errors → Import →
+     3 expenses added → Download error rows → fix → upload again.
+  6. In Import history press Revert (↺) with a reason → that upload's expenses disappear; after 7 days the button is gone.
 
 ---
 

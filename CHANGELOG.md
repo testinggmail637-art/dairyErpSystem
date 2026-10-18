@@ -5,6 +5,8 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+## [0.1.0] - 2026-10-18 — Phase 1: Expense Management (no approval)
+
 ### Added
 - Phase 1 · Task 1: expense categories and subcategories (`expense_categories`, two levels) with a tree view
   (quick search, add subcategory, edit, deactivate, delete when unused) under Expenses → Categories; 9 default
@@ -37,6 +39,16 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   link that opens the expense list filtered to one import, and "Revert upload" (reason required; soft-deletes the upload's
   expenses unless one was edited after the import, only within 7 days of the import — `IMPORT_REVERT_DAYS`; new status
   `reverted` with `reverted_at` / `reverted_by`).
+- Phase 1 · Task 11: `Phase1AcceptanceTest` (the six spec acceptance criteria end to end on the production seed data) and
+  `DemoSeeder` (local only: demo users for each role, 25 vendors, ~2,700 expenses over a year, month-end vendor payments).
+
+### Changed
+- Expense list: new `import_batch_id` filter; "Clear" on AJAX lists also removes hidden `data-clearable` filters.
+- Expense import batches are audit-logged (Settings → Audit log, record type "Expense Import Batch").
+
+### Performance
+- Phase 1 screens measured on the demo year (local, no OPcache): expense list 135 ms, vendor ledger 92 ms, reports 60–90 ms,
+  import page 51 ms — all far below the 1000 ms slow-request threshold. 5,000-row import: read + check ≈ 0.3 s, 10 bulk inserts.
 
 ## [0.0.0] - 2026-10-15 — Phase 0: Foundation
 
