@@ -3,8 +3,10 @@
 namespace App\Http\Controllers\Expenses;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Expenses\VendorLedgerRequest;
 use App\Http\Requests\Expenses\VendorRequest;
 use App\Models\Vendor;
+use App\Services\VendorLedgerService;
 use App\Services\VendorService;
 use DomainException;
 use Illuminate\Http\JsonResponse;
@@ -28,6 +30,7 @@ class VendorController extends Controller
         ];
 
         $vendors = Vendor::query()
+            ->withBalance() // credit_total / paid_total as SQL sub-selects (no N+1)
             ->search($filters['search'])
             ->when($filters['status'] === 'active', fn ($q) => $q->where('is_active', true))
             ->when($filters['status'] === 'inactive', fn ($q) => $q->where('is_active', false))
@@ -56,6 +59,23 @@ class VendorController extends Controller
         $vendor = $this->vendors->create($request->validated());
 
         return response()->json(['id' => $vendor->id, 'text' => $vendor->name], 201);
+    }
+
+    /** Vendor ledger: opening + credit expenses − payments with a running balance, for an optional period. */
+    public function show(VendorLedgerRequest $request, Vendor $vendor, VendorLedgerService $ledger): View
+    {
+        $validated = $request->validated();
+
+        $vendor = Vendor::query()->withBalance()->findOrFail($vendor->id);
+
+        $filters = ['from' => $validated['from'] ?? null, 'to' => $validated['to'] ?? null];
+        $query = array_filter($filters) ?: ['all' => 1]; // keep the period on page links
+
+        return view('expenses.vendors.show', [
+            'vendor' => $vendor,
+            'ledger' => $ledger->ledger($vendor, $filters['from'], $filters['to'], (int) ($validated['page'] ?? 1), $query),
+            'filters' => $filters,
+        ]);
     }
 
     public function edit(Vendor $vendor): View

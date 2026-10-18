@@ -43,7 +43,7 @@
                     <th>{{ __('Vendor') }}</th>
                     <th>{{ __('Phone') }}</th>
                     <th>{{ __('GSTIN') }}</th>
-                    <th class="text-end">{{ __('Opening balance') }}</th>
+                    <th class="text-end">{{ __('We owe') }}</th>
                     <th>{{ __('Status') }}</th>
                     @if ($canManage)<th class="text-end">{{ __('Actions') }}</th>@endif
                 </tr>
@@ -52,12 +52,12 @@
                 @forelse ($vendors as $vendor)
                     <tr>
                         <td>
-                            <span class="fw-semibold">{{ $vendor->name }}</span>
+                            <a href="{{ route('vendors.show', $vendor) }}" class="fw-semibold">{{ $vendor->name }}</a>
                             @if ($vendor->address)<div class="small text-body-secondary">{{ $vendor->address }}</div>@endif
                         </td>
                         <td class="text-nowrap">{{ $vendor->phone ?: '—' }}</td>
                         <td><span class="font-monospace small">{{ $vendor->gstin ?: '—' }}</span></td>
-                        <td class="text-end"><x-money :value="$vendor->opening_balance" /></td>
+                        <td class="text-end"><x-money :value="$vendor->balance()" /></td>
                         <td>
                             @if ($vendor->is_active)
                                 <span class="badge text-bg-success">{{ __('Active') }}</span>
@@ -93,5 +93,5 @@
     @endfragment
     </div>
 </div>
-<p class="form-text mt-2">{{ __('The balance we owe each vendor (opening + credit expenses − payments) appears here once expenses and vendor payments are added.') }}</p>
+<p class="form-text mt-2">{{ __('We owe = opening balance + credit (unpaid) purchases − payments. Open a vendor to see the ledger and record a payment.') }}</p>
 @endsection

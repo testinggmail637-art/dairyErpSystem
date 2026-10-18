@@ -33,8 +33,8 @@ class VendorService
      */
     public function delete(Vendor $vendor): void
     {
-        if (Expense::withTrashed()->where('vendor_id', $vendor->id)->exists()) {
-            throw new DomainException(__('This vendor has expenses, so it cannot be deleted. Deactivate it instead.'));
+        if (Expense::withTrashed()->where('vendor_id', $vendor->id)->exists() || $vendor->payments()->exists()) {
+            throw new DomainException(__('This vendor has expenses or payments, so it cannot be deleted. Deactivate it instead.'));
         }
 
         $vendor->delete();

@@ -4,10 +4,12 @@ namespace App\Models;
 
 use App\Models\Concerns\BelongsToFarm;
 use App\Models\Concerns\TracksUser;
+use App\Support\Money;
 use Database\Factories\VendorFactory;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
 /**
@@ -41,6 +43,40 @@ class Vendor extends Model
             'opening_balance' => 'decimal:2',
             'is_active' => 'boolean',
         ];
+    }
+
+    /**
+     * @return HasMany<Expense, $this>
+     */
+    public function expenses(): HasMany
+    {
+        return $this->hasMany(Expense::class);
+    }
+
+    /**
+     * @return HasMany<VendorPayment, $this>
+     */
+    public function payments(): HasMany
+    {
+        return $this->hasMany(VendorPayment::class);
+    }
+
+    /**
+     * Adds credit_total (unpaid expenses) and paid_total (payments) per vendor as two SQL sub-selects,
+     * so a list of vendors shows balances without loading any expense or payment.
+     *
+     * @param  Builder<Vendor>  $query
+     */
+    public function scopeWithBalance(Builder $query): void
+    {
+        $query->withSum(['expenses as credit_total' => fn ($q) => $q->where('is_credit', true)], 'amount')
+            ->withSum('payments as paid_total', 'amount');
+    }
+
+    /** What we owe now: opening + credit expenses − payments (needs withBalance()). Paid expenses do not count. */
+    public function balance(): string
+    {
+        return Money::sub(Money::add($this->opening_balance, $this->credit_total ?? '0'), $this->paid_total ?? '0');
     }
 
     protected function setPhoneAttribute(?string $value): void

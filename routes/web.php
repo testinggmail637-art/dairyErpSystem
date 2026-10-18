@@ -7,6 +7,7 @@ use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\Expenses\ExpenseCategoryController;
 use App\Http\Controllers\Expenses\ExpenseController;
 use App\Http\Controllers\Expenses\VendorController;
+use App\Http\Controllers\Expenses\VendorPaymentController;
 use App\Http\Controllers\Farm\FarmSwitchController;
 use App\Http\Controllers\HomeController;
 use App\Http\Controllers\Settings\AppearanceController;
@@ -17,6 +18,7 @@ use App\Http\Controllers\Settings\RoleController;
 use App\Http\Controllers\Settings\SectionController;
 use App\Http\Controllers\Settings\UserController;
 use App\Models\Expense;
+use App\Models\VendorPayment;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -87,6 +89,22 @@ Route::middleware(['auth', 'active', 'farm'])->group(function () {
     Route::get('vendors/search', [VendorController::class, 'search'])->middleware('can:vendors.view')->name('vendors.search');
     Route::post('vendors/quick', [VendorController::class, 'quickStore'])->middleware('can:vendors.manage')->name('vendors.quick-store');
     Route::resource('vendors', VendorController::class)->except(['index', 'show'])->middleware('can:vendors.manage');
+    Route::get('vendors/{vendor}', [VendorController::class, 'show'])->whereNumber('vendor')
+        ->middleware('can:vendors.view')->name('vendors.show'); // ledger
+
+    // Payments to vendors (policy: vendor_payments.edit, or own same-day entry with vendor_payments.create)
+    Route::get('vendor-payments/create', [VendorPaymentController::class, 'create'])
+        ->middleware('can:create,'.VendorPayment::class)->name('vendor-payments.create');
+    Route::post('vendor-payments', [VendorPaymentController::class, 'store'])
+        ->middleware('can:create,'.VendorPayment::class)->name('vendor-payments.store');
+    Route::whereNumber('vendor_payment')->group(function () {
+        Route::get('vendor-payments/{vendor_payment}/edit', [VendorPaymentController::class, 'edit'])
+            ->middleware('can:update,vendor_payment')->name('vendor-payments.edit');
+        Route::put('vendor-payments/{vendor_payment}', [VendorPaymentController::class, 'update'])
+            ->middleware('can:update,vendor_payment')->name('vendor-payments.update');
+        Route::delete('vendor-payments/{vendor_payment}', [VendorPaymentController::class, 'destroy'])
+            ->middleware('can:delete,vendor_payment')->name('vendor-payments.destroy');
+    });
 
     /*
     | Settings
