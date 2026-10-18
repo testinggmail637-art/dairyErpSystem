@@ -8,10 +8,10 @@
 | Item | Value |
 |---|---|
 | Current phase | Phase 1 — Expense Management (🟡 in progress) |
-| Last completed task | 1.6 — Expense reports (daily, monthly category × section, category-wise, vendor outstanding) + Excel/PDF |
-| Next task | 1.7 — Excel template download |
-| Overall progress | 19 / 88 tasks (22%) |
-| Tests passing | 255 |
+| Last completed task | 1.7 — Excel template download (expenses_template.xlsx) |
+| Next task | 1.8 — Excel upload + row validation + preview (errors & duplicate warnings) |
+| Overall progress | 20 / 88 tasks (23%) |
+| Tests passing | 258 |
 | Last updated (IST) | 2026-10-18 |
 
 ## Phase overview
@@ -103,7 +103,7 @@ Status legend: ⬜ Not started · 🟡 In progress · ✅ Done · ⏸ On hold
 - [x] 1.4 Staff same-day edit rule + reason on edit/delete
 - [x] 1.5 Vendor payments + vendor ledger with running balance
 - [x] 1.6 Expense reports (daily, monthly category × section, category-wise, vendor outstanding) + Excel/PDF
-- [ ] 1.7 Excel template download
+- [x] 1.7 Excel template download
 - [ ] 1.8 Excel upload + row validation + preview (errors & duplicate warnings)
 - [ ] 1.9 Import valid rows + error-rows download
 - [ ] 1.10 Import history + batch revert

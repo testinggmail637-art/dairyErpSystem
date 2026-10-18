@@ -6,6 +6,7 @@ use App\Http\Controllers\Account\ProfileController;
 use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\Expenses\ExpenseCategoryController;
 use App\Http\Controllers\Expenses\ExpenseController;
+use App\Http\Controllers\Expenses\ExpenseImportController;
 use App\Http\Controllers\Expenses\VendorController;
 use App\Http\Controllers\Expenses\VendorPaymentController;
 use App\Http\Controllers\Farm\FarmSwitchController;
@@ -71,6 +72,11 @@ Route::middleware(['auth', 'active', 'farm'])->group(function () {
             ->middleware('can:expenses.edit');
         Route::get('categories/{expense_category}/children', [ExpenseCategoryController::class, 'children'])
             ->name('expense-categories.children'); // expenses.view or expenses.create, checked in the controller
+
+        Route::middleware('can:expenses.import')->prefix('import')->name('expense-imports.')->group(function () {
+            Route::get('/', [ExpenseImportController::class, 'index'])->name('index');
+            Route::get('template', [ExpenseImportController::class, 'template'])->name('template');
+        });
 
         Route::get('/', [ExpenseController::class, 'index'])->middleware('can:viewAny,'.Expense::class)->name('expenses.index');
         Route::get('export', [ExpenseController::class, 'export'])->middleware('can:expenses.view')->name('expenses.export');
