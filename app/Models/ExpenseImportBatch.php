@@ -7,6 +7,7 @@ use App\Models\Concerns\Auditable;
 use App\Models\Concerns\BelongsToFarm;
 use App\Models\Concerns\TracksUser;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
 /** One uploaded expense spreadsheet (spec 7.2). */
@@ -29,6 +30,8 @@ class ExpenseImportBatch extends Model
         'status',
         'error_file_path',
         'imported_at',
+        'reverted_at',
+        'reverted_by',
     ];
 
     /**
@@ -39,6 +42,7 @@ class ExpenseImportBatch extends Model
         return [
             'status' => ImportBatchStatus::class,
             'imported_at' => 'datetime',
+            'reverted_at' => 'datetime',
             'total_rows' => 'integer',
             'valid_rows' => 'integer',
             'error_rows' => 'integer',
@@ -63,8 +67,21 @@ class ExpenseImportBatch extends Model
         return $this->hasMany(Expense::class, 'import_batch_id');
     }
 
+    /**
+     * @return BelongsTo<User, $this>
+     */
+    public function reverter(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'reverted_by');
+    }
+
     public function isPreviewed(): bool
     {
         return $this->status === ImportBatchStatus::Previewed;
+    }
+
+    public function isImported(): bool
+    {
+        return $this->status === ImportBatchStatus::Imported;
     }
 }

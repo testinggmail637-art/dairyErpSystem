@@ -32,6 +32,7 @@ class ExpenseIndexRequest extends FormRequest
             'type' => ['nullable', 'in:paid,credit'],
             'created_by' => ['nullable', 'integer'],
             'search' => ['nullable', 'string', 'max:100'],
+            'import_batch_id' => ['nullable', 'integer'], // "view the expenses" of an import (spec 7.2 step 5)
             'all' => ['nullable', 'in:1'],
         ];
     }

@@ -6,11 +6,13 @@ use App\Exports\ExpenseTemplate\ExpenseTemplateExport;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Expenses\ExpenseImportPreviewRequest;
 use App\Http\Requests\Expenses\ExpenseImportUploadRequest;
+use App\Http\Requests\Expenses\RevertExpenseImportRequest;
 use App\Imports\ExpenseImportColumns;
 use App\Models\ExpenseImportBatch;
 use App\Services\ExpenseImportService;
 use DomainException;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\View\View;
@@ -19,17 +21,26 @@ use Symfony\Component\HttpFoundation\BinaryFileResponse;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 
 /**
- * Expenses → Import (spec 7.2): template (1.7), upload + preview (1.8), import + error rows (1.9); history follows in 1.10.
+ * Expenses → Import (spec 7.2): template (1.7), upload + preview (1.8), import + error rows (1.9), history + revert (1.10).
  */
 class ExpenseImportController extends Controller
 {
     public function __construct(private readonly ExpenseImportService $imports) {}
 
-    public function index(): View
+    /** Template + upload, and the import history (25 per page, AJAX paging). */
+    public function index(Request $request): View|Response
     {
-        return view('expenses.imports.index', [
+        $batches = ExpenseImportBatch::query()
+            ->with(['creator:id,name', 'reverter:id,name'])
+            ->latest()
+            ->orderByDesc('id')
+            ->paginate(25);
+
+        return $this->listView($request, 'expenses.imports.index', [
             'columns' => ExpenseImportColumns::COLUMNS,
             'help' => ExpenseImportColumns::help(),
+            'batches' => $batches,
+            'canRevert' => $request->user()->can('expenses.delete'),
         ]);
     }
 
@@ -67,7 +78,7 @@ class ExpenseImportController extends Controller
             ->appends(array_filter(['show' => $show]));
 
         return $this->listView($request, 'expenses.imports.show', [
-            'batch' => $batch->load('creator:id,name'),
+            'batch' => $batch->load(['creator:id,name', 'reverter:id,name']),
             'rows' => $rows,
             'show' => $show,
             'columns' => ExpenseImportColumns::COLUMNS,
@@ -104,6 +115,19 @@ class ExpenseImportController extends Controller
         $name = pathinfo($batch->original_filename, PATHINFO_FILENAME).'_errors.xlsx';
 
         return Storage::disk(ExpenseImportService::DISK)->download($path, $name);
+    }
+
+    /** Undo an import: soft-deletes its expenses if none was edited (reason required). */
+    public function revert(RevertExpenseImportRequest $request, ExpenseImportBatch $batch): RedirectResponse
+    {
+        try {
+            $count = $this->imports->revert($batch);
+        } catch (DomainException $e) {
+            return back()->with('error', $e->getMessage());
+        }
+
+        return redirect()->route('expense-imports.show', $batch)
+            ->with('success', trans_choice('Upload reverted: :count expense deleted.|Upload reverted: :count expenses deleted.', $count));
     }
 
     public function cancel(ExpenseImportBatch $batch): RedirectResponse

@@ -57,6 +57,9 @@
                 <label for="search" class="form-label small mb-1">{{ __('Paid to / note') }}</label>
                 <input type="search" id="search" name="search" value="{{ $filters['search'] }}" class="form-control form-control-sm" maxlength="100">
             </div>
+            @if ($filters['import_batch_id'])
+                <input type="hidden" name="import_batch_id" value="{{ $filters['import_batch_id'] }}" data-clearable>
+            @endif
             <div class="col-12 col-xl-4 d-flex gap-2">
                 <button type="submit" class="btn btn-outline-primary btn-sm"><i class="bi bi-funnel me-1"></i>{{ __('Filter') }}</button>
                 <a href="{{ route('expenses.index', ['all' => 1]) }}" class="btn btn-link btn-sm" data-ajax-clear title="{{ __('All dates, no filters') }}">{{ __('Clear') }}</a>
@@ -68,6 +71,12 @@
 
     <div id="expenses-results" data-ajax-results>
     @fragment('results')
+    @if ($filters['import_batch_id'])
+        <div class="alert alert-info rounded-0 border-0 border-bottom mb-0 py-2 small">
+            <i class="bi bi-file-earmark-spreadsheet me-1"></i>{{ __('Showing the expenses of import #:id.', ['id' => $filters['import_batch_id']]) }}
+            <a href="{{ route('expense-imports.show', $filters['import_batch_id']) }}" class="ms-2">{{ __('Open the import') }}</a>
+        </div>
+    @endif
     {{-- Totals of ALL filtered expenses (one SQL query), not only this page. --}}
     <div class="d-flex flex-wrap align-items-center gap-3 px-3 py-2 border-bottom app-totals">
         <div><span class="small text-body-secondary">{{ __('Expenses') }}</span> <strong>{{ fmt_qty($totals['count'], 0) }}</strong></div>

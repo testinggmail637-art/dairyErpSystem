@@ -12,6 +12,7 @@ enum ImportBatchStatus: string
     case Previewed = 'previewed';
     case Imported = 'imported';
     case Cancelled = 'cancelled';
+    case Reverted = 'reverted'; // imported, then undone (spec 7.2 step 5)
 
     public function label(): string
     {
@@ -19,6 +20,7 @@ enum ImportBatchStatus: string
             self::Previewed => __('Checked, not imported yet'),
             self::Imported => __('Imported'),
             self::Cancelled => __('Cancelled'),
+            self::Reverted => __('Reverted'),
         };
     }
 
@@ -28,6 +30,7 @@ enum ImportBatchStatus: string
             self::Previewed => 'text-bg-warning',
             self::Imported => 'text-bg-success',
             self::Cancelled => 'text-bg-secondary',
+            self::Reverted => 'text-bg-dark',
         };
     }
 }
