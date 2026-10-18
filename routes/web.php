@@ -78,6 +78,8 @@ Route::middleware(['auth', 'active', 'farm'])->group(function () {
             Route::get('template', [ExpenseImportController::class, 'template'])->name('template');
             Route::post('/', [ExpenseImportController::class, 'store'])->name('store');
             Route::get('{batch}', [ExpenseImportController::class, 'show'])->whereNumber('batch')->name('show');
+            Route::post('{batch}/import', [ExpenseImportController::class, 'import'])->whereNumber('batch')->name('import');
+            Route::get('{batch}/errors', [ExpenseImportController::class, 'errors'])->whereNumber('batch')->name('errors');
             Route::post('{batch}/cancel', [ExpenseImportController::class, 'cancel'])->whereNumber('batch')->name('cancel');
         });
 

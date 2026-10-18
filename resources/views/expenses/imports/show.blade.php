@@ -21,13 +21,30 @@
         <div class="text-center px-2 text-danger"><div class="fs-4 fw-semibold">{{ number_format($batch->error_rows) }}</div><div class="small">{{ __('With errors') }}</div></div>
         <div class="text-center px-2 text-warning-emphasis"><div class="fs-4 fw-semibold">{{ number_format($batch->warning_rows) }}</div><div class="small">{{ __('Possible duplicates') }}</div></div>
     </div>
-    @if ($batch->isPreviewed())
+    @if ($batch->isPreviewed() || $batch->imported_at || $batch->error_rows)
         <div class="card-footer d-flex flex-wrap gap-2 align-items-center">
             <span class="small text-body-secondary me-auto">
-                {{ __('Rows with errors are skipped. Possible duplicates are imported unless you remove them from the file and upload again.') }}
+                @if ($batch->isPreviewed())
+                    {{ __('Rows with errors are skipped. Possible duplicates are imported unless you remove them from the file and upload again.') }}
+                @else
+                    {{ __(':count expenses were imported on :date.', ['count' => number_format($batch->imported_rows), 'date' => fmt_datetime($batch->imported_at)]) }}
+                @endif
             </span>
-            <x-confirm-form :action="route('expense-imports.cancel', $batch)" method="POST" :label="__('Cancel upload')" icon="bi-x-lg"
-                            button-class="btn btn-outline-secondary btn-sm" :message="__('Cancel this upload? Nothing will be imported.')" />
+            @if ($batch->error_rows)
+                <a href="{{ route('expense-imports.errors', $batch) }}" class="btn btn-outline-danger btn-sm">
+                    <i class="bi bi-file-earmark-excel me-1"></i>{{ __('Download error rows') }}
+                </a>
+            @endif
+            @if ($batch->isPreviewed())
+                <x-confirm-form :action="route('expense-imports.cancel', $batch)" method="POST" :label="__('Cancel upload')" icon="bi-x-lg"
+                                button-class="btn btn-outline-secondary btn-sm" :message="__('Cancel this upload? Nothing will be imported.')" />
+                @if ($batch->valid_rows)
+                    <x-confirm-form :action="route('expense-imports.import', $batch)" method="POST" icon="bi-check2-all"
+                                    :label="trans_choice('Import :count valid row|Import :count valid rows', $batch->valid_rows, ['count' => number_format($batch->valid_rows)])"
+                                    button-class="btn btn-success btn-sm" :confirm-button="__('Import')"
+                                    :message="trans_choice('Save :count expense now? Rows with errors are skipped.|Save :count expenses now? Rows with errors are skipped.', $batch->valid_rows, ['count' => number_format($batch->valid_rows)])" />
+                @endif
+            @endif
         </div>
     @endif
 </div>
@@ -70,7 +87,11 @@
                             </td>
                         @endforeach
                         <td class="small">
-                            @if ($row->is_valid)
+                            @if ($row->expense_id)
+                                <a href="{{ route('expenses.show', $row->expense_id) }}" class="badge text-bg-success text-decoration-none">
+                                    <i class="bi bi-check2 me-1"></i>{{ __('Imported') }}
+                                </a>
+                            @elseif ($row->is_valid)
                                 <span class="badge text-bg-success">{{ __('Ready') }}</span>
                             @else
                                 <span class="badge text-bg-danger">{{ trans_choice(':count error|:count errors', count(array_merge(...array_values($row->errors ?? [])))) }}</span>

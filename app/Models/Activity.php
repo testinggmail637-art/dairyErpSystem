@@ -17,6 +17,7 @@ class Activity extends BaseActivity
         Farm::class,
         Expense::class,
         VendorPayment::class,
+        ExpenseImportBatch::class,
     ];
 
     protected static function booted(): void

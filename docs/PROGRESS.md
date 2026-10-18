@@ -8,10 +8,10 @@
 | Item | Value |
 |---|---|
 | Current phase | Phase 1 — Expense Management (🟡 in progress) |
-| Last completed task | 1.8 — Excel upload + row validation + preview (errors & duplicate warnings) |
-| Next task | 1.9 — Import valid rows + error-rows download |
-| Overall progress | 21 / 88 tasks (24%) |
-| Tests passing | 282 |
+| Last completed task | 1.9 — Import valid rows + error-rows download |
+| Next task | 1.10 — Import history + batch revert |
+| Overall progress | 22 / 88 tasks (25%) |
+| Tests passing | 290 |
 | Last updated (IST) | 2026-10-18 |
 
 ## Phase overview
@@ -105,7 +105,7 @@ Status legend: ⬜ Not started · 🟡 In progress · ✅ Done · ⏸ On hold
 - [x] 1.6 Expense reports (daily, monthly category × section, category-wise, vendor outstanding) + Excel/PDF
 - [x] 1.7 Excel template download
 - [x] 1.8 Excel upload + row validation + preview (errors & duplicate warnings)
-- [ ] 1.9 Import valid rows + error-rows download
+- [x] 1.9 Import valid rows + error-rows download
 - [ ] 1.10 Import history + batch revert
 - [ ] 1.11 Phase 1 acceptance tests pass + README/CHANGELOG updated
 

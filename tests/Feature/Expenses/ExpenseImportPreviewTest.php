@@ -2,7 +2,6 @@
 
 use App\Enums\ImportBatchStatus;
 use App\Enums\RoleName;
-use App\Imports\ExpenseImportColumns;
 use App\Models\Expense;
 use App\Models\ExpenseCategory;
 use App\Models\ExpenseImportBatch;
@@ -15,8 +14,6 @@ use App\Models\Vendor;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Storage;
 use PhpOffice\PhpSpreadsheet\Shared\Date;
-use PhpOffice\PhpSpreadsheet\Spreadsheet;
-use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
 
 beforeEach(function () {
     Storage::fake('local');
@@ -33,41 +30,6 @@ beforeEach(function () {
     $this->vendor = Vendor::factory()->create(['farm_id' => $this->farm->id, 'name' => 'Sharma Feeds']);
     Vendor::factory()->create(['farm_id' => Farm::factory()->create()->id, 'name' => 'Foreign Vendor']);
 });
-
-/** A row in template column order: date, amount, category, subcategory, section, payment_mode, vendor, paid_to, credit, quantity, unit, note. */
-function importRow(array $overrides = []): array
-{
-    return array_values(array_merge([
-        'date' => '15-10-2026', 'amount' => '1250.50', 'category' => 'Feed', 'subcategory' => 'Cattle Feed',
-        'section' => 'Own Herd', 'payment_mode' => 'Cash', 'vendor' => '', 'paid_to' => 'Ramesh',
-        'credit' => 'no', 'quantity' => '', 'unit' => '', 'note' => '',
-    ], $overrides));
-}
-
-function importXlsx(array $rows, ?array $headers = null): UploadedFile
-{
-    $book = new Spreadsheet;
-    $book->getActiveSheet()->setTitle('Expenses')->fromArray([$headers ?? array_values(ExpenseImportColumns::COLUMNS), ...$rows], null, 'A1', true);
-    $path = tempnam(sys_get_temp_dir(), 'imp').'.xlsx';
-    (new Xlsx($book))->save($path);
-
-    return new UploadedFile($path, 'expenses.xlsx', null, null, true);
-}
-
-function importCsv(array $rows, ?array $headers = null): UploadedFile
-{
-    $lines = array_map(fn ($r) => implode(',', array_map(fn ($c) => '"'.str_replace('"', '""', (string) $c).'"', $r)),
-        [$headers ?? array_values(ExpenseImportColumns::COLUMNS), ...$rows]);
-
-    return UploadedFile::fake()->createWithContent('expenses.csv', implode("\n", $lines));
-}
-
-function uploadImport(UploadedFile $file): ExpenseImportBatch
-{
-    test()->post(route('expense-imports.store'), ['file' => $file])->assertSessionHasNoErrors()->assertRedirect();
-
-    return ExpenseImportBatch::query()->latest('id')->firstOrFail();
-}
 
 it('uploads 3 valid + 2 invalid rows and the preview shows the 2 errors (Phase 1 acceptance)', function () {
     $this->travelTo('2026-10-18');

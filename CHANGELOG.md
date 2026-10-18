@@ -31,6 +31,8 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - Phase 1 · Task 8: expense sheet upload (xlsx/xls/csv, up to 5 000 rows / 5 MB; `expense_import_batches`, `expense_import_rows`)
   — every row checked like the expense form (names case-insensitive, Excel dates accepted), preview page with counts,
   all / errors / duplicates / ready filter (AJAX), errors highlighted in their cells, possible-duplicate warnings, cancel upload.
+- Phase 1 · Task 9: "Import valid rows" (one transaction, bulk inserts, rows re-checked at import, never twice, each row linked
+  to its expense, batch audit-logged) and "Download error rows" (the invalid rows + an `errors` column, ready to fix and upload again).
 
 ## [0.0.0] - 2026-10-15 — Phase 0: Foundation
 

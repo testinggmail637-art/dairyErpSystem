@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Enums\ImportBatchStatus;
+use App\Models\Concerns\Auditable;
 use App\Models\Concerns\BelongsToFarm;
 use App\Models\Concerns\TracksUser;
 use Illuminate\Database\Eloquent\Model;
@@ -11,7 +12,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 /** One uploaded expense spreadsheet (spec 7.2). */
 class ExpenseImportBatch extends Model
 {
-    use BelongsToFarm, TracksUser;
+    use Auditable, BelongsToFarm, TracksUser;
 
     /**
      * @var list<string>
