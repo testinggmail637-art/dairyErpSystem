@@ -10,6 +10,8 @@ use App\Http\Controllers\Expenses\VendorController;
 use App\Http\Controllers\Expenses\VendorPaymentController;
 use App\Http\Controllers\Farm\FarmSwitchController;
 use App\Http\Controllers\HomeController;
+use App\Http\Controllers\Reports\ExpenseReportController;
+use App\Http\Controllers\Reports\ReportController;
 use App\Http\Controllers\Settings\AppearanceController;
 use App\Http\Controllers\Settings\AuditLogController;
 use App\Http\Controllers\Settings\FarmSettingsController;
@@ -19,6 +21,7 @@ use App\Http\Controllers\Settings\SectionController;
 use App\Http\Controllers\Settings\UserController;
 use App\Models\Expense;
 use App\Models\VendorPayment;
+use App\Services\ExpenseReportService;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -80,6 +83,15 @@ Route::middleware(['auth', 'active', 'farm'])->group(function () {
             Route::put('{expense}', [ExpenseController::class, 'update'])->middleware('can:update,expense')->name('expenses.update');
             Route::delete('{expense}', [ExpenseController::class, 'destroy'])->middleware('can:delete,expense')->name('expenses.destroy');
         });
+    });
+
+    /*
+    | Reports
+    */
+    Route::middleware('can:reports.view')->prefix('reports')->group(function () {
+        Route::get('/', [ReportController::class, 'index'])->name('reports.index');
+        Route::get('expenses/{report}', [ExpenseReportController::class, 'show'])
+            ->whereIn('report', ExpenseReportService::REPORTS)->name('reports.expenses');
     });
 
     // Download a queued (large) export file made for the logged-in user

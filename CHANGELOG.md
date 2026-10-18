@@ -23,6 +23,9 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - Phase 1 · Task 5: vendor payments (`vendor_payments`, idempotent with `client_uuid`, audit-logged, reason on edit/delete,
   staff same-day rule) and the vendor ledger — opening balance, credit purchases, payments and running balance (SQL window
   function), period filter opening on the current financial year, "Record payment"; vendors list shows what we owe each.
+- Phase 1 · Task 6: Reports home and four expense reports — daily summary, monthly category × section matrix, category-wise
+  with subcategories and share %, vendor outstanding — each on screen (AJAX filters) and as Excel and PDF; a covering index
+  keeps them fast on large data.
 
 ## [0.0.0] - 2026-10-15 — Phase 0: Foundation
 
