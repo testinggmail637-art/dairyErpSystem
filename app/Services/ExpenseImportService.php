@@ -4,6 +4,8 @@ namespace App\Services;
 
 use App\Enums\ExpenseUnit;
 use App\Enums\ImportBatchStatus;
+use App\Exports\ExpenseImportErrorsExport;
+use App\Imports\ExpenseImportColumns;
 use App\Imports\ExpenseImportReader;
 use App\Models\Expense;
 use App\Models\ExpenseCategory;
@@ -20,6 +22,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Str;
+use Maatwebsite\Excel\Facades\Excel;
 use Throwable;
 
 /**
@@ -87,6 +90,77 @@ class ExpenseImportService
 
             throw $e;
         }
+    }
+
+    /**
+     * "Import valid rows" (spec 7.2 step 4): all valid rows become expenses in one transaction, tagged with the batch.
+     * Each row is checked again first — a category or vendor may have been deactivated since the preview; such a
+     * row turns into an error row instead of being imported. Bulk inserts (500 per query) keep 5,000 rows fast;
+     * the batch itself is audit-logged (status → imported, imported_rows) rather than 5,000 single entries.
+     *
+     * @return int the number of expenses created
+     */
+    public function import(ExpenseImportBatch $batch): int
+    {
+        return DB::transaction(function () use ($batch) {
+            // lock: a double click or a second tab must not import the same rows twice
+            $locked = ExpenseImportBatch::query()->lockForUpdate()->findOrFail($batch->getKey());
+            if (! $locked->isPreviewed()) {
+                throw new \DomainException(__('This upload was already imported or cancelled.'));
+            }
+
+            $ready = [];
+            $nowInvalid = [];
+            $batch->rows()->where('is_valid', true)->select(['id', 'payload'])->lazyById(500)
+                ->each(function (ExpenseImportRow $row) use (&$ready, &$nowInvalid) {
+                    [$data, $errors] = $this->checkRow($row->payload + array_fill_keys(array_keys(ExpenseImportColumns::COLUMNS), ''));
+                    $errors === [] ? $ready[$row->id] = $data : $nowInvalid[$row->id] = $errors;
+                });
+
+            $now = now();
+            $stamps = [
+                'farm_id' => $locked->farm_id,
+                'import_batch_id' => $locked->id,
+                'created_by' => auth()->id(),
+                'updated_by' => auth()->id(),
+                'created_at' => $now,
+                'updated_at' => $now,
+            ];
+            foreach (array_chunk($ready, 500) as $chunk) {
+                Expense::insert(array_map(fn (array $data) => $data + $stamps, $chunk));
+            }
+
+            // ids grow in insert order, which is row order → link every import row to its expense
+            $expenseIds = Expense::query()->where('import_batch_id', $locked->id)->orderBy('id')->pluck('id')->all();
+            foreach (array_chunk(array_combine(array_keys($ready), $expenseIds), 500, true) as $chunk) {
+                $case = implode(' ', array_map(fn ($rowId, $expenseId) => 'WHEN '.(int) $rowId.' THEN '.(int) $expenseId, array_keys($chunk), $chunk));
+                ExpenseImportRow::query()->whereKey(array_keys($chunk))->update(['expense_id' => DB::raw("CASE id {$case} END")]);
+            }
+
+            foreach ($nowInvalid as $rowId => $errors) {
+                ExpenseImportRow::query()->whereKey($rowId)->update(['is_valid' => false, 'errors' => json_encode($errors, JSON_UNESCAPED_UNICODE)]);
+            }
+
+            $locked->update([
+                'status' => ImportBatchStatus::Imported,
+                'imported_rows' => count($ready),
+                'imported_at' => $now,
+                'valid_rows' => count($ready),
+                'error_rows' => $locked->error_rows + count($nowInvalid),
+            ]);
+
+            return count($ready);
+        });
+    }
+
+    /** Excel of the invalid rows with an `errors` column (spec 7.2 step 4); rebuilt on each download, so it is never stale. */
+    public function errorFile(ExpenseImportBatch $batch): string
+    {
+        $path = preg_replace('/\.\w+$/', '', $batch->stored_path).'-errors.xlsx';
+        Excel::store(new ExpenseImportErrorsExport($batch), $path, self::DISK);
+        $batch->update(['error_file_path' => $path]);
+
+        return $path;
     }
 
     /** A previewed batch can be dropped; nothing was saved as an expense yet. */

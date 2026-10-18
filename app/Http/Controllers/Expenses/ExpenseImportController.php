@@ -12,12 +12,14 @@ use App\Services\ExpenseImportService;
 use DomainException;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Response;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\View\View;
 use Maatwebsite\Excel\Facades\Excel;
 use Symfony\Component\HttpFoundation\BinaryFileResponse;
+use Symfony\Component\HttpFoundation\StreamedResponse;
 
 /**
- * Expenses → Import (spec 7.2): template (1.7), upload + preview (1.8); import/error file/history follow in 1.9–1.10.
+ * Expenses → Import (spec 7.2): template (1.7), upload + preview (1.8), import + error rows (1.9); history follows in 1.10.
  */
 class ExpenseImportController extends Controller
 {
@@ -70,6 +72,38 @@ class ExpenseImportController extends Controller
             'show' => $show,
             'columns' => ExpenseImportColumns::COLUMNS,
         ]);
+    }
+
+    /** "Import valid rows": one transaction; rows with errors are skipped. */
+    public function import(ExpenseImportBatch $batch): RedirectResponse
+    {
+        try {
+            $count = $this->imports->import($batch);
+        } catch (DomainException $e) {
+            return redirect()->route('expense-imports.show', $batch)->with('error', $e->getMessage());
+        }
+
+        $batch->refresh();
+        $skipped = $batch->total_rows - $count;
+
+        return redirect()->route('expense-imports.show', $batch)->with(
+            $skipped ? 'warning' : 'success',
+            trans_choice(':count expense imported.|:count expenses imported.', $count)
+            .($skipped ? ' '.trans_choice(':count row with errors was skipped — download the error rows, fix them and upload again.|:count rows with errors were skipped — download the error rows, fix them and upload again.', $skipped) : ''),
+        );
+    }
+
+    /** "Download error rows": the invalid rows with an `errors` column, ready to fix and upload again. */
+    public function errors(ExpenseImportBatch $batch): StreamedResponse|RedirectResponse
+    {
+        if ($batch->error_rows === 0) {
+            return redirect()->route('expense-imports.show', $batch)->with('info', __('This upload has no rows with errors.'));
+        }
+
+        $path = $this->imports->errorFile($batch);
+        $name = pathinfo($batch->original_filename, PATHINFO_FILENAME).'_errors.xlsx';
+
+        return Storage::disk(ExpenseImportService::DISK)->download($path, $name);
     }
 
     public function cancel(ExpenseImportBatch $batch): RedirectResponse
