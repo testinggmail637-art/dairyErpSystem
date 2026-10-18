@@ -35,7 +35,8 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   to its expense, batch audit-logged) and "Download error rows" (the invalid rows + an `errors` column, ready to fix and upload again).
 - Phase 1 · Task 10: import history on Expenses → Import (newest first, counts, status, who/when, AJAX paging), "Expenses"
   link that opens the expense list filtered to one import, and "Revert upload" (reason required; soft-deletes the upload's
-  expenses unless one was edited after the import; new status `reverted` with `reverted_at` / `reverted_by`).
+  expenses unless one was edited after the import, only within 7 days of the import — `IMPORT_REVERT_DAYS`; new status
+  `reverted` with `reverted_at` / `reverted_by`).
 
 ## [0.0.0] - 2026-10-15 — Phase 0: Foundation
 

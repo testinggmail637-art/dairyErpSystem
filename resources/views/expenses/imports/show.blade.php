@@ -30,6 +30,10 @@
                     {{ __(':count expenses were imported on :date.', ['count' => number_format($batch->imported_rows), 'date' => fmt_datetime($batch->imported_at)]) }}
                     @if ($batch->reverted_at)
                         {{ __('Reverted on :date by :user — those expenses are deleted.', ['date' => fmt_datetime($batch->reverted_at), 'user' => $batch->reverter?->name ?? '—']) }}
+                    @elseif ($batch->canBeReverted())
+                        {{ __('It can be reverted until :date.', ['date' => fmt_datetime($batch->revertDeadline())]) }}
+                    @elseif ($batch->isImported())
+                        {{ __('The :days-day revert period ended on :date.', ['days' => config('dairy.imports.revert_days'), 'date' => fmt_datetime($batch->revertDeadline())]) }}
                     @endif
                 @endif
             </span>
@@ -37,11 +41,11 @@
                 <a href="{{ route('expenses.index', ['import_batch_id' => $batch->id]) }}" class="btn btn-outline-primary btn-sm">
                     <i class="bi bi-list-ul me-1"></i>{{ __('View the expenses') }}
                 </a>
-                @can('expenses.delete')
+                @if ($batch->canBeReverted() && auth()->user()->can('expenses.delete'))
                     <x-confirm-form :action="route('expense-imports.revert', $batch)" method="POST" reason :label="__('Revert upload')" icon="bi-arrow-counterclockwise"
                                     :message="__('Revert this upload? Its :count expenses will be deleted.', ['count' => number_format($batch->imported_rows)])"
                                     :confirm-button="__('Revert')" />
-                @endcan
+                @endif
             @endif
             @if ($batch->error_rows)
                 <a href="{{ route('expense-imports.errors', $batch) }}" class="btn btn-outline-danger btn-sm">

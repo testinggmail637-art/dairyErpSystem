@@ -9,6 +9,7 @@ use App\Models\Concerns\TracksUser;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Support\Carbon;
 
 /** One uploaded expense spreadsheet (spec 7.2). */
 class ExpenseImportBatch extends Model
@@ -83,5 +84,17 @@ class ExpenseImportBatch extends Model
     public function isImported(): bool
     {
         return $this->status === ImportBatchStatus::Imported;
+    }
+
+    /** Last moment the import may be reverted: imported_at + config('dairy.imports.revert_days') days. */
+    public function revertDeadline(): ?Carbon
+    {
+        return $this->imported_at?->copy()->addDays((int) config('dairy.imports.revert_days'));
+    }
+
+    /** Imported and still inside the revert window (the "not edited" check runs when reverting). */
+    public function canBeReverted(): bool
+    {
+        return $this->isImported() && (bool) $this->revertDeadline()?->isFuture();
     }
 }

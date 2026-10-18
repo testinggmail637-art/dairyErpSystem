@@ -11,7 +11,7 @@
 | Last completed task | 1.10 — Import history + batch revert |
 | Next task | 1.11 — Phase 1 acceptance tests pass + README/CHANGELOG updated |
 | Overall progress | 23 / 88 tasks (26%) |
-| Tests passing | 298 |
+| Tests passing | 300 |
 | Last updated (IST) | 2026-10-18 |
 
 ## Phase overview
