@@ -1,0 +1,69 @@
+<?php
+
+namespace App\Models;
+
+use App\Enums\ImportBatchStatus;
+use App\Models\Concerns\BelongsToFarm;
+use App\Models\Concerns\TracksUser;
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\HasMany;
+
+/** One uploaded expense spreadsheet (spec 7.2). */
+class ExpenseImportBatch extends Model
+{
+    use BelongsToFarm, TracksUser;
+
+    /**
+     * @var list<string>
+     */
+    protected $fillable = [
+        'farm_id',
+        'original_filename',
+        'stored_path',
+        'total_rows',
+        'valid_rows',
+        'error_rows',
+        'warning_rows',
+        'imported_rows',
+        'status',
+        'error_file_path',
+        'imported_at',
+    ];
+
+    /**
+     * @return array<string, string>
+     */
+    protected function casts(): array
+    {
+        return [
+            'status' => ImportBatchStatus::class,
+            'imported_at' => 'datetime',
+            'total_rows' => 'integer',
+            'valid_rows' => 'integer',
+            'error_rows' => 'integer',
+            'warning_rows' => 'integer',
+            'imported_rows' => 'integer',
+        ];
+    }
+
+    /**
+     * @return HasMany<ExpenseImportRow, $this>
+     */
+    public function rows(): HasMany
+    {
+        return $this->hasMany(ExpenseImportRow::class, 'import_batch_id');
+    }
+
+    /**
+     * @return HasMany<Expense, $this>
+     */
+    public function expenses(): HasMany
+    {
+        return $this->hasMany(Expense::class, 'import_batch_id');
+    }
+
+    public function isPreviewed(): bool
+    {
+        return $this->status === ImportBatchStatus::Previewed;
+    }
+}
