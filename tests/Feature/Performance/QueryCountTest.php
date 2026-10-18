@@ -11,6 +11,7 @@ use App\Models\ExpenseCategory;
 use App\Models\Farm;
 use App\Models\User;
 use App\Models\Vendor;
+use App\Models\VendorPayment;
 use Illuminate\Support\Facades\DB;
 
 beforeEach(function () {
@@ -99,6 +100,23 @@ it('keeps the expense list at a constant number of queries', function () {
     $many = queriesFor(route('expenses.index', ['all' => 1]), $this->owner);
 
     expect($many)->toBe($few);
+});
+
+it('keeps the vendor list with balances and the ledger at a constant number of queries', function () {
+    $vendor = Vendor::factory()->create(['farm_id' => $this->farm->id]);
+    $add = function (int $n) use ($vendor) {
+        Vendor::factory()->count($n)->create(['farm_id' => $this->farm->id]);
+        Expense::factory()->count($n)->credit($vendor)->create();
+        VendorPayment::factory()->count($n)->create(['vendor_id' => $vendor->id, 'farm_id' => $this->farm->id]);
+    };
+
+    $add(2);
+    $fewList = queriesFor(route('vendors.index'), $this->owner);
+    $fewLedger = queriesFor(route('vendors.show', $vendor), $this->owner);
+    $add(25);
+
+    expect(queriesFor(route('vendors.index'), $this->owner))->toBe($fewList)
+        ->and(queriesFor(route('vendors.show', $vendor), $this->owner))->toBe($fewLedger);
 });
 
 it('loads the user\'s farms once per page', function () {
