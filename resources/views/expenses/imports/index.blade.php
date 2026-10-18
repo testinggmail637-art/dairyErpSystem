@@ -88,6 +88,8 @@
                             <span class="badge {{ $batch->status->badge() }}">{{ $batch->status->label() }}</span>
                             @if ($batch->reverted_at)
                                 <div class="small text-body-secondary">{{ fmt_datetime($batch->reverted_at) }} · {{ $batch->reverter?->name ?? '—' }}</div>
+                            @elseif ($batch->canBeReverted())
+                                <div class="small text-body-secondary">{{ __('Revert until :date', ['date' => fmt_date($batch->revertDeadline())]) }}</div>
                             @endif
                         </td>
                         <td class="text-end text-nowrap">
@@ -98,7 +100,7 @@
                                 <a href="{{ route('expenses.index', ['import_batch_id' => $batch->id]) }}" class="btn btn-outline-secondary btn-sm">
                                     <i class="bi bi-list-ul"></i> <span class="d-none d-sm-inline">{{ __('Expenses') }}</span>
                                 </a>
-                                @if ($canRevert)
+                                @if ($canRevert && $batch->canBeReverted())
                                     <x-confirm-form :action="route('expense-imports.revert', $batch)" method="POST" reason icon="bi-arrow-counterclockwise"
                                                     :message="__('Revert this upload? Its :count expenses will be deleted.', ['count' => number_format($batch->imported_rows)])"
                                                     :confirm-button="__('Revert')" />

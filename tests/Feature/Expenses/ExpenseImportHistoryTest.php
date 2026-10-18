@@ -133,6 +133,36 @@ it('still reverts when some imported expenses were already deleted one by one', 
     expect(Expense::count())->toBe(0);
 });
 
+it('allows a revert only within 7 days of the import', function () {
+    $batch = importedBatch(2); // imported 18-10-2026 11:00 → revert until 25-10-2026 11:00
+
+    $this->get(route('expense-imports.show', $batch))->assertSee('It can be reverted until 25-10-2026');
+    $this->get(route('expense-imports.index'))->assertSee('Revert until 25-10-2026');
+
+    $this->travelTo('2026-10-25 11:01');
+    $this->get(route('expense-imports.index'))->assertOk()->assertDontSee(route('expense-imports.revert', $batch), false);
+    $this->get(route('expense-imports.show', $batch))->assertOk()
+        ->assertSee('The 7-day revert period ended on 25-10-2026')
+        ->assertDontSee(route('expense-imports.revert', $batch), false);
+
+    $this->post(route('expense-imports.revert', $batch), ['reason' => 'Too late'])
+        ->assertSessionHas('error', fn ($m) => str_starts_with($m, 'An upload can be reverted only within 7 days of the import (until 25-10-2026'));
+    expect(Expense::count())->toBe(2)->and($batch->fresh()->status)->toBe(ImportBatchStatus::Imported);
+});
+
+it('reverts on the last day of the window, and the window length comes from config', function () {
+    $batch = importedBatch(1);
+
+    $this->travelTo('2026-10-25 10:59');
+    $this->post(route('expense-imports.revert', $batch), ['reason' => 'Just in time'])->assertSessionHas('success');
+
+    config(['dairy.imports.revert_days' => 1]);
+    $this->travelTo('2026-10-25 11:00');
+    $second = importedBatch(1);
+    $this->travelTo('2026-10-26 11:01');
+    $this->post(route('expense-imports.revert', $second), ['reason' => 'Late'])->assertSessionHas('error');
+});
+
 it('only reverts imported uploads', function () {
     $previewed = uploadImport(importCsv([importRow()]));
 

@@ -112,6 +112,7 @@ http://localhost/<folder>/public (set `APP_URL` to the same). Tests: keep `APP_U
 | `DB_DUMP_BINARY_PATH` | `C:/xampp/mysql/bin` (XAMPP) / empty (Linux) | Folder with `mysqldump`, for backups |
 | `BACKUP_DISKS`, `BACKUP_PATH`, `BACKUP_ARCHIVE_PASSWORD` | `backups`, empty, empty | Where backups go / optional zip password — see `docs/BACKUP_RESTORE.md` |
 | `EXPORT_QUEUE_ABOVE` | `5000` | Excel exports with more rows are built in the background (needs `queue:work`) and announced in the bell |
+| `IMPORT_REVERT_DAYS` | `7` | An imported Excel upload can be reverted (its expenses deleted) only within this many days of the import |
 
 ---
 

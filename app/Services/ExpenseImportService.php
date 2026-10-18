@@ -167,6 +167,11 @@ class ExpenseImportService
             if (! $locked->isImported()) {
                 throw new \DomainException(__('Only an imported upload can be reverted.'));
             }
+            if (! $locked->canBeReverted()) {
+                throw new \DomainException(__('An upload can be reverted only within :days days of the import (until :date). Delete the expenses one by one instead.', [
+                    'days' => config('dairy.imports.revert_days'), 'date' => fmt_datetime($locked->revertDeadline()),
+                ]));
+            }
 
             $expenses = Expense::query()->where('import_batch_id', $locked->id);
 
