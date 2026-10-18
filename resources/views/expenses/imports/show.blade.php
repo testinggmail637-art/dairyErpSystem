@@ -26,10 +26,23 @@
             <span class="small text-body-secondary me-auto">
                 @if ($batch->isPreviewed())
                     {{ __('Rows with errors are skipped. Possible duplicates are imported unless you remove them from the file and upload again.') }}
-                @else
+                @elseif ($batch->imported_at)
                     {{ __(':count expenses were imported on :date.', ['count' => number_format($batch->imported_rows), 'date' => fmt_datetime($batch->imported_at)]) }}
+                    @if ($batch->reverted_at)
+                        {{ __('Reverted on :date by :user — those expenses are deleted.', ['date' => fmt_datetime($batch->reverted_at), 'user' => $batch->reverter?->name ?? '—']) }}
+                    @endif
                 @endif
             </span>
+            @if ($batch->isImported())
+                <a href="{{ route('expenses.index', ['import_batch_id' => $batch->id]) }}" class="btn btn-outline-primary btn-sm">
+                    <i class="bi bi-list-ul me-1"></i>{{ __('View the expenses') }}
+                </a>
+                @can('expenses.delete')
+                    <x-confirm-form :action="route('expense-imports.revert', $batch)" method="POST" reason :label="__('Revert upload')" icon="bi-arrow-counterclockwise"
+                                    :message="__('Revert this upload? Its :count expenses will be deleted.', ['count' => number_format($batch->imported_rows)])"
+                                    :confirm-button="__('Revert')" />
+                @endcan
+            @endif
             @if ($batch->error_rows)
                 <a href="{{ route('expense-imports.errors', $batch) }}" class="btn btn-outline-danger btn-sm">
                     <i class="bi bi-file-earmark-excel me-1"></i>{{ __('Download error rows') }}
@@ -87,10 +100,12 @@
                             </td>
                         @endforeach
                         <td class="small">
-                            @if ($row->expense_id)
+                            @if ($row->expense_id && $batch->isImported())
                                 <a href="{{ route('expenses.show', $row->expense_id) }}" class="badge text-bg-success text-decoration-none">
                                     <i class="bi bi-check2 me-1"></i>{{ __('Imported') }}
                                 </a>
+                            @elseif ($row->expense_id)
+                                <span class="badge text-bg-dark">{{ __('Reverted') }}</span>
                             @elseif ($row->is_valid)
                                 <span class="badge text-bg-success">{{ __('Ready') }}</span>
                             @else

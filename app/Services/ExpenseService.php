@@ -114,6 +114,7 @@ class ExpenseService
             ->when(($f['type'] ?? null) === 'paid', fn ($q) => $q->where('is_credit', false))
             ->when(($f['type'] ?? null) === 'credit', fn ($q) => $q->where('is_credit', true))
             ->when($f['created_by'] ?? null, fn ($q, $id) => $q->where('created_by', $id))
+            ->when($f['import_batch_id'] ?? null, fn ($q, $id) => $q->where('import_batch_id', $id))
             ->when(filled($f['search'] ?? null), fn ($q) => $q->where(fn ($q) => $q
                 ->where('paid_to_text', 'like', '%'.$f['search'].'%')
                 ->orWhere('note', 'like', '%'.$f['search'].'%')));

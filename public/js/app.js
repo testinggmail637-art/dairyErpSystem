@@ -282,6 +282,7 @@
             const form = $(this).closest('form')[0];
             form.reset();
             $(form).find('input:not([type=hidden]):not([type=submit]), select').val('').trigger('change.select2');
+            $(form).find('input[type=hidden][data-clearable]').remove(); // e.g. "expenses of import #5"
             $(form).find('input.js-date').each(function () {
                 if (this._flatpickr) this._flatpickr.clear(false);
             });

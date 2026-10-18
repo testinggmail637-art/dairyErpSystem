@@ -153,6 +153,40 @@ class ExpenseImportService
         });
     }
 
+    /**
+     * Undo an import (spec 7.2 step 5): soft-deletes the batch's expenses — allowed only while none of them was
+     * edited after the import. Expenses already deleted one by one are left as they are. The reason (from the
+     * request) lands in the batch's audit entry.
+     *
+     * @return int the number of expenses deleted
+     */
+    public function revert(ExpenseImportBatch $batch): int
+    {
+        return DB::transaction(function () use ($batch) {
+            $locked = ExpenseImportBatch::query()->lockForUpdate()->findOrFail($batch->getKey());
+            if (! $locked->isImported()) {
+                throw new \DomainException(__('Only an imported upload can be reverted.'));
+            }
+
+            $expenses = Expense::query()->where('import_batch_id', $locked->id);
+
+            $edited = (clone $expenses)->whereColumn('updated_at', '>', 'created_at')->count();
+            if ($edited > 0) {
+                throw new \DomainException(trans_choice(
+                    ':count expense from this upload was edited after the import, so the upload cannot be reverted. Delete the expenses one by one instead.|:count expenses from this upload were edited after the import, so the upload cannot be reverted. Delete the expenses one by one instead.',
+                    $edited,
+                ));
+            }
+
+            $now = now();
+            $deleted = $expenses->update(['deleted_at' => $now, 'updated_at' => $now, 'updated_by' => auth()->id()]);
+
+            $locked->update(['status' => ImportBatchStatus::Reverted, 'reverted_at' => $now, 'reverted_by' => auth()->id()]);
+
+            return $deleted;
+        });
+    }
+
     /** Excel of the invalid rows with an `errors` column (spec 7.2 step 4); rebuilt on each download, so it is never stale. */
     public function errorFile(ExpenseImportBatch $batch): string
     {

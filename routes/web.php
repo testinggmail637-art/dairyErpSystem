@@ -81,6 +81,7 @@ Route::middleware(['auth', 'active', 'farm'])->group(function () {
             Route::post('{batch}/import', [ExpenseImportController::class, 'import'])->whereNumber('batch')->name('import');
             Route::get('{batch}/errors', [ExpenseImportController::class, 'errors'])->whereNumber('batch')->name('errors');
             Route::post('{batch}/cancel', [ExpenseImportController::class, 'cancel'])->whereNumber('batch')->name('cancel');
+            Route::post('{batch}/revert', [ExpenseImportController::class, 'revert'])->whereNumber('batch')->name('revert');
         });
 
         Route::get('/', [ExpenseController::class, 'index'])->middleware('can:viewAny,'.Expense::class)->name('expenses.index');
