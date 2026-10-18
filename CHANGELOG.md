@@ -28,6 +28,9 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   keeps them fast on large data.
 - Phase 1 · Task 7: Expenses → Import page and `expenses_template.xlsx` download (header row with help notes and dropdowns,
   plus a Lists sheet of this farm's active categories, subcategories, sections, payment modes and vendors).
+- Phase 1 · Task 8: expense sheet upload (xlsx/xls/csv, up to 5 000 rows / 5 MB; `expense_import_batches`, `expense_import_rows`)
+  — every row checked like the expense form (names case-insensitive, Excel dates accepted), preview page with counts,
+  all / errors / duplicates / ready filter (AJAX), errors highlighted in their cells, possible-duplicate warnings, cancel upload.
 
 ## [0.0.0] - 2026-10-15 — Phase 0: Foundation
 

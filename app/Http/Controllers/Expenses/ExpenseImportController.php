@@ -4,16 +4,25 @@ namespace App\Http\Controllers\Expenses;
 
 use App\Exports\ExpenseTemplate\ExpenseTemplateExport;
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Expenses\ExpenseImportPreviewRequest;
+use App\Http\Requests\Expenses\ExpenseImportUploadRequest;
 use App\Imports\ExpenseImportColumns;
+use App\Models\ExpenseImportBatch;
+use App\Services\ExpenseImportService;
+use DomainException;
+use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\Response;
 use Illuminate\View\View;
 use Maatwebsite\Excel\Facades\Excel;
 use Symfony\Component\HttpFoundation\BinaryFileResponse;
 
 /**
- * Expenses → Import (spec 7.2). Task 1.7: the template; upload/preview/import/history follow in Tasks 1.8–1.10.
+ * Expenses → Import (spec 7.2): template (1.7), upload + preview (1.8); import/error file/history follow in 1.9–1.10.
  */
 class ExpenseImportController extends Controller
 {
+    public function __construct(private readonly ExpenseImportService $imports) {}
+
     public function index(): View
     {
         return view('expenses.imports.index', [
@@ -26,5 +35,51 @@ class ExpenseImportController extends Controller
     public function template(): BinaryFileResponse
     {
         return Excel::download(new ExpenseTemplateExport, 'expenses_template.xlsx');
+    }
+
+    /** Upload → every row checked → preview. Nothing is saved as an expense yet. */
+    public function store(ExpenseImportUploadRequest $request): RedirectResponse
+    {
+        $batch = $this->imports->upload($request->file('file'));
+
+        return redirect()->route('expense-imports.show', $batch)->with(
+            $batch->error_rows ? 'warning' : 'success',
+            __(':valid of :total rows are ready to import; :errors have errors.', [
+                'valid' => $batch->valid_rows, 'total' => $batch->total_rows, 'errors' => $batch->error_rows,
+            ]),
+        );
+    }
+
+    /** Preview: counts and the rows (100 per page) with errors highlighted per cell. */
+    public function show(ExpenseImportPreviewRequest $request, ExpenseImportBatch $batch): View|Response
+    {
+        $show = $request->show();
+
+        $rows = $batch->rows()
+            ->select(['id', 'row_number', 'payload', 'errors', 'warnings', 'is_valid', 'expense_id'])
+            ->when($show === 'errors', fn ($q) => $q->where('is_valid', false))
+            ->when($show === 'valid', fn ($q) => $q->where('is_valid', true))
+            ->when($show === 'warnings', fn ($q) => $q->whereNotNull('warnings'))
+            ->orderBy('row_number')
+            ->paginate(100)
+            ->appends(array_filter(['show' => $show]));
+
+        return $this->listView($request, 'expenses.imports.show', [
+            'batch' => $batch->load('creator:id,name'),
+            'rows' => $rows,
+            'show' => $show,
+            'columns' => ExpenseImportColumns::COLUMNS,
+        ]);
+    }
+
+    public function cancel(ExpenseImportBatch $batch): RedirectResponse
+    {
+        try {
+            $this->imports->cancel($batch);
+        } catch (DomainException $e) {
+            return back()->with('error', $e->getMessage());
+        }
+
+        return redirect()->route('expense-imports.index')->with('success', __('The upload was cancelled. Nothing was imported.'));
     }
 }

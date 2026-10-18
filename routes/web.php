@@ -76,6 +76,9 @@ Route::middleware(['auth', 'active', 'farm'])->group(function () {
         Route::middleware('can:expenses.import')->prefix('import')->name('expense-imports.')->group(function () {
             Route::get('/', [ExpenseImportController::class, 'index'])->name('index');
             Route::get('template', [ExpenseImportController::class, 'template'])->name('template');
+            Route::post('/', [ExpenseImportController::class, 'store'])->name('store');
+            Route::get('{batch}', [ExpenseImportController::class, 'show'])->whereNumber('batch')->name('show');
+            Route::post('{batch}/cancel', [ExpenseImportController::class, 'cancel'])->whereNumber('batch')->name('cancel');
         });
 
         Route::get('/', [ExpenseController::class, 'index'])->middleware('can:viewAny,'.Expense::class)->name('expenses.index');
