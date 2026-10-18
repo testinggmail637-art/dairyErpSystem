@@ -20,4 +20,11 @@ return [
         'queue_above' => (int) env('EXPORT_QUEUE_ABOVE', 5000),
     ],
 
+    /*
+    | An imported Excel upload can be reverted (its expenses deleted) only within this many days of the import (owner's rule).
+    */
+    'imports' => [
+        'revert_days' => (int) env('IMPORT_REVERT_DAYS', 7),
+    ],
+
 ];
