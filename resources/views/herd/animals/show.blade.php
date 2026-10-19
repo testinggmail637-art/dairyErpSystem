@@ -152,8 +152,13 @@
                         </tbody>
                     </table>
                 </div>
-                @if ($expenseCount > $recentExpenses->count())
-                    <div class="card-body small text-body-secondary">{{ __('Showing the latest :n.', ['n' => $recentExpenses->count()]) }}</div>
+                @if ($expenseCount)
+                    <div class="card-body small text-body-secondary d-flex flex-wrap gap-2 justify-content-between">
+                        <span>@if ($expenseCount > $recentExpenses->count()){{ __('Showing the latest :n.', ['n' => $recentExpenses->count()]) }}@endif</span>
+                        @can('expenses.view')
+                            <a href="{{ route('expenses.index', ['animal_id' => $animal->id, 'all' => 1]) }}">{{ __('All expenses of this animal') }} <i class="bi bi-arrow-right"></i></a>
+                        @endcan
+                    </div>
                 @endif
             </div>
 

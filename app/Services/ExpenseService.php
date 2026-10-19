@@ -110,6 +110,7 @@ class ExpenseService
             ->when($f['subcategory_id'] ?? null, fn ($q, $id) => $q->where('subcategory_id', $id))
             ->when($f['section_id'] ?? null, fn ($q, $id) => $q->where('section_id', $id))
             ->when($f['vendor_id'] ?? null, fn ($q, $id) => $q->where('vendor_id', $id))
+            ->when($f['animal_id'] ?? null, fn ($q, $id) => $q->where('animal_id', $id))
             ->when($f['payment_mode_id'] ?? null, fn ($q, $id) => $q->where('payment_mode_id', $id))
             ->when(($f['type'] ?? null) === 'paid', fn ($q) => $q->where('is_credit', false))
             ->when(($f['type'] ?? null) === 'credit', fn ($q) => $q->where('is_credit', true))
@@ -158,6 +159,7 @@ class ExpenseService
             'category_id' => $data['category_id'],
             'subcategory_id' => $data['subcategory_id'] ?? null,
             'section_id' => $data['section_id'],
+            'animal_id' => $data['animal_id'] ?? null,
             'vendor_id' => $data['vendor_id'] ?? null,
             'paid_to_text' => filled($data['vendor_id'] ?? null) ? null : ($data['paid_to_text'] ?? null),
             'is_credit' => $isCredit,

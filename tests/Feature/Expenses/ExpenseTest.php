@@ -236,7 +236,7 @@ it('exports the filtered list to Excel', function () {
     $this->actingAs($this->accountant)->get(route('expenses.export', ['from' => '2026-10-01']))->assertOk();
 
     Excel::assertDownloaded('expenses-'.now()->format('Ymd-His').'.xlsx', function (ExpensesExport $export) {
-        return $export->query()->count() === 2 && count($export->headings()) === 13;
+        return $export->query()->count() === 2 && count($export->headings()) === 14;
     });
 });
 

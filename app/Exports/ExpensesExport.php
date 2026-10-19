@@ -27,7 +27,7 @@ class ExpensesExport implements FromQuery, ShouldAutoSize, WithHeadings, WithMap
     {
         $query = Expense::allFarms()
             ->where('farm_id', $this->farmId)
-            ->with(['category:id,name', 'subcategory:id,name', 'section:id,name', 'vendor:id,name', 'paymentMode:id,name', 'creator:id,name'])
+            ->with(['category:id,name', 'subcategory:id,name', 'section:id,name', 'vendor:id,name', 'paymentMode:id,name', 'creator:id,name', 'animal:id,tag_no,name'])
             ->orderBy('expense_date')
             ->orderBy('id');
 
@@ -38,7 +38,7 @@ class ExpensesExport implements FromQuery, ShouldAutoSize, WithHeadings, WithMap
     public function headings(): array
     {
         return [
-            __('Date'), __('Category'), __('Subcategory'), __('Section'), __('Vendor / paid to'), __('Paid / credit'),
+            __('Date'), __('Category'), __('Subcategory'), __('Section'), __('Animal'), __('Vendor / paid to'), __('Paid / credit'),
             __('Payment mode'), __('Quantity'), __('Unit'), __('Amount (₹)'), __('Note'), __('Entered by'), __('Entered on'),
         ];
     }
@@ -54,6 +54,7 @@ class ExpensesExport implements FromQuery, ShouldAutoSize, WithHeadings, WithMap
             $expense->category?->name,
             $expense->subcategory?->name,
             $expense->section?->name,
+            $expense->animal?->label(),
             $expense->payee(),
             $expense->is_credit ? __('Credit') : __('Paid'),
             $expense->paymentMode?->name,

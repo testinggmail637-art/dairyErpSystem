@@ -83,6 +83,16 @@ class Expense extends Model
     }
 
     /**
+     * Animal the expense was for (treatment, feed of one animal …), optional.
+     *
+     * @return BelongsTo<Animal, $this>
+     */
+    public function animal(): BelongsTo
+    {
+        return $this->belongsTo(Animal::class)->withTrashed();
+    }
+
+    /**
      * @return BelongsTo<Vendor, $this>
      */
     public function vendor(): BelongsTo

@@ -42,6 +42,10 @@
                                :placeholder="__('All')" select2 :data-ajax-url="route('vendors.search')" group-class="mb-0" />
             </div>
             <div class="col-6 col-md-3 col-xl-2">
+                <x-form.select name="animal_id" :label="__('Animal')" :options="$selectedAnimal" :selected="$filters['animal_id']"
+                               :placeholder="__('All')" select2 :data-ajax-url="route('animals.search')" group-class="mb-0" />
+            </div>
+            <div class="col-6 col-md-3 col-xl-2">
                 <x-form.select name="payment_mode_id" :label="__('Payment mode')" :options="$paymentModes" :selected="$filters['payment_mode_id']"
                                :placeholder="__('All')" group-class="mb-0" class="form-select-sm" />
             </div>
@@ -110,6 +114,7 @@
                         <td>
                             {{ $expense->category?->name }}
                             @if ($expense->subcategory)<div class="small text-body-secondary">{{ $expense->subcategory->name }}</div>@endif
+                            @if ($expense->animal)<div class="small text-body-secondary"><i class="bi bi-tag me-1"></i>{{ $expense->animal->label() }}</div>@endif
                         </td>
                         <td>{{ $expense->section?->name }}</td>
                         <td>

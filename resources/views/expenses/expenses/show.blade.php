@@ -43,6 +43,17 @@
                     <dt class="col-5 col-md-4 fw-normal text-body-secondary">{{ __('Section') }}</dt>
                     <dd class="col-7 col-md-8">{{ $expense->section?->name }}</dd>
 
+                    @if ($expense->animal)
+                        <dt class="col-5 col-md-4 fw-normal text-body-secondary">{{ __('Animal') }}</dt>
+                        <dd class="col-7 col-md-8">
+                            @can('animals.view')
+                                <a href="{{ route('animals.show', $expense->animal) }}">{{ $expense->animal->label() }}</a>
+                            @else
+                                {{ $expense->animal->label() }}
+                            @endcan
+                        </dd>
+                    @endif
+
                     <dt class="col-5 col-md-4 fw-normal text-body-secondary">{{ $expense->vendor ? __('Vendor') : __('Paid to') }}</dt>
                     <dd class="col-7 col-md-8">{{ $expense->payee() ?? '—' }}</dd>
 

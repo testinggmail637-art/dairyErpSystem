@@ -37,6 +37,7 @@ class ExpenseRequest extends FormRequest
             'paid_to_text' => trim((string) $this->input('paid_to_text')) ?: null,
             'subcategory_id' => $this->input('subcategory_id') ?: null,
             'vendor_id' => $this->input('vendor_id') ?: null,
+            'animal_id' => $this->input('animal_id') ?: null,
             'payment_mode_id' => $this->boolean('is_credit') ? null : ($this->input('payment_mode_id') ?: null),
             'unit' => $this->input('unit') ?: null,
         ]);
@@ -59,6 +60,10 @@ class ExpenseRequest extends FormRequest
             'subcategory_id' => ['nullable', 'integer',
                 $this->lookup('expense_categories', 'subcategory_id')->where('parent_id', (int) $this->input('category_id'))],
             'section_id' => ['required', 'integer', $this->lookup('sections', 'section_id')],
+            // optional animal of this farm (any status — e.g. a vet bill of an animal that later died); not a deleted one
+            'animal_id' => ['nullable', 'integer', Rule::exists('animals', 'id')
+                ->where('farm_id', app(CurrentFarm::class)->id())
+                ->where(fn ($q) => $q->whereNull('deleted_at')->when($this->expense()?->animal_id, fn ($q, $id) => $q->orWhere('id', $id)))],
             'is_credit' => ['boolean'],
             'vendor_id' => ['nullable', 'required_if:is_credit,true', 'integer',
                 $this->lookup('vendors', 'vendor_id')->whereNull('deleted_at')],
@@ -83,6 +88,7 @@ class ExpenseRequest extends FormRequest
             'amount.decimal' => __('Enter the amount in rupees with up to 2 decimals.'),
             'category_id.exists' => __('Choose a main category.'),
             'subcategory_id.exists' => __('This subcategory does not belong to the chosen category.'),
+            'animal_id.exists' => __('Choose an animal of this farm.'),
             'vendor_id.required_if' => __('A credit (unpaid) expense needs a vendor.'),
             'payment_mode_id.required_if' => __('Choose how it was paid, or mark the expense as credit.'),
             'unit.required_with' => __('Choose the unit for the quantity.'),

@@ -20,6 +20,9 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   a new animal). Profile actions "Change stage / status / ownership" (modal: new value, date, reason; `status_changed_on`
   set; "Sold" left to the sale screens of Phase 6; a sold animal cannot be made active by hand). History tab shows the
   timeline above the audit log. Modals reopen with their errors after a failed save (`data-show-on-load`).
+- Phase 2 · Task 4: expenses can be linked to an animal — FK `expenses.animal_id`, optional Animal search box on the expense
+  form, Animal filter on the expense list, animal shown on list/detail, Animal column in the Excel export, "All expenses of
+  this animal" link on the animal's Expenses tab. Animal search is available to expense users without animal screens.
 
 ### Fixed
 - Expense Excel export test no longer fails when the clock ticks to the next second during the test.

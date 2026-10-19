@@ -39,6 +39,11 @@
                             <x-form.select name="section_id" :label="__('Section')" :options="$sections" :selected="$expense->section_id"
                                            :placeholder="__('Choose section')" required group-class="mb-0" />
                         </div>
+                        <div class="col-12 col-md-6">
+                            <x-form.select name="animal_id" :label="__('Animal')" :options="$selectedAnimal" :selected="$expense->animal_id"
+                                           :placeholder="__('Search by tag or name')" select2 :data-ajax-url="route('animals.search')"
+                                           group-class="mb-0" :help="__('Optional — for a cost of one animal (vet bill, medicine, feed).')" />
+                        </div>
                     </div>
 
                     <hr>
