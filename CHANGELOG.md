@@ -15,6 +15,14 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   of females of the same type), "Save & add another"; profile page with Details (incl. calves), Milk, Health, Breeding,
   Expenses and History (audit log) tabs; delete only without records, reason required. Select2 `data-ajax-with` sends
   other fields with the search. DemoSeeder adds 30 demo animals.
+- Phase 2 · Task 3: animal status history (`animal_status_histories`, written by `AnimalObserver` for every change of
+  status, stage or ownership — from the new profile actions, the edit form or later modules; a starting row per field for
+  a new animal). Profile actions "Change stage / status / ownership" (modal: new value, date, reason; `status_changed_on`
+  set; "Sold" left to the sale screens of Phase 6; a sold animal cannot be made active by hand). History tab shows the
+  timeline above the audit log. Modals reopen with their errors after a failed save (`data-show-on-load`).
+
+### Fixed
+- Expense Excel export test no longer fails when the clock ticks to the next second during the test.
 
 ## [0.1.0] - 2026-10-18 — Phase 1: Expense Management (no approval)
 

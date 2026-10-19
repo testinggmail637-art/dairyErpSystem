@@ -227,6 +227,7 @@ app/
 │   ├── Concerns/           # BelongsToFarm, TracksUser, Auditable, HasFarmDefaults
 │   └── Scopes/             # FarmScope
 ├── Notifications/          # in-app (bell) notifications
+├── Observers/              # AnimalObserver (status / stage / ownership history)
 ├── Policies/               # ExpensePolicy, VendorPaymentPolicy (OwnEntrySameDay rule)
 ├── Providers/              # AppServiceProvider (bindings, gates, view composers), TelescopeServiceProvider (local)
 ├── Reports/                # ReportTable (one definition → screen, Excel, PDF)

@@ -9,6 +9,7 @@ use App\Enums\AnimalType;
 use App\Enums\LifecycleStage;
 use App\Enums\OwnershipType;
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Herd\AnimalChangeRequest;
 use App\Http\Requests\Herd\AnimalRequest;
 use App\Http\Requests\Herd\DeleteAnimalRequest;
 use App\Models\Activity;
@@ -93,6 +94,8 @@ class AnimalController extends Controller
             'expenseCount' => (clone $expenses)->count(),
             'recentExpenses' => (clone $expenses)->with(['category:id,name', 'subcategory:id,name'])
                 ->latest('expense_date')->latest('id')->limit(10)->get(),
+            'statusHistory' => $animal->statusHistories()->with('changer:id,name')
+                ->latest('changed_on')->latest('id')->limit(50)->get(),
             'history' => Activity::query()
                 ->where('subject_type', $animal->getMorphClass())->where('subject_id', $animal->id)
                 ->with('causer:id,name')->latest('id')->limit(30)->get(),
@@ -109,6 +112,21 @@ class AnimalController extends Controller
         $this->animals->update($animal, $request->animalData(), $request->file('photo'), $request->boolean('remove_photo'));
 
         return redirect()->route('animals.show', $animal)->with('success', __('Animal :tag updated.', ['tag' => $animal->tag_no]));
+    }
+
+    /** Status / stage / ownership action from the profile page (history written by AnimalObserver). */
+    public function change(AnimalChangeRequest $request, Animal $animal): RedirectResponse
+    {
+        $field = $request->validated('field');
+        $this->animals->change($animal, $field, $request->validated('value'), $request->validated('changed_on'));
+
+        $label = match ($field) {
+            'status' => __('Status'),
+            'lifecycle_stage' => __('Stage'),
+            default => __('Ownership'),
+        };
+
+        return redirect()->route('animals.show', $animal)->with('success', __(':field of :tag changed.', ['field' => $label, 'tag' => $animal->tag_no]));
     }
 
     public function destroy(DeleteAnimalRequest $request, Animal $animal): RedirectResponse

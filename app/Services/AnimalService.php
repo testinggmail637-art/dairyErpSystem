@@ -61,6 +61,27 @@ class AnimalService
         return $animal;
     }
 
+    /**
+     * Status / stage / ownership action (Task 2.3): one field, the date it happened and (from the request) a reason.
+     * AnimalObserver writes the history row in the same transaction; a status change also sets status_changed_on.
+     */
+    public function change(Animal $animal, string $field, string $value, string $changedOn): Animal
+    {
+        DB::transaction(function () use ($animal, $field, $value, $changedOn) {
+            $animal->changeDate = $changedOn;
+            $animal->setAttribute($field, $value);
+
+            if ($field === 'status') {
+                $animal->status_changed_on = $changedOn;
+            }
+
+            $animal->save();
+            $animal->changeDate = null;
+        });
+
+        return $animal;
+    }
+
     /** Soft delete — refused while the animal has transactions (spec). The photo stays with the deleted record. */
     public function delete(Animal $animal): void
     {

@@ -324,6 +324,11 @@
     $(function () {
         App.initWidgets(document);
 
+        // <div class="modal" data-show-on-load>: reopen a modal form after a failed save, so its errors are visible.
+        $('.modal[data-show-on-load]').each(function () {
+            bootstrap.Modal.getOrCreateInstance(this).show();
+        });
+
         // <form data-confirm="Delete this?">: ask before submitting. Bound before the double-submit guard.
         // Add data-confirm-reason to also ask for a reason (min 3 chars), sent as a hidden "reason" field.
         $(document).on('submit', 'form[data-confirm]', function (e) {

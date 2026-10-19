@@ -11,8 +11,10 @@ use App\Enums\OwnershipType;
 use App\Models\Concerns\Auditable;
 use App\Models\Concerns\BelongsToFarm;
 use App\Models\Concerns\TracksUser;
+use App\Observers\AnimalObserver;
 use App\Support\AnimalPhotoStorage;
 use Database\Factories\AnimalFactory;
+use Illuminate\Database\Eloquent\Attributes\ObservedBy;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -24,10 +26,14 @@ use Illuminate\Database\Eloquent\SoftDeletes;
  * A cow, buffalo, calf or bull (spec Section 6, Phase 2). Never hard-deleted; soft delete only while it has no
  * transactions. Purchase price is not stored here (it lives in the purchase items, Phase 6).
  */
+#[ObservedBy(AnimalObserver::class)]
 class Animal extends Model
 {
     /** @use HasFactory<AnimalFactory> */
     use Auditable, BelongsToFarm, HasFactory, SoftDeletes, TracksUser;
+
+    /** Date (Y-m-d) for the status-history rows of the next save; null = today. Not a column. */
+    public ?string $changeDate = null;
 
     /**
      * @var list<string>
@@ -102,6 +108,14 @@ class Animal extends Model
     public function calves(): HasMany
     {
         return $this->hasMany(Animal::class, 'mother_id');
+    }
+
+    /**
+     * @return HasMany<AnimalStatusHistory, $this>
+     */
+    public function statusHistories(): HasMany
+    {
+        return $this->hasMany(AnimalStatusHistory::class);
     }
 
     /**
