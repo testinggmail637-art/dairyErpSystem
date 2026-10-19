@@ -7,20 +7,20 @@
 
 | Item | Value |
 |---|---|
-| Current phase | Phase 1 — Expense Management (✅ done, v0.1.0) → Phase 2 next |
-| Last completed task | 1.11 — Phase 1 acceptance tests pass + README/CHANGELOG updated |
-| Next task | 2.1 — Animal breeds + seeder |
-| Overall progress | 24 / 88 tasks (27%) |
-| Tests passing | 308 |
-| Last updated (IST) | 2026-10-18 |
+| Current phase | Phase 2 — Animals, Milk Production, Milk Stock (🟡 in progress) |
+| Last completed task | 2.1 — Animal breeds + seeder |
+| Next task | 2.2 — Animals CRUD (photo, filters, profile page with tabs) |
+| Overall progress | 25 / 88 tasks (28%) |
+| Tests passing | 313 |
+| Last updated (IST) | 2026-10-19 |
 
 ## Phase overview
 
 | Phase | Name | Status | Started | Completed | Tag |
 |---|---|---|---|---|---|
 | 0 | Foundation | ✅ Done | 2026-10-15 | 2026-10-15 | `phase-0-done` |
-| 1 | Expense Management (no approval) | ✅ Done | 2026-10-16 | 2026-10-18 | `phase-1-done` (after merge) |
-| 2 | Animals, Milk Production, Milk Stock | ⬜ Not started | | | |
+| 1 | Expense Management (no approval) | ✅ Done | 2026-10-16 | 2026-10-18 | `phase-1-done` |
+| 2 | Animals, Milk Production, Milk Stock | 🟡 In progress | 2026-10-19 | | |
 | 3 | Customers, Delivery, Billing, Payments | ⬜ Not started | | | |
 | 4 | Farmers & Collection Center | ⬜ Not started | | | |
 | 5 | Health, Breeding, Feed | ⬜ Not started | | | |
@@ -152,7 +152,7 @@ Status legend: ⬜ Not started · 🟡 In progress · ✅ Done · ⏸ On hold
 ## Phase 2 — Animals, Milk Production, Milk Stock
 
 ### Checklist
-- [ ] 2.1 Animal breeds + seeder
+- [x] 2.1 Animal breeds + seeder
 - [ ] 2.2 Animals CRUD (photo, filters, profile page with tabs)
 - [ ] 2.3 Status / lifecycle change actions + status history (observer)
 - [ ] 2.4 `expenses.animal_id` FK + animal select in expense form

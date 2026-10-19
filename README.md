@@ -16,7 +16,7 @@ cow/buffalo buying & selling, expenses, staff, and profit reports — with every
 |---|---|---|
 | 0 | Foundation (login, roles, settings, appearance, monitoring, audit log, backups) | ✅ Done (v0.0.0) |
 | 1 | Expense Management (no approval) + Excel import | ✅ Done (v0.1.0) |
-| 2 | Animals, Milk Production, Milk Stock | ⬜ Not started |
+| 2 | Animals, Milk Production, Milk Stock | 🟡 In progress |
 | 3 | Customers, Delivery, Billing, Payments | ⬜ Not started |
 | 4 | Farmers & Collection Center | ⬜ Not started |
 | 5 | Health, Breeding, Feed | ⬜ Not started |
