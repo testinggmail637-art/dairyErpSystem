@@ -4,6 +4,7 @@ use App\Models\Animal;
 use App\Models\AnimalStatusHistory;
 use App\Models\Expense;
 use App\Models\Farm;
+use App\Models\MilkProductionRecord;
 use App\Models\User;
 use App\Models\Vendor;
 use App\Models\VendorPayment;
@@ -27,7 +28,9 @@ it('seeds a year of demo expenses, vendors, payments and users, once', function 
         ->and(Animal::allFarms()->where('farm_id', $farm->id)->count())->toBe(30)
         ->and(Animal::allFarms()->where('farm_id', $farm->id)->milking()->count())->toBe(20)
         ->and(Animal::allFarms()->whereNotNull('mother_id')->count())->toBe(3)
-        ->and(AnimalStatusHistory::allFarms()->count())->toBe(90); // 3 starting rows per animal
+        ->and(AnimalStatusHistory::allFarms()->count())->toBe(90) // 3 starting rows per animal
+        ->and(MilkProductionRecord::allFarms()->count())->toBeGreaterThan(14000) // a year, 2 shifts, ~20 animals
+        ->and(MilkProductionRecord::allFarms()->max('quantity_litre'))->toBeLessThanOrEqual('60.00');
 
     $count = $expenses->count();
     $this->seed(DemoSeeder::class); // second run is skipped

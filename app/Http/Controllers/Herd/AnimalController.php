@@ -17,6 +17,7 @@ use App\Models\Animal;
 use App\Models\AnimalBreed;
 use App\Models\Expense;
 use App\Services\AnimalService;
+use App\Services\MilkProductionService;
 use DomainException;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
@@ -29,7 +30,10 @@ use Illuminate\View\View;
  */
 class AnimalController extends Controller
 {
-    public function __construct(private readonly AnimalService $animals) {}
+    public function __construct(
+        private readonly AnimalService $animals,
+        private readonly MilkProductionService $milk,
+    ) {}
 
     public function index(Request $request): View|Response
     {
@@ -94,6 +98,7 @@ class AnimalController extends Controller
             'expenseCount' => (clone $expenses)->count(),
             'recentExpenses' => (clone $expenses)->with(['category:id,name', 'subcategory:id,name'])
                 ->latest('expense_date')->latest('id')->limit(10)->get(),
+            'milkHistory' => request()->user()->can('milk_production.view') ? $this->milk->animalHistory($animal) : null,
             'statusHistory' => $animal->statusHistories()->with('changer:id,name')
                 ->latest('changed_on')->latest('id')->limit(50)->get(),
             'history' => Activity::query()
@@ -146,7 +151,7 @@ class AnimalController extends Controller
      */
     public function search(Request $request): JsonResponse
     {
-        abort_unless($request->user()->canAny(['animals.view', 'expenses.view', 'expenses.create', 'expenses.edit']), 403);
+        abort_unless($request->user()->canAny(['animals.view', 'expenses.view', 'expenses.create', 'expenses.edit', 'milk_production.create', 'milk_production.view']), 403);
 
         $animals = Animal::query()
             ->search($request->query('q'))
@@ -154,6 +159,7 @@ class AnimalController extends Controller
             ->when(AnimalGender::tryFrom((string) $request->query('gender')), fn ($q, $gender) => $q->where('gender', $gender->value))
             ->when($request->integer('except'), fn ($q, $id) => $q->whereKeyNot($id))
             ->when($request->boolean('active'), fn ($q) => $q->where('status', AnimalStatus::Active->value))
+            ->when($request->boolean('milking'), fn ($q) => $q->milking())
             ->orderBy('tag_no')
             ->simplePaginate(20, ['id', 'tag_no', 'name', 'status'], 'page', max(1, $request->integer('page', 1)));
 

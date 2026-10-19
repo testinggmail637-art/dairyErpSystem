@@ -9,6 +9,7 @@ use App\Models\AnimalStatusHistory;
 use App\Models\Expense;
 use App\Models\ExpenseCategory;
 use App\Models\Farm;
+use App\Models\MilkProductionRecord;
 use App\Models\PaymentMode;
 use App\Models\Section;
 use App\Models\User;
@@ -22,7 +23,7 @@ use RuntimeException;
 /**
  * Realistic demo data for one year (spec Sections 10–11) — local only, refuses to run in production.
  * Grows phase by phase. Phase 1: demo users, vendors, ~2,700 expenses (paid and credit), vendor payments.
- * Phase 2: 30 animals (milking cows and buffaloes, dry, heifers, calves with mothers, a bull).
+ * Phase 2: 30 animals (milking cows and buffaloes, dry, heifers, calves with mothers, a bull) and a year of milk.
  * Rows are bulk-inserted so the seeder finishes in seconds; amounts are built as strings (never floats).
  *
  *   php artisan db:seed --class=DemoSeeder
@@ -79,8 +80,55 @@ class DemoSeeder extends Seeder
             $this->animals($farm);
         }
 
-        $this->command?->info(sprintf('Demo data: %d expenses, %d vendor payments, %d animals.',
-            Expense::query()->count(), VendorPayment::query()->count(), Animal::query()->count()));
+        if (MilkProductionRecord::query()->exists()) {
+            $this->command?->warn('Phase 2 demo data (milk records) already exists — skipped.');
+        } else {
+            $this->milkRecords($farm, $users);
+        }
+
+        $this->command?->info(sprintf('Demo data: %d expenses, %d vendor payments, %d animals, %d milk entries.',
+            Expense::query()->count(), VendorPayment::query()->count(), Animal::query()->count(), MilkProductionRecord::query()->count()));
+    }
+
+    /**
+     * A year of morning / evening milk for every milking demo animal (spec Section 11): a per-animal yield
+     * (cows 6–14 L a day, buffaloes 6–10 L), ~55 % in the morning, small daily ups and downs. Dry animals stopped
+     * giving milk 60 days ago. Amounts are built as strings (never floats); bulk inserts of 1,000 rows.
+     *
+     * @param  list<int>  $userIds
+     */
+    private function milkRecords(Farm $farm, array $userIds): void
+    {
+        $animals = Animal::query()->where('notes', self::MARK)->where('gender', 'female')
+            ->whereIn('lifecycle_stage', ['milking', 'dry'])->get(['id', 'animal_type', 'lifecycle_stage']);
+        $staff = $userIds[count($userIds) - 1]; // herd staff
+        $rows = [];
+
+        foreach ($animals as $animal) {
+            $daily = $animal->animal_type->value === 'cow' ? mt_rand(60, 140) : mt_rand(60, 100); // tenths of a litre
+            $lastDay = $animal->lifecycle_stage->value === 'dry' ? today()->subDays(60) : today()->subDay();
+
+            for ($day = today()->subYear(); $day->lte($lastDay); $day->addDay()) {
+                foreach (['morning' => 55, 'evening' => 45] as $shift => $share) {
+                    $tenths = max(10, intdiv($daily * $share, 100) + mt_rand(-8, 8)); // ±0.8 L
+                    $rows[] = [
+                        'farm_id' => $farm->id, 'production_date' => $day->toDateString(), 'shift' => $shift, 'animal_id' => $animal->id,
+                        'quantity_litre' => sprintf('%d.%d0', intdiv($tenths, 10), $tenths % 10), 'fat' => null, 'snf' => null,
+                        'notes' => null, 'client_uuid' => null, 'created_by' => $staff, 'updated_by' => null,
+                        'created_at' => $day->copy()->setTime($shift === 'morning' ? 7 : 18, 30), 'updated_at' => $day->copy()->setTime($shift === 'morning' ? 7 : 18, 30),
+                    ];
+                }
+
+                if (count($rows) >= 1000) {
+                    MilkProductionRecord::query()->insert($rows);
+                    $rows = [];
+                }
+            }
+        }
+
+        if ($rows !== []) {
+            MilkProductionRecord::query()->insert($rows);
+        }
     }
 
     /** 30 animals (spec Section 10): milking cows and buffaloes, dry, heifers, calves with their mothers, a bull. */

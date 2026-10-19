@@ -228,7 +228,7 @@ app/
 │   └── Scopes/             # FarmScope
 ├── Notifications/          # in-app (bell) notifications
 ├── Observers/              # AnimalObserver (status / stage / ownership history)
-├── Policies/               # ExpensePolicy, VendorPaymentPolicy (OwnEntrySameDay rule)
+├── Policies/               # ExpensePolicy, VendorPaymentPolicy, MilkProductionRecordPolicy (OwnEntrySameDay rule)
 ├── Providers/              # AppServiceProvider (bindings, gates, view composers), TelescopeServiceProvider (local)
 ├── Reports/                # ReportTable (one definition → screen, Excel, PDF)
 ├── Services/               # business logic: Expense, ExpenseImport, ExpenseReport, VendorLedger, VendorPayment,

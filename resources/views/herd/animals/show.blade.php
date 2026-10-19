@@ -118,8 +118,48 @@
             </div>
 
             {{-- Milk / health / breeding are filled by milk entry (Phase 2) and health & breeding (Phase 5) --}}
-            <div class="tab-pane fade card-body text-body-secondary" id="pane-milk" role="tabpanel" aria-labelledby="tab-milk" tabindex="0">
-                <i class="bi bi-droplet me-1"></i>{{ __('Morning and evening milk of this animal will show here once milk entry is in use.') }}
+            <div class="tab-pane fade" id="pane-milk" role="tabpanel" aria-labelledby="tab-milk" tabindex="0">
+                @if ($milkHistory === null)
+                    <div class="card-body text-body-secondary">{{ __('You do not have access to milk records.') }}</div>
+                @elseif ($milkHistory === [])
+                    <div class="card-body text-body-secondary"><i class="bi bi-droplet me-1"></i>{{ __('No milk recorded for this animal in the last 60 days.') }}</div>
+                @else
+                    @php
+                        $last7 = array_slice($milkHistory, 0, 7);
+                        $avg7 = \App\Support\Money::div(\App\Support\Money::sum(array_column($last7, 'total')), (string) count($last7));
+                        $chart = array_reverse($milkHistory);
+                    @endphp
+                    <div class="card-body border-bottom d-flex flex-wrap gap-4 small">
+                        <div>{{ __('Average per day (last :n days with milk)', ['n' => count($last7)]) }}: <span class="fw-semibold">{{ fmt_qty($avg7) }} L</span></div>
+                        <div>{{ __('Last 60 days') }}: <span class="fw-semibold">{{ fmt_qty(\App\Support\Money::sum(array_column($milkHistory, 'total'))) }} L</span></div>
+                        @can('milk_production.view')
+                            <a href="{{ route('milk-production.entries', ['animal_id' => $animal->id, 'from' => today()->subDays(59)->toDateString()]) }}" class="ms-auto">{{ __('All entries') }} <i class="bi bi-arrow-right"></i></a>
+                        @endcan
+                    </div>
+                    <div class="card-body border-bottom">
+                        <canvas id="animal-milk-chart" height="110" aria-label="{{ __('Milk per day') }}" role="img"
+                                data-labels="{{ json_encode(array_map(fn ($d) => fmt_date($d['date']), $chart)) }}"
+                                data-morning="{{ json_encode(array_column($chart, 'morning')) }}"
+                                data-evening="{{ json_encode(array_column($chart, 'evening')) }}"
+                                data-total="{{ json_encode(array_column($chart, 'total')) }}"
+                                data-label-morning="{{ __('Morning') }}" data-label-evening="{{ __('Evening') }}" data-label-total="{{ __('Total') }}"></canvas>
+                    </div>
+                    <div class="table-responsive">
+                        <table class="table table-sm align-middle mb-0">
+                            <thead><tr><th>{{ __('Date') }}</th><th class="text-end">{{ __('Morning') }}</th><th class="text-end">{{ __('Evening') }}</th><th class="text-end">{{ __('Total') }}</th></tr></thead>
+                            <tbody>
+                                @foreach (array_slice($milkHistory, 0, 30) as $day)
+                                    <tr>
+                                        <td>{{ fmt_date($day['date']) }}</td>
+                                        <td class="text-end">{{ $day['morning'] !== null ? fmt_qty($day['morning']) : '—' }}</td>
+                                        <td class="text-end">{{ $day['evening'] !== null ? fmt_qty($day['evening']) : '—' }}</td>
+                                        <td class="text-end fw-semibold">{{ fmt_qty($day['total']) }}</td>
+                                    </tr>
+                                @endforeach
+                            </tbody>
+                        </table>
+                    </div>
+                @endif
             </div>
             <div class="tab-pane fade card-body text-body-secondary" id="pane-health" role="tabpanel" aria-labelledby="tab-health" tabindex="0">
                 <i class="bi bi-heart-pulse me-1"></i>{{ __('Treatments and vaccinations of this animal will show here once health records are in use.') }}
@@ -270,3 +310,10 @@
     @endforeach
 @endif
 @endsection
+
+@if (! empty($milkHistory))
+    @push('scripts')
+        <script src="{{ asset_v('vendor/chartjs/chart.umd.min.js') }}"></script>
+        <script src="{{ asset_v('js/modules/animal-milk-chart.js') }}"></script>
+    @endpush
+@endif
