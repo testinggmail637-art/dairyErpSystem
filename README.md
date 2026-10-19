@@ -217,13 +217,13 @@ app/
 ├── Http/
 │   ├── Controllers/        # Auth, Account (profile, notifications, export downloads), Farm (switcher),
 │   │                       #   Settings (users, roles, farm, sections, payment modes, audit log, appearance),
-│   │                       #   Expenses (categories, expenses, vendors, vendor payments, import), Reports
+│   │                       #   Expenses (categories, expenses, vendors, vendor payments, import), Herd (breeds, animals), Reports
 │   ├── Middleware/         # EnsureFarmSelected (farm), EnsureUserIsActive (active)
 │   └── Requests/           # all validation (Form Requests), Concerns/RequiresReason
 ├── Imports/                # ExpenseImportColumns, ExpenseImportReader (xlsx/xls/csv)
 ├── Jobs/  Listeners/       # queued export notification; NotifyOwnersOfBackupProblem
 ├── Models/                 # Farm, User, Role, Activity, Section, PaymentMode, ExpenseCategory, Vendor, Expense,
-│   │                       #   VendorPayment, ExpenseImportBatch, ExpenseImportRow …
+│   │                       #   VendorPayment, ExpenseImportBatch, ExpenseImportRow, AnimalBreed, Animal …
 │   ├── Concerns/           # BelongsToFarm, TracksUser, Auditable, HasFarmDefaults
 │   └── Scopes/             # FarmScope
 ├── Notifications/          # in-app (bell) notifications
@@ -232,7 +232,7 @@ app/
 ├── Reports/                # ReportTable (one definition → screen, Excel, PDF)
 ├── Services/               # business logic: Expense, ExpenseImport, ExpenseReport, VendorLedger, VendorPayment,
 │                           #   Appearance, DocumentNumber, User, Role …
-└── Support/                # Money, Format, FinancialYear, Color, CurrentFarm, Permissions, Exporter, ReceiptStorage,
+└── Support/                # Money, Format, FinancialYear, Color, CurrentFarm, Permissions, Exporter, ReceiptStorage, AnimalPhotoStorage,
                             #   SvgSanitizer, helpers.php
 config/                     # dairy.php (owner seed), menu.php (sidebar), backup, pulse, sentry, permission …
 database/
@@ -246,7 +246,7 @@ resources/views/
 ├── components/             # x-form.* fields, x-confirm-form, x-data-table, x-money
 ├── layouts/                # app, guest, partials (sidebar, top bar, branding head, flash)
 ├── pdf/                    # shared PDF layout, report PDF, appearance sample
-└── auth/ account/ settings/ expenses/ reports/ dashboard.blade.php
+└── auth/ account/ settings/ expenses/ herd/ reports/ dashboard.blade.php
 routes/web.php  routes/console.php        # routes; scheduled jobs
 tests/Feature/ tests/Unit/ tests/Fixtures/ # Pest; PhaseNAcceptanceTest covers each phase's acceptance criteria
 ```

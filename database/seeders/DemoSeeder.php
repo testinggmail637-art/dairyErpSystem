@@ -3,6 +3,8 @@
 namespace Database\Seeders;
 
 use App\Enums\RoleName;
+use App\Models\Animal;
+use App\Models\AnimalBreed;
 use App\Models\Expense;
 use App\Models\ExpenseCategory;
 use App\Models\Farm;
@@ -18,7 +20,8 @@ use RuntimeException;
 
 /**
  * Realistic demo data for one year (spec Sections 10–11) — local only, refuses to run in production.
- * Grows phase by phase; Phase 1: demo users, vendors, ~5,000 expenses (paid and credit) and vendor payments.
+ * Grows phase by phase. Phase 1: demo users, vendors, ~2,700 expenses (paid and credit), vendor payments.
+ * Phase 2: 30 animals (milking cows and buffaloes, dry, heifers, calves with mothers, a bull).
  * Rows are bulk-inserted so the seeder finishes in seconds; amounts are built as strings (never floats).
  *
  *   php artisan db:seed --class=DemoSeeder
@@ -59,20 +62,71 @@ class DemoSeeder extends Seeder
         $farm = Farm::query()->where('code', 'MDF')->first() ?? throw new RuntimeException('Run `php artisan db:seed` first.');
         app(CurrentFarm::class)->set($farm);
 
-        if (Vendor::query()->where('notes', self::MARK)->exists()) {
-            $this->command?->warn('Demo data already exists — skipped.');
+        mt_srand(2026); // same data on every run
+        $users = $this->users($farm);
 
-            return;
+        // Each phase's part runs once; re-running after a new phase adds only that phase's demo data.
+        if (Vendor::query()->where('notes', self::MARK)->exists()) {
+            $this->command?->warn('Phase 1 demo data (vendors, expenses) already exists — skipped.');
+        } else {
+            $this->expensesAndPayments($farm, $this->vendors($farm), $users);
         }
 
-        mt_srand(2026); // same data on every run
+        if (Animal::query()->where('notes', self::MARK)->exists()) {
+            $this->command?->warn('Phase 2 demo data (animals) already exists — skipped.');
+        } else {
+            $this->animals($farm);
+        }
 
-        $users = $this->users($farm);
-        $vendors = $this->vendors($farm);
-        $this->expensesAndPayments($farm, $vendors, $users);
+        $this->command?->info(sprintf('Demo data: %d expenses, %d vendor payments, %d animals.',
+            Expense::query()->count(), VendorPayment::query()->count(), Animal::query()->count()));
+    }
 
-        $this->command?->info(sprintf('Demo data: %d expenses, %d vendor payments.',
-            Expense::query()->count(), VendorPayment::query()->count()));
+    /** 30 animals (spec Section 10): milking cows and buffaloes, dry, heifers, calves with their mothers, a bull. */
+    private function animals(Farm $farm): void
+    {
+        $breeds = AnimalBreed::query()->get(['id', 'animal_type', 'name'])
+            ->mapWithKeys(fn ($b) => [$b->animal_type->value.':'.$b->name => $b->id]);
+        $cowNames = ['Gauri', 'Lakshmi', 'Kamdhenu', 'Ganga', 'Yamuna', 'Sundari', 'Kapila', 'Nandini', 'Radha', 'Shyama',
+            'Dhauli', 'Bhuri', 'Chandni', 'Laali', 'Rani', 'Pari', 'Mohini'];
+        $buffaloNames = ['Kali', 'Bhuri', 'Rajkumari', 'Sita', 'Champa', 'Moti', 'Heera', 'Basanti'];
+
+        $rows = [ // [tag, type, breed, stage, born years ago, lactation]
+            ...array_map(fn ($i) => ['C-'.(101 + $i), 'cow', ['Sahiwal', 'Gir', 'HF', 'Jersey', 'Crossbred HF', 'Crossbred Jersey'][$i % 6], 'milking', 4 + $i % 5, 1 + $i % 4], range(0, 13)),
+            ...array_map(fn ($i) => ['B-'.(201 + $i), 'buffalo', ['Murrah', 'Murrah', 'Nili-Ravi', 'Mehsana'][$i % 4], 'milking', 5 + $i % 4, 1 + $i % 3], range(0, 5)),
+            ['C-115', 'cow', 'Sahiwal', 'dry', 7, 4], ['C-116', 'cow', 'HF', 'dry', 6, 3], ['B-207', 'buffalo', 'Murrah', 'dry', 8, 4],
+            ['C-117', 'cow', 'Gir', 'heifer', 2, 0], ['C-118', 'cow', 'Crossbred HF', 'pregnant_heifer', 2, 0], ['B-208', 'buffalo', 'Murrah', 'heifer', 2, 0],
+        ];
+
+        $ids = [];
+        foreach ($rows as $n => [$tag, $type, $breed, $stage, $years, $lactation]) {
+            $names = $type === 'cow' ? $cowNames : $buffaloNames;
+            $ids[$tag] = Animal::query()->insertGetId([
+                'farm_id' => $farm->id, 'tag_no' => $tag, 'name' => $names[$n % count($names)], 'animal_type' => $type,
+                'breed_id' => $breeds[$type.':'.$breed] ?? null, 'gender' => 'female',
+                'date_of_birth' => Carbon::today()->subYears($years)->subDays(mt_rand(0, 300))->toDateString(), 'dob_is_estimated' => $years > 3,
+                'source' => 'opening', 'ownership_type' => 'own_herd', 'lifecycle_stage' => $stage, 'status' => 'active',
+                'opening_value' => sprintf('%d.00', ($type === 'cow' ? 45 : 60) * 1000 + mt_rand(0, 30) * 1000),
+                'lactation_number' => $lactation, 'notes' => self::MARK, 'created_at' => now(), 'updated_at' => now(),
+            ]);
+        }
+
+        $calves = [['C-119', 'cow', 'female', 'C-101', 'Sahiwal'], ['C-120', 'cow', 'male', 'C-103', 'HF'], ['B-209', 'buffalo', 'female', 'B-201', 'Murrah']];
+        foreach ($calves as [$tag, $type, $gender, $mother, $breed]) {
+            Animal::query()->insert([
+                'farm_id' => $farm->id, 'tag_no' => $tag, 'name' => null, 'animal_type' => $type, 'breed_id' => $breeds[$type.':'.$breed] ?? null,
+                'gender' => $gender, 'date_of_birth' => Carbon::today()->subDays(mt_rand(20, 200))->toDateString(), 'dob_is_estimated' => false,
+                'source' => 'born_on_farm', 'mother_id' => $ids[$mother], 'ownership_type' => 'own_herd', 'lifecycle_stage' => 'calf',
+                'status' => 'active', 'lactation_number' => 0, 'notes' => self::MARK, 'created_at' => now(), 'updated_at' => now(),
+            ]);
+        }
+
+        Animal::query()->insert([
+            'farm_id' => $farm->id, 'tag_no' => 'BULL-1', 'name' => 'Nandi', 'animal_type' => 'cow', 'breed_id' => $breeds['cow:Gir'] ?? null,
+            'gender' => 'male', 'date_of_birth' => Carbon::today()->subYears(5)->toDateString(), 'dob_is_estimated' => true,
+            'source' => 'purchased', 'ownership_type' => 'own_herd', 'lifecycle_stage' => 'bull', 'status' => 'active',
+            'lactation_number' => 0, 'notes' => self::MARK, 'created_at' => now(), 'updated_at' => now(),
+        ]);
     }
 
     /** @return list<int> user ids that enter expenses */

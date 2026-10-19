@@ -1,5 +1,6 @@
 <?php
 
+use App\Models\Animal;
 use App\Models\Expense;
 use App\Models\Farm;
 use App\Models\User;
@@ -21,7 +22,10 @@ it('seeds a year of demo expenses, vendors, payments and users, once', function 
         ->and((clone $expenses)->where('is_credit', false)->whereNull('payment_mode_id')->count())->toBe(0)
         ->and((clone $expenses)->min('expense_date'))->toBeGreaterThanOrEqual(now()->subYear()->toDateString())
         ->and(VendorPayment::allFarms()->count())->toBeGreaterThan(100)
-        ->and(User::where('email', 'accountant@dairy.test')->first()->hasRole('accountant'))->toBeTrue();
+        ->and(User::where('email', 'accountant@dairy.test')->first()->hasRole('accountant'))->toBeTrue()
+        ->and(Animal::allFarms()->where('farm_id', $farm->id)->count())->toBe(30)
+        ->and(Animal::allFarms()->where('farm_id', $farm->id)->milking()->count())->toBe(20)
+        ->and(Animal::allFarms()->whereNotNull('mother_id')->count())->toBe(3);
 
     $count = $expenses->count();
     $this->seed(DemoSeeder::class); // second run is skipped
