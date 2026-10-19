@@ -142,10 +142,12 @@ class AnimalController extends Controller
 
     /**
      * Select2 remote search: ?q=…&type=cow&gender=female&except=5 → {"results": [{id, text}], "pagination": {more}}.
-     * Used for the mother field (and later for animal pickers on other forms).
+     * Used for the mother field and the expense form / filters (accountants have expense rights but not animals.view).
      */
     public function search(Request $request): JsonResponse
     {
+        abort_unless($request->user()->canAny(['animals.view', 'expenses.view', 'expenses.create', 'expenses.edit']), 403);
+
         $animals = Animal::query()
             ->search($request->query('q'))
             ->when(AnimalType::tryFrom((string) $request->query('type')), fn ($q, $type) => $q->where('animal_type', $type->value))

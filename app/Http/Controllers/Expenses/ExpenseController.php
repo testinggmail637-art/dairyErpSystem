@@ -8,6 +8,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\Expenses\DeleteExpenseRequest;
 use App\Http\Requests\Expenses\ExpenseIndexRequest;
 use App\Http\Requests\Expenses\ExpenseRequest;
+use App\Models\Animal;
 use App\Models\Expense;
 use App\Models\ExpenseCategory;
 use App\Models\PaymentMode;
@@ -49,7 +50,7 @@ class ExpenseController extends Controller
         $totals = $this->expenses->totals($query);
 
         $expenses = (clone $query)
-            ->with(['category:id,name', 'subcategory:id,name', 'section:id,name', 'vendor:id,name', 'paymentMode:id,name', 'creator:id,name'])
+            ->with(['category:id,name', 'subcategory:id,name', 'section:id,name', 'vendor:id,name', 'paymentMode:id,name', 'creator:id,name', 'animal:id,tag_no,name'])
             ->orderByDesc('expense_date')
             ->orderByDesc('id')
             ->paginate(50, ['*'], 'page', null, $totals['count']) // reuse the totals count: no second COUNT(*)
@@ -93,7 +94,7 @@ class ExpenseController extends Controller
     public function show(Expense $expense): View
     {
         return view('expenses.expenses.show', [
-            'expense' => $expense->load(['category', 'subcategory', 'section', 'vendor', 'paymentMode', 'creator', 'updater']),
+            'expense' => $expense->load(['category', 'subcategory', 'section', 'vendor', 'paymentMode', 'creator', 'updater', 'animal:id,tag_no,name']),
         ]);
     }
 
@@ -163,6 +164,7 @@ class ExpenseController extends Controller
             'sections' => Section::query()->orderBy('name')->pluck('name', 'id'),
             'paymentModes' => PaymentMode::query()->orderBy('name')->pluck('name', 'id'),
             'selectedVendor' => $filters['vendor_id'] ? Vendor::withTrashed()->whereKey($filters['vendor_id'])->pluck('name', 'id') : collect(),
+            'selectedAnimal' => $this->animalOption($filters['animal_id']),
             'users' => User::query()->whereHas('farms', fn ($q) => $q->whereKey($this->currentFarm->id()))->orderBy('name')->pluck('name', 'id'),
         ];
     }
@@ -187,6 +189,15 @@ class ExpenseController extends Controller
                 ? Vendor::withTrashed()->whereKey($vendorId)->pluck('name', 'id')
                 : collect(),
             'units' => ExpenseUnit::options(),
+            'selectedAnimal' => $this->animalOption(old('animal_id', $expense->animal_id)),
         ];
+    }
+
+    /** The chosen animal as the one option of its Select2 box: [id => "C-101 · Gauri"]. */
+    private function animalOption(mixed $animalId): array
+    {
+        $animal = $animalId ? Animal::withTrashed()->find((int) $animalId, ['id', 'tag_no', 'name']) : null;
+
+        return $animal ? [$animal->id => $animal->label()] : [];
     }
 }

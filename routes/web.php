@@ -113,7 +113,7 @@ Route::middleware(['auth', 'active', 'farm'])->group(function () {
             ->middleware('can:animals.manage');
 
         Route::get('/', [AnimalController::class, 'index'])->middleware('can:animals.view')->name('animals.index');
-        Route::get('search', [AnimalController::class, 'search'])->middleware('can:animals.view')->name('animals.search');
+        Route::get('search', [AnimalController::class, 'search'])->name('animals.search'); // animals.view or expense rights, checked in the controller
         Route::get('create', [AnimalController::class, 'create'])->middleware('can:animals.manage')->name('animals.create');
         Route::post('/', [AnimalController::class, 'store'])->middleware('can:animals.manage')->name('animals.store');
         Route::whereNumber('animal')->group(function () {

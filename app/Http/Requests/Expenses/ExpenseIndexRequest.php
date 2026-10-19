@@ -28,6 +28,7 @@ class ExpenseIndexRequest extends FormRequest
             'subcategory_id' => ['nullable', 'integer'],
             'section_id' => ['nullable', 'integer'],
             'vendor_id' => ['nullable', 'integer'],
+            'animal_id' => ['nullable', 'integer'],
             'payment_mode_id' => ['nullable', 'integer'],
             'type' => ['nullable', 'in:paid,credit'],
             'created_by' => ['nullable', 'integer'],
