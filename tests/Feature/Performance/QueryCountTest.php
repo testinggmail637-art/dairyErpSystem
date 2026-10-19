@@ -6,6 +6,7 @@
 */
 
 use App\Enums\RoleName;
+use App\Models\AnimalBreed;
 use App\Models\Expense;
 use App\Models\ExpenseCategory;
 use App\Models\Farm;
@@ -127,4 +128,14 @@ it('loads the user\'s farms once per page', function () {
     $farmQueries = collect(DB::getQueryLog())->filter(fn ($q) => str_contains($q['query'], 'inner join `farm_user`'));
 
     expect($farmQueries)->toHaveCount(1);
+});
+
+it('keeps the breeds list at a constant number of queries', function () {
+    AnimalBreed::seedDefaultsFor($this->farm);
+    $few = queriesFor(route('animal-breeds.index'), $this->owner);
+
+    AnimalBreed::factory()->count(40)->create(['farm_id' => $this->farm->id]);
+    $many = queriesFor(route('animal-breeds.index'), $this->owner);
+
+    expect($many)->toBe($few)->toBeLessThanOrEqual(8);
 });

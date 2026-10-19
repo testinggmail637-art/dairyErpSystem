@@ -5,6 +5,11 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+### Added
+- Phase 2 · Task 1: animal breeds (`animal_breeds`: cow/buffalo, name, active; unique per farm and type) — Herd → Breeds
+  with type/status/search filters (AJAX), add/edit, deactivate instead of delete; the 9 cow and 7 buffalo breeds of the
+  spec are seeded for every farm. New `AnimalType` enum.
+
 ## [0.1.0] - 2026-10-18 — Phase 1: Expense Management (no approval)
 
 ### Added

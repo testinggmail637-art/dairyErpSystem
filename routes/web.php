@@ -10,6 +10,7 @@ use App\Http\Controllers\Expenses\ExpenseImportController;
 use App\Http\Controllers\Expenses\VendorController;
 use App\Http\Controllers\Expenses\VendorPaymentController;
 use App\Http\Controllers\Farm\FarmSwitchController;
+use App\Http\Controllers\Herd\AnimalBreedController;
 use App\Http\Controllers\HomeController;
 use App\Http\Controllers\Reports\ExpenseReportController;
 use App\Http\Controllers\Reports\ReportController;
@@ -95,6 +96,18 @@ Route::middleware(['auth', 'active', 'farm'])->group(function () {
             Route::put('{expense}', [ExpenseController::class, 'update'])->middleware('can:update,expense')->name('expenses.update');
             Route::delete('{expense}', [ExpenseController::class, 'destroy'])->middleware('can:delete,expense')->name('expenses.destroy');
         });
+    });
+
+    /*
+    | Herd (Phase 2)
+    */
+    Route::prefix('animals')->group(function () {
+        Route::get('breeds', [AnimalBreedController::class, 'index'])->middleware('can:animals.view')->name('animal-breeds.index');
+        Route::resource('breeds', AnimalBreedController::class)
+            ->only(['create', 'store', 'edit', 'update'])
+            ->parameters(['breeds' => 'animal_breed'])
+            ->names('animal-breeds')
+            ->middleware('can:animals.manage');
     });
 
     /*
