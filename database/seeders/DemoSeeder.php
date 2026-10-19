@@ -5,6 +5,7 @@ namespace Database\Seeders;
 use App\Enums\RoleName;
 use App\Models\Animal;
 use App\Models\AnimalBreed;
+use App\Models\AnimalStatusHistory;
 use App\Models\Expense;
 use App\Models\ExpenseCategory;
 use App\Models\Farm;
@@ -127,6 +128,19 @@ class DemoSeeder extends Seeder
             'source' => 'purchased', 'ownership_type' => 'own_herd', 'lifecycle_stage' => 'bull', 'status' => 'active',
             'lactation_number' => 0, 'notes' => self::MARK, 'created_at' => now(), 'updated_at' => now(),
         ]);
+
+        // bulk inserts skip AnimalObserver: write the starting status / stage / ownership rows here
+        $history = [];
+        foreach (Animal::query()->where('notes', self::MARK)->get(['id', 'status', 'lifecycle_stage', 'ownership_type', 'date_of_birth']) as $animal) {
+            foreach (AnimalStatusHistory::FIELDS as $field) {
+                $history[] = [
+                    'farm_id' => $farm->id, 'animal_id' => $animal->id, 'field' => $field, 'old_value' => null,
+                    'new_value' => $animal->getRawOriginal($field), 'changed_on' => today()->subYear()->max($animal->date_of_birth)->toDateString(),
+                    'reason' => null, 'changed_by' => null, 'created_at' => now(), 'updated_at' => now(),
+                ];
+            }
+        }
+        AnimalStatusHistory::query()->insert($history);
     }
 
     /** @return list<int> user ids that enter expenses */

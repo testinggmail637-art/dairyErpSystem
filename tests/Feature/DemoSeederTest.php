@@ -1,6 +1,7 @@
 <?php
 
 use App\Models\Animal;
+use App\Models\AnimalStatusHistory;
 use App\Models\Expense;
 use App\Models\Farm;
 use App\Models\User;
@@ -25,7 +26,8 @@ it('seeds a year of demo expenses, vendors, payments and users, once', function 
         ->and(User::where('email', 'accountant@dairy.test')->first()->hasRole('accountant'))->toBeTrue()
         ->and(Animal::allFarms()->where('farm_id', $farm->id)->count())->toBe(30)
         ->and(Animal::allFarms()->where('farm_id', $farm->id)->milking()->count())->toBe(20)
-        ->and(Animal::allFarms()->whereNotNull('mother_id')->count())->toBe(3);
+        ->and(Animal::allFarms()->whereNotNull('mother_id')->count())->toBe(3)
+        ->and(AnimalStatusHistory::allFarms()->count())->toBe(90); // 3 starting rows per animal
 
     $count = $expenses->count();
     $this->seed(DemoSeeder::class); // second run is skipped

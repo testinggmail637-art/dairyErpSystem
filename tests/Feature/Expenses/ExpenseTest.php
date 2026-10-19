@@ -230,6 +230,7 @@ it('opens on the current month by default, and Clear (all=1) shows every date', 
 
 it('exports the filtered list to Excel', function () {
     Excel::fake();
+    $this->freezeTime(); // the file name has the time to the second
     Expense::factory()->count(2)->create(['farm_id' => $this->farm->id, 'expense_date' => '2026-10-01']);
 
     $this->actingAs($this->accountant)->get(route('expenses.export', ['from' => '2026-10-01']))->assertOk();

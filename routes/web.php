@@ -121,6 +121,7 @@ Route::middleware(['auth', 'active', 'farm'])->group(function () {
             Route::get('{animal}/edit', [AnimalController::class, 'edit'])->middleware('can:animals.manage')->name('animals.edit');
             Route::put('{animal}', [AnimalController::class, 'update'])->middleware('can:animals.manage')->name('animals.update');
             Route::delete('{animal}', [AnimalController::class, 'destroy'])->middleware('can:animals.manage')->name('animals.destroy');
+            Route::post('{animal}/change', [AnimalController::class, 'change'])->middleware('can:animals.manage')->name('animals.change');
         });
     });
 

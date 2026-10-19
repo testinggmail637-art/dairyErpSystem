@@ -8,10 +8,10 @@
 | Item | Value |
 |---|---|
 | Current phase | Phase 2 — Animals, Milk Production, Milk Stock (🟡 in progress) |
-| Last completed task | 2.2 — Animals CRUD (photo, filters, profile page with tabs) |
-| Next task | 2.3 — Status / lifecycle change actions + status history (observer) |
-| Overall progress | 26 / 88 tasks (30%) |
-| Tests passing | 329 |
+| Last completed task | 2.3 — Status / lifecycle change actions + status history (observer) |
+| Next task | 2.4 — `expenses.animal_id` FK + animal select in expense form |
+| Overall progress | 27 / 88 tasks (31%) |
+| Tests passing | 342 |
 | Last updated (IST) | 2026-10-19 |
 
 ## Phase overview
@@ -154,7 +154,7 @@ Status legend: ⬜ Not started · 🟡 In progress · ✅ Done · ⏸ On hold
 ### Checklist
 - [x] 2.1 Animal breeds + seeder
 - [x] 2.2 Animals CRUD (photo, filters, profile page with tabs)
-- [ ] 2.3 Status / lifecycle change actions + status history (observer)
+- [x] 2.3 Status / lifecycle change actions + status history (observer)
 - [ ] 2.4 `expenses.animal_id` FK + animal select in expense form
 - [ ] 2.5 Milk production bulk entry (date + shift grid) + single entry + animal history chart
 - [ ] 2.6 MilkStockService + milk_stock_movements

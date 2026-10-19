@@ -2,7 +2,7 @@
 
 @section('title', __('Animal :tag', ['tag' => $animal->tag_no]))
 
-@php($canManage = auth()->user()->can('animals.manage'))
+@php $canManage = auth()->user()->can('animals.manage'); @endphp
 
 @section('page-actions')
     <a href="{{ route('animals.index') }}" class="btn btn-outline-secondary btn-sm"><i class="bi bi-arrow-left me-1"></i>{{ __('Animals') }}</a>
@@ -37,6 +37,19 @@
                         <dt class="col-5">{{ __('Lactation') }}</dt><dd class="col-7">{{ $animal->lactation_number }}</dd>
                     @endif
                 </dl>
+                @if ($canManage)
+                    <div class="d-grid gap-2 mt-3">
+                        <button type="button" class="btn btn-outline-primary btn-sm" data-bs-toggle="modal" data-bs-target="#change-lifecycle_stage">
+                            <i class="bi bi-arrow-repeat me-1"></i>{{ __('Change stage') }}
+                        </button>
+                        <button type="button" class="btn btn-outline-primary btn-sm" data-bs-toggle="modal" data-bs-target="#change-status">
+                            <i class="bi bi-flag me-1"></i>{{ __('Change status') }}
+                        </button>
+                        <button type="button" class="btn btn-outline-secondary btn-sm" data-bs-toggle="modal" data-bs-target="#change-ownership_type">
+                            <i class="bi bi-arrow-left-right me-1"></i>{{ __('Change ownership') }}
+                        </button>
+                    </div>
+                @endif
             </div>
         </div>
     </div>
@@ -144,8 +157,33 @@
                 @endif
             </div>
 
-            {{-- History: every change from the audit log --}}
+            {{-- History: status / stage / ownership timeline, then every change from the audit log --}}
             <div class="tab-pane fade" id="pane-history" role="tabpanel" aria-labelledby="tab-history" tabindex="0">
+                <div class="card-body border-bottom pb-2"><h3 class="h6 mb-0">{{ __('Status, stage and ownership') }}</h3></div>
+                <div class="table-responsive">
+                    <table class="table table-sm align-middle mb-0">
+                        <thead><tr><th>{{ __('Date') }}</th><th>{{ __('Change') }}</th><th>{{ __('Reason') }}</th><th>{{ __('By') }}</th></tr></thead>
+                        <tbody>
+                            @forelse ($statusHistory as $row)
+                                <tr>
+                                    <td class="text-nowrap small">{{ fmt_date($row->changed_on) }}</td>
+                                    <td class="small">
+                                        <span class="fw-semibold">{{ $row->fieldLabel() }}:</span>
+                                        @if ($row->old_value !== null)
+                                            {{ $row->valueLabel($row->old_value) }} <i class="bi bi-arrow-right"></i>
+                                        @endif
+                                        {{ $row->valueLabel($row->new_value) }}
+                                    </td>
+                                    <td class="small">{{ $row->reason ?? '—' }}</td>
+                                    <td class="small">{{ $row->changer?->name ?? '—' }}</td>
+                                </tr>
+                            @empty
+                                <tr><td colspan="4" class="text-center text-body-secondary py-3">{{ __('No status changes recorded.') }}</td></tr>
+                            @endforelse
+                        </tbody>
+                    </table>
+                </div>
+                <div class="card-body border-bottom border-top pb-2"><h3 class="h6 mb-0">{{ __('All edits (audit log)') }}</h3></div>
                 <div class="table-responsive">
                     <table class="table table-sm align-middle mb-0">
                         <thead><tr><th>{{ __('When') }}</th><th>{{ __('Who') }}</th><th>{{ __('What changed') }}</th><th>{{ __('Reason') }}</th></tr></thead>
@@ -183,4 +221,47 @@
         @endif
     </div>
 </div>
+
+@if ($canManage)
+    {{-- Status / stage / ownership actions (history written automatically) --}}
+    @php
+        $changes = [
+            'lifecycle_stage' => [__('Change stage'), \App\Enums\LifecycleStage::forGender($animal->gender), $animal->lifecycle_stage,
+                __('e.g. Dried off before calving'), __('Changing to "Milking" puts the animal in milk entry.')],
+            'status' => [__('Change status'), \App\Http\Requests\Herd\AnimalChangeRequest::manualStatuses(), $animal->status,
+                __('e.g. Died of illness'), __('"Sold" is set by recording an animal sale. Any status other than Active removes the animal from milk entry.')],
+            'ownership_type' => [__('Change ownership'), \App\Enums\OwnershipType::cases(), $animal->ownership_type,
+                __('e.g. Keeping this one for the herd'), null],
+        ];
+    @endphp
+    @foreach ($changes as $field => [$title, $choices, $current, $placeholder, $help])
+        @php $reopen = $errors->any() && old('field') === $field; @endphp
+        <div class="modal fade" id="change-{{ $field }}" tabindex="-1" aria-labelledby="change-{{ $field }}-title" aria-hidden="true"
+             @if ($reopen) data-show-on-load @endif>
+            <div class="modal-dialog">
+                <form method="POST" action="{{ route('animals.change', $animal) }}" class="modal-content">
+                    @csrf
+                    <input type="hidden" name="field" value="{{ $field }}">
+                    <div class="modal-header">
+                        <h2 class="modal-title h5" id="change-{{ $field }}-title">{{ $title }} · {{ $animal->tag_no }}</h2>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="{{ __('Close') }}"></button>
+                    </div>
+                    <div class="modal-body">
+                        <p class="small mb-3">{{ __('Now') }}: <span class="fw-semibold">{{ $current->label() }}</span></p>
+                        @php $options = collect($choices)->reject(fn ($c) => $c === $current)->mapWithKeys(fn ($c) => [$c->value => $c->label()])->all(); @endphp
+                        <x-form.select name="value" :id="'value-'.$field" :label="__('New value')" :options="$options"
+                                       :selected="$reopen ? old('value') : null" :placeholder="__('Choose')" required :help="$help" />
+                        <x-form.date name="changed_on" :id="'changed_on-'.$field" :label="__('Date')"
+                                     :value="$reopen ? old('changed_on') : today()" max="today" required />
+                        <x-form.reason :placeholder="$placeholder" :id="'reason-'.$field" group-class="mb-0" />
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">{{ __('Cancel') }}</button>
+                        <button type="submit" class="btn btn-primary">{{ __('Save') }}</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    @endforeach
+@endif
 @endsection
