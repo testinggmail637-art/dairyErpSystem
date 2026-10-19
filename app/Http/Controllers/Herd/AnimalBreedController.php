@@ -6,6 +6,7 @@ use App\Enums\AnimalType;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Herd\AnimalBreedRequest;
 use App\Models\AnimalBreed;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
@@ -39,6 +40,12 @@ class AnimalBreedController extends Controller
             'filters' => $filters,
             'canManage' => $request->user()->can('animals.manage'),
         ]);
+    }
+
+    /** Active breeds of one type as {"id": "name"} — the animal form's breed list follows the chosen type. */
+    public function byType(AnimalType $type): JsonResponse
+    {
+        return response()->json(AnimalBreed::query()->active()->ofType($type)->orderBy('name')->pluck('name', 'id'));
     }
 
     public function create(Request $request): View

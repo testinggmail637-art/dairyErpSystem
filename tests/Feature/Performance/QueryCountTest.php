@@ -6,6 +6,7 @@
 */
 
 use App\Enums\RoleName;
+use App\Models\Animal;
 use App\Models\AnimalBreed;
 use App\Models\Expense;
 use App\Models\ExpenseCategory;
@@ -138,4 +139,15 @@ it('keeps the breeds list at a constant number of queries', function () {
     $many = queriesFor(route('animal-breeds.index'), $this->owner);
 
     expect($many)->toBe($few)->toBeLessThanOrEqual(8);
+});
+
+it('keeps the animals list and profile at a constant number of queries', function () {
+    $breed = AnimalBreed::factory()->create(['farm_id' => $this->farm->id]);
+    Animal::factory()->count(3)->create(['farm_id' => $this->farm->id, 'breed_id' => $breed->id]);
+    $few = queriesFor(route('animals.index'), $this->owner);
+
+    Animal::factory()->count(40)->create(['farm_id' => $this->farm->id, 'breed_id' => AnimalBreed::factory()->create(['farm_id' => $this->farm->id])->id]);
+    $many = queriesFor(route('animals.index'), $this->owner);
+
+    expect($many)->toBe($few)->toBeLessThanOrEqual(12);
 });

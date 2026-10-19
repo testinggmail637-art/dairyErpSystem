@@ -83,13 +83,21 @@
                     dropdownParent: $modal.length ? $modal : $(document.body),
                 };
                 // data-ajax-url: search on the server; endpoint gets ?q=…&page=… and returns {results: [{id, text}], pagination: {more}}.
+                // data-ajax-with="#animal_type,#gender": also send those fields' current values (by their name).
                 if ($el.data('ajaxUrl')) {
                     options.minimumInputLength = 1;
                     options.ajax = {
                         url: $el.data('ajaxUrl'),
                         dataType: 'json',
                         delay: 250,
-                        data: (params) => ({ q: params.term, page: params.page || 1 }),
+                        data: (params) => {
+                            const data = { q: params.term, page: params.page || 1 };
+                            String($el.data('ajaxWith') || '').split(',').filter(Boolean).forEach((selector) => {
+                                const $field = $(selector.trim());
+                                if ($field.length && $field.attr('name')) data[$field.attr('name')] = $field.val();
+                            });
+                            return data;
+                        },
                     };
                 }
                 $el.select2(options);

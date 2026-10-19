@@ -292,6 +292,29 @@ body {
     max-width: 16rem;
 }
 
+/* Animal photos: list thumbnail, form preview, profile picture */
+.app-col-photo {
+    width: 3.5rem;
+}
+
+.app-animal-thumb {
+    width: 2.5rem;
+    height: 2.5rem;
+    object-fit: cover;
+}
+
+.app-animal-photo-sm {
+    width: 8rem;
+    height: 8rem;
+    object-fit: cover;
+}
+
+.app-animal-photo {
+    width: 100%;
+    max-height: 18rem;
+    object-fit: cover;
+}
+
 .app-col-shrink {
     width: 1%;
 }

@@ -11,6 +11,7 @@ use App\Http\Controllers\Expenses\VendorController;
 use App\Http\Controllers\Expenses\VendorPaymentController;
 use App\Http\Controllers\Farm\FarmSwitchController;
 use App\Http\Controllers\Herd\AnimalBreedController;
+use App\Http\Controllers\Herd\AnimalController;
 use App\Http\Controllers\HomeController;
 use App\Http\Controllers\Reports\ExpenseReportController;
 use App\Http\Controllers\Reports\ReportController;
@@ -103,11 +104,24 @@ Route::middleware(['auth', 'active', 'farm'])->group(function () {
     */
     Route::prefix('animals')->group(function () {
         Route::get('breeds', [AnimalBreedController::class, 'index'])->middleware('can:animals.view')->name('animal-breeds.index');
+        Route::get('breeds/by-type/{type}', [AnimalBreedController::class, 'byType'])
+            ->middleware('can:animals.view')->name('animal-breeds.by-type');
         Route::resource('breeds', AnimalBreedController::class)
             ->only(['create', 'store', 'edit', 'update'])
             ->parameters(['breeds' => 'animal_breed'])
             ->names('animal-breeds')
             ->middleware('can:animals.manage');
+
+        Route::get('/', [AnimalController::class, 'index'])->middleware('can:animals.view')->name('animals.index');
+        Route::get('search', [AnimalController::class, 'search'])->middleware('can:animals.view')->name('animals.search');
+        Route::get('create', [AnimalController::class, 'create'])->middleware('can:animals.manage')->name('animals.create');
+        Route::post('/', [AnimalController::class, 'store'])->middleware('can:animals.manage')->name('animals.store');
+        Route::whereNumber('animal')->group(function () {
+            Route::get('{animal}', [AnimalController::class, 'show'])->middleware('can:animals.view')->name('animals.show');
+            Route::get('{animal}/edit', [AnimalController::class, 'edit'])->middleware('can:animals.manage')->name('animals.edit');
+            Route::put('{animal}', [AnimalController::class, 'update'])->middleware('can:animals.manage')->name('animals.update');
+            Route::delete('{animal}', [AnimalController::class, 'destroy'])->middleware('can:animals.manage')->name('animals.destroy');
+        });
     });
 
     /*
