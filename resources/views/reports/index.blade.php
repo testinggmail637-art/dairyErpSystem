@@ -19,5 +19,5 @@
         @endforeach
     </div>
 @endforeach
-<p class="form-text">{{ __('More reports (milk, sales, collection, profit) appear here as those modules are added.') }}</p>
+<p class="form-text">{{ __('More reports (milk stock, sales, collection, profit) appear here as those modules are added.') }}</p>
 @endsection

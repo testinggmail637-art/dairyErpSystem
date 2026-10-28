@@ -44,7 +44,7 @@ class ReportTableExport implements FromArray, ShouldAutoSize, WithColumnFormatti
         $formats = [];
 
         foreach ($this->table->columns as $i => $column) {
-            if (in_array($column['type'], [ReportTable::MONEY, ReportTable::PERCENT], true)) {
+            if (in_array($column['type'], [ReportTable::MONEY, ReportTable::PERCENT, ReportTable::QUANTITY], true)) {
                 $formats[Coordinate::stringFromColumnIndex($i + 1)] = '#,##0.00';
             }
         }

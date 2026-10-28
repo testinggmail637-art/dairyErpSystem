@@ -121,6 +121,7 @@ class ExpenseReportService
             ],
             $rows,
             [__('Total'), '', (int) $lines->sum('cnt'), $grand, $lines->isEmpty() ? '0.0' : '100.0'],
+            strongRows: array_keys(array_filter($rows, fn ($r) => $r[0] !== '')), // category lines
         );
     }
 

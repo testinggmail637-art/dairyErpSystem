@@ -5,7 +5,6 @@ namespace App\Http\Controllers\Reports;
 use App\Exports\ReportTableExport;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Reports\ExpenseReportRequest;
-use App\Reports\ReportTable;
 use App\Services\ExpenseReportService;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\Response;
@@ -39,6 +38,7 @@ class ExpenseReportController extends Controller
                 ->download($table->fileName().'.pdf'),
             default => $this->listView($request, 'reports.show', [
                 'table' => $table,
+                'routeName' => 'reports.expenses',
                 'report' => $report,
                 'filters' => $f,
                 'filterType' => match ($report) {
@@ -59,11 +59,5 @@ class ExpenseReportController extends Controller
             'category' => ['title' => __('Category-wise expenses'), 'description' => __('Categories and subcategories for any period, with share %.'), 'icon' => 'bi-pie-chart'],
             'vendors' => ['title' => __('Vendor outstanding'), 'description' => __('What we owe each vendor today.'), 'icon' => 'bi-shop'],
         ];
-    }
-
-    /** For views: column alignment class. */
-    public static function align(ReportTable $table, int $i): string
-    {
-        return $table->isNumeric($i) ? 'text-end text-nowrap' : '';
     }
 }

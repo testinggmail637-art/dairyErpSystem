@@ -15,6 +15,9 @@ class ReportController extends Controller
                 __('Expenses') => collect(ExpenseReportController::catalogue())
                     ->map(fn ($r, $key) => $r + ['url' => route('reports.expenses', $key)])
                     ->all(),
+                __('Milk production') => collect(MilkReportController::catalogue())
+                    ->map(fn ($r, $key) => $r + ['url' => route('reports.milk', $key)])
+                    ->all(),
             ],
         ]);
     }
