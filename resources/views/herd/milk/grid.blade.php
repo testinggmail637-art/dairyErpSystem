@@ -53,6 +53,8 @@
     </div>
 </div>
 
+@include('herd.milk._alerts', ['alerts' => $alerts, 'compact' => true])
+
 <form method="POST" action="{{ route('milk-production.bulk') }}" id="milk-grid" autocomplete="off">
     @csrf
     <input type="hidden" name="production_date" value="{{ $date }}">

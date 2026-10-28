@@ -45,6 +45,10 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   today: cow, buffalo, morning, evening, total, animals milked), animal-wise for any period (days milked, litres, average
   per day, largest first). The report screen and `ReportTable` are now shared by all modules (litre columns, bold
   subtotal rows, per-report empty text).
+- Phase 2 · Task 9: milk drop alerts — Herd → Milk Alerts lists, for a date, every animal and shift whose milk is at least
+  the farm's alert % (default 20 %) below the average of its previous 7 entries of that shift (min 3, last 30 days), with
+  litres, average, drop % and "Check health — this is a signal, not a diagnosis."; the milk entry grid shows the alerts
+  of its date and shift. Animal profile tabs can be opened by link (`?tab=milk`).
 
 ### Fixed
 - Expense Excel export test no longer fails when the clock ticks to the next second during the test.

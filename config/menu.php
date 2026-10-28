@@ -26,6 +26,7 @@ return [
             ['label' => 'Animals', 'route' => 'animals.index', 'active' => 'animals.*', 'permission' => 'animals.view'],
             ['label' => 'Breeds', 'route' => 'animal-breeds.index', 'active' => 'animal-breeds.*', 'permission' => 'animals.view'],
             ['label' => 'Milk Entry', 'route' => 'milk-production.index', 'active' => 'milk-production.*', 'permission' => 'milk_production.view'],
+            ['label' => 'Milk Alerts', 'route' => 'milk-alerts.index', 'active' => 'milk-alerts.*', 'permission' => 'milk_production.view'],
             ['label' => 'Health', 'route' => 'health.index', 'active' => 'health.*', 'permission' => 'health.view'],
             ['label' => 'Breeding', 'route' => 'breeding.index', 'active' => 'breeding.*', 'permission' => 'breeding.manage'],
             ['label' => 'Feed', 'route' => 'feed.index', 'active' => 'feed.*', 'permission' => 'feed.view'],

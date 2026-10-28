@@ -317,3 +317,13 @@
         <script src="{{ asset_v('js/modules/animal-milk-chart.js') }}"></script>
     @endpush
 @endif
+
+@push('scripts')
+    {{-- ?tab=milk (e.g. from a milk drop alert) opens that tab --}}
+    <script>
+        $(function () {
+            const tab = document.getElementById('tab-' + new URLSearchParams(location.search).get('tab'));
+            if (tab) bootstrap.Tab.getOrCreateInstance(tab).show();
+        });
+    </script>
+@endpush

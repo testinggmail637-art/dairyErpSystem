@@ -130,6 +130,10 @@ Route::middleware(['auth', 'active', 'farm'])->group(function () {
         });
     });
 
+    // own name prefix so the menu highlights "Milk Alerts", not "Milk Entry"
+    Route::get('milk-production/alerts', [MilkProductionController::class, 'alerts'])
+        ->middleware('can:viewAny,'.MilkProductionRecord::class)->name('milk-alerts.index');
+
     Route::prefix('milk-production')->name('milk-production.')->group(function () {
         Route::get('/', [MilkProductionController::class, 'index'])->middleware('can:viewAny,'.MilkProductionRecord::class)->name('index');
         Route::post('bulk', [MilkProductionController::class, 'storeBulk'])->name('bulk'); // create, checked in the request
