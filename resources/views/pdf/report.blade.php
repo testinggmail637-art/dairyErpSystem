@@ -21,7 +21,7 @@
                     @endforeach
                 </tr>
             @empty
-                <tr><td colspan="{{ count($table->columns) }}" class="muted">{{ __('No expenses in this period.') }}</td></tr>
+                <tr><td colspan="{{ count($table->columns) }}" class="muted">{{ $table->emptyText ?? __('No data in this period.') }}</td></tr>
             @endforelse
         </tbody>
         @if ($table->totals && count($table->rows) > 0)

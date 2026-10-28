@@ -20,11 +20,16 @@ final class ReportTable
 
     public const DATE = 'date';
 
+    /** Litres / kg with 2 decimals (1,250.50). */
+    public const QUANTITY = 'quantity';
+
     /**
      * @param  list<array{label: string, type: string}>  $columns
      * @param  list<list<mixed>>  $rows
      * @param  list<mixed>|null  $totals  same width as $columns; null = no totals row
      * @param  list<string>  $notes  small print under the table
+     * @param  list<int>  $strongRows  indexes of rows shown in bold (subtotals)
+     * @param  string|null  $emptyText  shown when there are no rows
      */
     public function __construct(
         public readonly string $title,
@@ -33,6 +38,8 @@ final class ReportTable
         public readonly array $rows,
         public readonly ?array $totals = null,
         public readonly array $notes = [],
+        public readonly array $strongRows = [],
+        public readonly ?string $emptyText = null,
     ) {}
 
     public static function column(string $label, string $type = self::TEXT): array
@@ -42,7 +49,18 @@ final class ReportTable
 
     public function isNumeric(int $index): bool
     {
-        return in_array($this->columns[$index]['type'] ?? self::TEXT, [self::MONEY, self::NUMBER, self::PERCENT], true);
+        return in_array($this->columns[$index]['type'] ?? self::TEXT, [self::MONEY, self::NUMBER, self::PERCENT, self::QUANTITY], true);
+    }
+
+    /** Screen alignment class of a column. */
+    public function align(int $index): string
+    {
+        return $this->isNumeric($index) ? 'text-end text-nowrap' : '';
+    }
+
+    public function isStrong(int $rowIndex): bool
+    {
+        return in_array($rowIndex, $this->strongRows, true);
     }
 
     /** Cell as display text (₹1,25,000.00, 12.5 %, DD-MM-YYYY …). */
@@ -55,6 +73,7 @@ final class ReportTable
         return match ($this->columns[$index]['type'] ?? self::TEXT) {
             self::MONEY => inr($value),
             self::NUMBER => fmt_qty($value, 0),
+            self::QUANTITY => fmt_qty($value),
             self::PERCENT => fmt_qty($value, 1).' %',
             self::DATE => self::isIsoDate($value) ? fmt_date($value) : (string) $value, // e.g. "Total" in the totals row
             default => (string) $value,

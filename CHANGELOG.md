@@ -40,6 +40,11 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   "Record usage" form (wastage / home use / calf feeding, reason, `milk_stock.view`) and "Adjustment" form (in / out,
   reason, `milk_stock.adjust`), both idempotent on `client_uuid` (new column) and refused beyond the balance unless
   negative stock is allowed; ledger with AJAX filters (dates, stock, milk type, movement) and a running balance.
+- Phase 2 · Task 8: milk production reports (Reports → Milk production, screen + Excel + PDF, optional milk type filter) —
+  daily (each animal's morning / evening / total with a subtotal per milk type), monthly (every day of the month up to
+  today: cow, buffalo, morning, evening, total, animals milked), animal-wise for any period (days milked, litres, average
+  per day, largest first). The report screen and `ReportTable` are now shared by all modules (litre columns, bold
+  subtotal rows, per-report empty text).
 
 ### Fixed
 - Expense Excel export test no longer fails when the clock ticks to the next second during the test.

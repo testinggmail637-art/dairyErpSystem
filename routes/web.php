@@ -16,6 +16,7 @@ use App\Http\Controllers\Herd\MilkProductionController;
 use App\Http\Controllers\HomeController;
 use App\Http\Controllers\MilkStock\MilkStockController;
 use App\Http\Controllers\Reports\ExpenseReportController;
+use App\Http\Controllers\Reports\MilkReportController;
 use App\Http\Controllers\Reports\ReportController;
 use App\Http\Controllers\Settings\AppearanceController;
 use App\Http\Controllers\Settings\AuditLogController;
@@ -28,6 +29,7 @@ use App\Models\Expense;
 use App\Models\MilkProductionRecord;
 use App\Models\VendorPayment;
 use App\Services\ExpenseReportService;
+use App\Services\MilkReportService;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -164,6 +166,8 @@ Route::middleware(['auth', 'active', 'farm'])->group(function () {
         Route::get('/', [ReportController::class, 'index'])->name('reports.index');
         Route::get('expenses/{report}', [ExpenseReportController::class, 'show'])
             ->whereIn('report', ExpenseReportService::REPORTS)->name('reports.expenses');
+        Route::get('milk/{report}', [MilkReportController::class, 'show'])
+            ->whereIn('report', MilkReportService::REPORTS)->name('reports.milk');
     });
 
     // Download a queued (large) export file made for the logged-in user
