@@ -7,12 +7,12 @@
 
 | Item | Value |
 |---|---|
-| Current phase | Phase 2 — Animals, Milk Production, Milk Stock (🟡 in progress) |
-| Last completed task | 2.9 — Milk drop alerts (Herd → Milk Alerts page + warning on the entry grid) |
-| Next task | 2.10 — Phase 2 acceptance tests + README/CHANGELOG |
-| Overall progress | 33 / 88 tasks (38%) |
-| Tests passing | 408 |
-| Last updated (IST) | 2026-10-28 19:30 |
+| Current phase | Phase 3 — Customers, Delivery, Billing, Payments (⬜ not started — starts after the Phase 2 PR is merged and tagged) |
+| Last completed task | 2.10 — Phase 2 acceptance tests + README/CHANGELOG (Phase 2 done, v0.2.0) |
+| Next task | 3.1 — Routes CRUD |
+| Overall progress | 34 / 88 tasks (39%) |
+| Tests passing | 414 |
+| Last updated (IST) | 2026-10-28 20:30 |
 
 ## Phase overview
 
@@ -20,7 +20,7 @@
 |---|---|---|---|---|---|
 | 0 | Foundation | ✅ Done | 2026-10-15 | 2026-10-15 | `phase-0-done` |
 | 1 | Expense Management (no approval) | ✅ Done | 2026-10-16 | 2026-10-18 | `phase-1-done` |
-| 2 | Animals, Milk Production, Milk Stock | 🟡 In progress | 2026-10-19 | | |
+| 2 | Animals, Milk Production, Milk Stock | ✅ Done | 2026-10-19 | 2026-10-28 | `phase-2-done` |
 | 3 | Customers, Delivery, Billing, Payments | ⬜ Not started | | | |
 | 4 | Farmers & Collection Center | ⬜ Not started | | | |
 | 5 | Health, Breeding, Feed | ⬜ Not started | | | |
@@ -161,18 +161,53 @@ Status legend: ⬜ Not started · 🟡 In progress · ✅ Done · ⏸ On hold
 - [x] 2.7 Daily stock sheet, usage (wastage/home use/calf feeding) and adjustment forms, ledger view
 - [x] 2.8 Production reports (daily, monthly, animal-wise)
 - [x] 2.9 Milk drop alerts
-- [ ] 2.10 Phase 2 acceptance tests pass + README/CHANGELOG updated
+- [x] 2.10 Phase 2 acceptance tests pass + README/CHANGELOG updated
 
 ### Phase log
-- **Completed on:** _TODO_
-- **What was built (plain language):** _TODO_
-- **Screens / URLs added:** _TODO_
-- **Tables / migrations added:** _TODO_
-- **Services / commands / jobs added:** _TODO_
-- **Tests added (count, all passing?):** _TODO_
-- **Decisions taken:** _TODO_
-- **Known issues / pending:** _TODO_
-- **How to check it manually:** _TODO_
+- **Completed on:** 2026-10-28 (v0.2.0, tag `phase-2-done` after the last PR is merged)
+- **What was built (plain language):** The herd is now in the system. Each cow or buffalo has a tag (unique in the farm),
+  breed, mother, photo, stage (calf, heifer, milking, dry …), status and ownership; every change of stage, status or
+  ownership is kept as history with date and reason, and the profile page shows details, calves, milk, expenses and
+  history. Expenses can be linked to an animal. Milk is entered on one grid per date and shift that lists every
+  milking female (with her last 3 entries as a hint) and works on a phone; single entries add fat/SNF; changing saved
+  milk needs a reason. Every litre goes into a **milk stock ledger** kept separately for own-farm and collection milk,
+  cow and buffalo: the Milk Stock page shows each day's opening, milk in, wastage, home use, calf feeding,
+  adjustments and closing, and milk cannot go out beyond what is in stock (unless the farm allows it). Wastage, home
+  use and calf feeding are recorded with a reason; adjustments need a separate permission. Reports show daily
+  (animal × shift), monthly (day by day) and animal-wise milk on screen, in Excel and PDF. **Milk drop alerts** warn
+  when an animal gives 20 % (farm setting) less than her usual — "Check health — this is a signal, not a diagnosis."
+- **Screens / URLs added:** `/animals/breeds` · `/animals` (list, filters), `/animals/create`, `/animals/{id}` (profile,
+  `?tab=milk`), `/animals/{id}/edit` · `/milk-production` (entry grid), `/milk-production/entries`,
+  `/milk-production/create`, `/milk-production/{id}/edit` · `/milk-production/alerts` (Herd → Milk Alerts) ·
+  `/milk-stock` (daily sheet), `/milk-stock/usage/create`, `/milk-stock/adjustments/create`, `/milk-stock/ledger` ·
+  `/reports/milk/{daily|monthly|animals}` (+ `?format=excel|pdf`).
+- **Tables / migrations added:** `animal_breeds`, `animals`, `animal_status_histories`, FK `expenses.animal_id` (+ index),
+  `milk_production_records`, `milk_stock_movements` (with back-fill of existing milk entries), `milk_stock_movements.client_uuid`.
+- **Services / commands / jobs added:** AnimalService (+ AnimalObserver, AnimalPhotoStorage), MilkProductionService,
+  MilkStockService (+ MovesMilkStock contract, InsufficientMilkStockException), MilkReportService, MilkDropAlertService;
+  MilkProductionRecordPolicy (OwnEntrySameDay); FarmMasterDataSeeder seeds breeds; DemoSeeder adds 30 animals, a year of
+  milk and its stock movements. No new scheduled commands (milk drop bell notifications arrive with `reminders:daily`, Phase 5).
+- **Tests added (count, all passing?):** 106 new (308 → 414), all passing; `tests/Feature/Phase2AcceptanceTest.php`
+  covers the six acceptance criteria end to end; `QueryCountTest` covers the animal, milk entry, stock sheet and ledger pages.
+- **Decisions taken:** [DECISIONS](DECISIONS.md) #110–#126 (breeds, animal rules and photos, status history observer,
+  animal on expenses, milk grid rules and speed, stock ledger sync and balance check, usage/adjustment permissions and
+  append-only ledger, stock screens, report definitions and shared report screen, drop alert rule and placement).
+- **Known issues / pending:** milk drop alerts are not yet bell notifications (Phase 5 `reminders:daily`) nor a dashboard
+  card (Phase 7); collection and delivery rows of the stock sheet stay at 0 until Phases 3 and 4; lactation-wise milk
+  report is a Phase 7 report; usage/adjustment entries cannot be edited — correct them with an adjustment.
+- **Performance (demo year: 30 animals, 16,436 milk entries / stock movements):** milk grid ~70 ms, entries list for a year
+  ~250 ms, stock sheet ~30 ms, stock ledger for a year ~150 ms, milk reports 15–60 ms, milk alerts ~40 ms.
+- **How to check it manually:**
+  1. `php artisan migrate` then `php artisan db:seed --class=DemoSeeder`; log in as the owner.
+  2. Herd → Animals → add a milking cow; try the same tag again → refused. Open her profile → change stage to Dry with a
+     reason → History tab shows it.
+  3. Log in as `herd@dairy.test` / `password` → Herd → Milk Entry → type litres for a few animals → Save; the dry cow is
+     not in the grid.
+  4. Milk Stock → today's own-farm cow "In" equals what you saved; Record usage → 5 L wastage → closing drops by 5; try
+     more than the closing → error on Litres.
+  5. Change a saved grid value (needs a reason) → Milk Stock and the Ledger follow.
+  6. Herd → Milk Alerts → yesterday's date shows the demo herd's drops with average and %.
+  7. Reports → Milk production → Daily / Monthly / Animal-wise → download Excel and PDF.
 
 ---
 
