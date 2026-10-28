@@ -2,7 +2,11 @@
 
 namespace App\Models;
 
+use App\Contracts\MovesMilkStock;
+use App\Enums\MilkMovementType;
 use App\Enums\MilkShift;
+use App\Enums\MilkSource;
+use App\Enums\MilkType;
 use App\Models\Concerns\Auditable;
 use App\Models\Concerns\BelongsToFarm;
 use App\Models\Concerns\TracksUser;
@@ -14,8 +18,9 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 /**
  * Litres one animal gave in one shift (spec Section 6, Phase 2). One per animal, date and shift.
  * The milk type (cow / buffalo) is the animal's type. Audit-logged; no soft delete.
+ * Moves milk into the own-farm stock of the animal's type (MilkStockService).
  */
-class MilkProductionRecord extends Model
+class MilkProductionRecord extends Model implements MovesMilkStock
 {
     /** @use HasFactory<MilkProductionRecordFactory> */
     use Auditable, BelongsToFarm, HasFactory, TracksUser;
@@ -58,5 +63,26 @@ class MilkProductionRecord extends Model
     public function animal(): BelongsTo
     {
         return $this->belongsTo(Animal::class)->withTrashed();
+    }
+
+    public function milkStockTarget(): array
+    {
+        // the loaded animal is stale when the entry was moved to another animal
+        $animal = $this->relationLoaded('animal') && $this->animal?->id === $this->animal_id
+            ? $this->animal
+            : $this->load('animal')->animal;
+
+        return [
+            'source' => MilkSource::OwnFarm,
+            'milk_type' => MilkType::from($animal->animal_type->value),
+            'date' => $this->production_date->toDateString(),
+            'shift' => $this->shift,
+            'type' => MilkMovementType::Production,
+        ];
+    }
+
+    public function milkStockQuantity(): string
+    {
+        return (string) $this->quantity_litre;
     }
 }
