@@ -114,8 +114,8 @@ it('5. appearance changes the whole panel, login page and PDF header; reset rest
 
     $this->actingAs($this->owner)->post(route('settings.appearance.reset'));
     $this->actingAs($this->owner)->get(route('users.index'))
-        ->assertSee('--bs-primary: #1F6F5C;', false)
-        ->assertSee('--sidebar-bg: #12332B;', false);
+        ->assertSee('--bs-primary: #2D7A46;', false)
+        ->assertSee('--sidebar-bg: #FCFDFA;', false);
 });
 
 it('6. /pulse opens for the owner and returns 403 for admin and staff', function () {

@@ -5,14 +5,76 @@
  */
 
 :root {
-    --sidebar-width: 250px;
-    --topbar-height: 56px;
+    --sidebar-width: 252px;
+    --topbar-height: 60px;
+    /* Hairlines and tints are mixed from the configured colors, so every preset stays in harmony. */
+    --app-line: color-mix(in srgb, var(--bs-body-color) 10%, transparent);
+    --app-line-strong: color-mix(in srgb, var(--bs-body-color) 16%, transparent);
+    --app-tint: color-mix(in srgb, var(--bs-primary) 6%, var(--app-card-bg, var(--bs-body-bg)));
+    --app-tint-strong: color-mix(in srgb, var(--bs-primary) 12%, var(--app-card-bg, var(--bs-body-bg)));
+    --bs-border-color: var(--app-line-strong);
+    --bs-border-color-translucent: var(--app-line);
 }
 
 body {
     background-color: var(--bs-body-bg);
     font-family: var(--bs-body-font-family);
     font-size: var(--bs-body-font-size);
+    line-height: 1.55;
+    -webkit-font-smoothing: antialiased;
+}
+
+h1, h2, h3, h4, h5, h6,
+.h1, .h2, .h3, .h4, .h5, .h6 {
+    font-weight: 650;
+    letter-spacing: -0.01em;
+    line-height: 1.25;
+}
+
+/* Surfaces that sit on the page use the card background, not the page background */
+.card,
+.dropdown-menu,
+.modal-content,
+.list-group,
+.popover,
+.toast {
+    --bs-card-bg: var(--app-card-bg);
+    --bs-dropdown-bg: var(--app-card-bg);
+    --bs-modal-bg: var(--app-card-bg);
+    --bs-list-group-bg: var(--app-card-bg);
+    --bs-popover-bg: var(--app-card-bg);
+    --bs-toast-bg: var(--app-card-bg);
+}
+
+.card {
+    --bs-card-border-color: var(--app-line);
+    --bs-card-cap-bg: transparent;
+    --bs-card-cap-padding-y: 0.85rem;
+    --bs-card-spacer-y: 1.1rem;
+    --bs-card-spacer-x: 1.25rem;
+}
+
+.card-header {
+    font-weight: 600;
+}
+
+.card-footer {
+    background-color: var(--app-tint);
+}
+
+.dropdown-menu {
+    --bs-dropdown-border-color: var(--app-line);
+    --bs-dropdown-link-active-bg: var(--bs-primary);
+    --bs-dropdown-link-active-color: var(--app-on-primary);
+    --bs-dropdown-link-hover-bg: var(--app-tint-strong);
+    box-shadow: 0 0.5rem 1.5rem color-mix(in srgb, var(--bs-body-color) 12%, transparent);
+}
+
+/* ---------- Page header ---------- */
+.page-header h1 {
+    font-size: 1.6rem;
+    font-weight: 700;
+    letter-spacing: -0.02em;
 }
 
 /* ---------- Bootstrap buttons, driven by the appearance variables ---------- */
@@ -67,15 +129,141 @@ body {
 .text-bg-danger { color: var(--app-on-danger) !important; }
 .text-bg-warning { color: var(--app-on-warning) !important; }
 
+.btn {
+    font-weight: 550;
+}
+
+/* ---------- Tables ---------- */
+.table {
+    --bs-table-bg: transparent;
+    --bs-table-border-color: var(--app-line);
+    --bs-table-hover-bg: var(--app-tint);
+    --bs-table-striped-bg: var(--app-tint);
+}
+
 /* Table density (Settings → Appearance → Layout) */
 .table > :not(caption) > * > * {
     padding: var(--app-table-cell-py) var(--app-table-cell-px);
 }
 
+.table > thead > tr > th {
+    background-color: var(--app-tint);
+    color: var(--bs-secondary-color);
+    font-size: 0.85em;
+    font-weight: 600;
+    white-space: nowrap;
+    border-bottom-color: var(--app-line-strong);
+}
+
+.table > tbody > tr:hover > * {
+    --bs-table-bg-state: var(--app-tint);
+}
+
+.table > tfoot > tr > * {
+    font-weight: 600;
+    background-color: var(--app-tint);
+}
+
+/* ---------- Forms ---------- */
+.form-label {
+    font-size: 0.9em;
+    font-weight: 550;
+    margin-bottom: 0.3rem;
+}
+
+.form-control,
+.form-select,
+.input-group-text,
+.select2-container--bootstrap-5 .select2-selection {
+    border-color: var(--app-line-strong);
+}
+
+.form-control:not(:disabled):not([readonly]),
+.form-select:not(:disabled),
+.select2-container--bootstrap-5 .select2-selection {
+    background-color: var(--app-card-bg);
+}
+
+.input-group-text {
+    background-color: var(--app-tint);
+}
+
 .form-control:focus,
-.form-select:focus {
-    border-color: rgba(var(--bs-primary-rgb), 0.5);
-    box-shadow: 0 0 0 0.25rem rgba(var(--bs-primary-rgb), 0.25);
+.form-select:focus,
+.select2-container--bootstrap-5.select2-container--focus .select2-selection,
+.select2-container--bootstrap-5.select2-container--open .select2-selection {
+    border-color: rgba(var(--bs-primary-rgb), 0.6);
+    box-shadow: 0 0 0 0.2rem rgba(var(--bs-primary-rgb), 0.18);
+}
+
+.select2-container--bootstrap-5 .select2-dropdown {
+    background-color: var(--app-card-bg);
+    border-color: rgba(var(--bs-primary-rgb), 0.6);
+}
+
+.select2-container--bootstrap-5 .select2-results__option--highlighted {
+    background-color: var(--app-tint-strong) !important;
+    color: var(--bs-body-color) !important;
+}
+
+.select2-container--bootstrap-5 .select2-results__option--selected {
+    background-color: var(--bs-primary) !important;
+    color: var(--app-on-primary) !important;
+}
+
+/* Filter bars at the top of lists */
+.card-body.border-bottom:has(form[data-ajax-list]) {
+    background-color: var(--app-tint);
+}
+
+/* ---------- Alerts, badges, pagination ---------- */
+.alert {
+    border-left-width: 4px;
+}
+
+.badge {
+    font-weight: 600;
+    letter-spacing: 0.01em;
+}
+
+.pagination {
+    --bs-pagination-bg: var(--app-card-bg);
+    --bs-pagination-border-color: var(--app-line-strong);
+    --bs-pagination-hover-bg: var(--app-tint-strong);
+    --bs-pagination-hover-border-color: var(--app-line-strong);
+    --bs-pagination-active-bg: var(--bs-primary);
+    --bs-pagination-active-border-color: var(--bs-primary);
+    --bs-pagination-active-color: var(--app-on-primary);
+    --bs-pagination-color: var(--bs-body-color);
+    --bs-pagination-focus-box-shadow: 0 0 0 0.2rem rgba(var(--bs-primary-rgb), 0.18);
+    margin-bottom: 0;
+}
+
+.nav-tabs {
+    --bs-nav-tabs-link-active-bg: var(--app-card-bg);
+    --bs-nav-tabs-link-active-color: var(--bs-primary);
+    --bs-nav-tabs-border-color: var(--app-line-strong);
+}
+
+.nav-link {
+    --bs-nav-link-color: var(--bs-body-color);
+    --bs-nav-link-hover-color: var(--bs-primary);
+}
+
+.nav-pills {
+    --bs-nav-pills-link-active-bg: var(--bs-primary);
+    --bs-nav-pills-link-active-color: var(--app-on-primary);
+}
+
+:focus-visible {
+    outline: 2px solid rgba(var(--bs-primary-rgb), 0.7);
+    outline-offset: 2px;
+}
+
+.form-control:focus-visible,
+.form-select:focus-visible,
+.btn:focus-visible {
+    outline: none;
 }
 
 .form-check-input:checked {
@@ -88,6 +276,7 @@ body {
     --bs-offcanvas-width: var(--sidebar-width);
     --bs-offcanvas-bg: var(--sidebar-bg);
     --bs-offcanvas-color: var(--sidebar-text);
+    --app-sidebar-line: color-mix(in srgb, var(--sidebar-text) 11%, transparent);
     background-color: var(--sidebar-bg);
     color: var(--sidebar-text);
     display: flex;
@@ -102,6 +291,7 @@ body {
         inset: 0 auto 0 0;
         width: var(--sidebar-width);
         z-index: 1030;
+        border-right: 1px solid var(--app-sidebar-line);
     }
 
     .app-main {
@@ -114,18 +304,18 @@ body {
     align-items: center;
     justify-content: space-between;
     height: var(--topbar-height);
-    padding: 0 1rem;
-    border-bottom: 1px solid color-mix(in srgb, var(--sidebar-text) 12%, transparent);
+    padding: 0 1rem 0 1.1rem;
     flex-shrink: 0;
 }
 
 .app-brand {
     display: flex;
     align-items: center;
-    gap: 0.5rem;
+    gap: 0.6rem;
     color: var(--sidebar-text);
-    font-weight: 600;
-    font-size: 1.1rem;
+    font-weight: 700;
+    font-size: 1.15rem;
+    letter-spacing: -0.015em;
     text-decoration: none;
     min-width: 0;
 }
@@ -140,41 +330,72 @@ body {
     color: var(--sidebar-text);
 }
 
+/* The droplet mark shown when no logo is uploaded */
+.app-brand-mark {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    width: 2.1rem;
+    height: 2.1rem;
+    border-radius: var(--bs-border-radius-lg);
+    background-color: var(--bs-primary);
+    color: var(--app-on-primary);
+    font-size: 1.1rem;
+}
+
+.app-brand-mark .bi {
+    line-height: 1;
+}
+
+[data-bs-theme="dark"] .app-logo-light-theme,
+[data-bs-theme="light"] .app-logo-dark-theme {
+    display: none;
+}
+
 .app-sidebar-nav {
     flex: 1;
     overflow-y: auto;
-    padding: 0.75rem 0.5rem;
+    padding: 0.5rem 0.75rem 1rem;
 }
 
 .app-sidebar-nav .nav-link {
     display: flex;
     align-items: center;
-    gap: 0.65rem;
+    gap: 0.7rem;
     width: 100%;
-    padding: 0.55rem 0.75rem;
+    padding: 0.55rem 0.8rem;
     margin-bottom: 2px;
     border: 0;
-    border-radius: var(--bs-border-radius);
+    border-radius: var(--bs-border-radius-lg);
     background: transparent;
     color: var(--sidebar-text);
-    opacity: 0.85;
+    font-weight: 500;
+    opacity: 0.82;
     text-align: left;
 }
 
 .app-sidebar-nav .nav-link:hover,
 .app-sidebar-nav .nav-link:focus-visible {
     opacity: 1;
-    background-color: color-mix(in srgb, var(--sidebar-text) 10%, transparent);
+    background-color: color-mix(in srgb, var(--sidebar-text) 8%, transparent);
 }
 
 .app-sidebar-nav .nav-link.active {
     opacity: 1;
     background-color: var(--bs-primary);
     color: var(--app-on-primary);
+    font-weight: 600;
+}
+
+/* Open group: its heading reads as the current section */
+.app-sidebar-nav .app-nav-group[aria-expanded="true"] {
+    opacity: 1;
+    font-weight: 600;
 }
 
 .app-sidebar-nav .nav-link .bi {
-    font-size: 1.05rem;
+    font-size: 1.1rem;
     flex-shrink: 0;
 }
 
@@ -188,8 +409,16 @@ body {
     transform: rotate(-90deg);
 }
 
+/* Sub-items hang off a thin guide line under their group icon */
+.app-sidebar-nav .collapse > .nav,
+.app-sidebar-nav .collapsing > .nav {
+    margin: 0.15rem 0 0.4rem 1.35rem;
+    padding-left: 0.55rem;
+    border-left: 1px solid var(--app-sidebar-line);
+}
+
 .app-sidebar-nav .app-nav-sub {
-    padding-left: 2.6rem;
+    padding: 0.42rem 0.75rem;
     font-size: 0.95em;
 }
 
@@ -207,9 +436,9 @@ body {
     align-items: center;
     gap: 0.5rem;
     height: var(--topbar-height);
-    padding: 0 1rem;
+    padding: 0 1.25rem;
     background-color: var(--topbar-bg);
-    border-bottom: 1px solid var(--bs-border-color);
+    border-bottom: 1px solid var(--app-line);
 }
 
 .app-topbar-icon,
@@ -218,6 +447,14 @@ body {
     color: var(--bs-body-color);
     text-decoration: none;
     padding: 0.375rem 0.6rem;
+    border-radius: var(--bs-border-radius-lg);
+}
+
+.app-topbar-icon:hover,
+.app-topbar-farm:hover,
+.app-topbar-user:hover {
+    color: var(--bs-body-color);
+    background-color: color-mix(in srgb, var(--bs-body-color) 6%, transparent);
 }
 
 .app-topbar-icon .bi {
@@ -231,7 +468,8 @@ body {
 .app-topbar-farm .bi,
 .app-topbar-user .bi {
     font-size: 1.2rem;
-    margin-right: 0.25rem;
+    margin-right: 0.3rem;
+    color: var(--bs-primary);
 }
 
 .app-badge-count {
@@ -247,38 +485,102 @@ body {
 }
 
 .app-content {
-    padding-top: 1.25rem;
-    padding-bottom: 2rem;
+    padding: 1.5rem 1.75rem 2.5rem;
 }
 
 @media (max-width: 575.98px) {
     .app-content {
-        padding-left: 0.75rem;
-        padding-right: 0.75rem;
+        padding: 1rem 0.75rem 2rem;
     }
 }
 
-/* ---------- Login page ---------- */
+/* ---------- Login page: brand panel + form ---------- */
 .auth-page {
     min-height: 100vh;
+    display: grid;
+    grid-template-columns: 1fr;
+    background-color: var(--app-card-bg);
+}
+
+@media (min-width: 992px) {
+    .auth-page {
+        grid-template-columns: minmax(0, 5fr) minmax(0, 6fr);
+    }
+}
+
+.auth-panel {
+    display: flex;
+    align-items: flex-end;
+    padding: 2rem 1.5rem;
+    background-color: var(--bs-primary);
+    background-size: cover;
+    background-position: center;
+    color: var(--app-on-primary);
+}
+
+/* Uploaded photo: darken the bottom so the text stays readable */
+.auth-panel-photo {
+    position: relative;
+    isolation: isolate;
+}
+
+.auth-panel-photo::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    background: linear-gradient(to top, color-mix(in srgb, var(--bs-primary) 88%, transparent), transparent 70%);
+}
+
+@media (min-width: 992px) {
+    .auth-panel {
+        padding: 3.5rem;
+    }
+}
+
+.auth-panel-inner {
+    max-width: 26rem;
+}
+
+.auth-mark {
+    width: 3rem;
+    height: 3rem;
+    font-size: 1.5rem;
+    background-color: var(--app-on-primary);
+    color: var(--bs-primary);
+}
+
+.auth-panel-name {
+    margin: 1.25rem 0 0.4rem;
+    font-size: clamp(1.75rem, 3vw, 2.5rem);
+    font-weight: 700;
+    letter-spacing: -0.025em;
+    line-height: 1.1;
+}
+
+.auth-panel-text {
+    margin: 0;
+    font-size: 1.05rem;
+    opacity: 0.88;
+}
+
+.auth-form-side {
     display: flex;
     align-items: center;
     justify-content: center;
-    padding: 1rem;
-    background-color: var(--sidebar-bg);
-    background-size: cover;
-    background-position: center;
+    padding: 2.5rem 1.25rem;
 }
 
 .auth-card {
     width: 100%;
-    max-width: 400px;
+    max-width: 380px;
 }
 
 .auth-logo {
     max-height: 64px;
     max-width: 220px;
 }
+
 
 /* ---------- Numbers ---------- */
 .text-money,
@@ -426,7 +728,7 @@ body {
 
 /* Totals bar above lists */
 .app-totals {
-    background-color: var(--bs-tertiary-bg);
+    background-color: var(--app-tint);
 }
 
 .app-report-card:hover {

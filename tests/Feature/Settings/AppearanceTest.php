@@ -123,7 +123,7 @@ it('resets to the defaults and deletes uploaded files', function () {
     Storage::disk('public')->assertMissing($logo);
 
     $this->actingAs($this->owner)->get(route('profile.edit'))
-        ->assertSee('--bs-primary: #1F6F5C;', false)
+        ->assertSee('--bs-primary: #2D7A46;', false)
         ->assertDontSee('#112233', false);
 });
 
@@ -177,8 +177,19 @@ it('keeps appearance per farm and rebuilds the cache when the farm changes', fun
     $this->actingAs($this->owner)->put(route('settings.appearance.update'), appearancePayload(['primary_color' => '#112233']));
 
     expect($service->get($this->farm->fresh())['primary_color'])->toBe('#112233')
-        ->and($service->get($other)['primary_color'])->toBe('#1F6F5C');
+        ->and($service->get($other)['primary_color'])->toBe('#2D7A46');
 
     $this->farm->update(['name' => 'Renamed Dairy']);
     expect($service->get($this->farm->fresh())['print_header_text'])->toStartWith('Renamed Dairy');
+});
+
+it('prints the card background and keeps a light sidebar readable in the dark theme', function () {
+    $this->actingAs($this->owner)->put(route('settings.appearance.update'), appearancePayload([
+        'card_bg' => '#FAFFF0', 'sidebar_bg' => '#FFFFFF', 'sidebar_text' => '#1F3A2B',
+    ]))->assertSessionHasNoErrors();
+
+    $css = app(AppearanceService::class)->styleBlock(app(AppearanceService::class)->get($this->farm->fresh()));
+
+    expect($css)->toContain('--app-card-bg: #FAFFF0;')
+        ->and(str($css)->after('[data-bs-theme="dark"]')->toString())->toContain('--sidebar-bg: var(--bs-tertiary-bg);');
 });

@@ -5,6 +5,9 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+### Changed
+- Fresh look: new **Fresh Dairy** colour preset (now the default), Figtree font, light sidebar with a green active pill, white cards on a pale green page, tinted table headers and filter bars, split login page. Everything stays adjustable in Settings → Appearance, which gains a **Card background** colour. Remote-search dropdowns in filter bars now match the small field height.
+
 ## [0.2.0] - 2026-10-28 — Phase 2: Animals, Milk Production, Milk Stock
 
 ### Added

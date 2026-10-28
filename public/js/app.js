@@ -75,9 +75,13 @@
                 const $el = $(this);
                 if ($el.hasClass('select2-hidden-accessible')) return;
                 const $modal = $el.closest('.modal');
+                // Filter bars use small fields; match their height.
+                const small = $el.hasClass('form-select-sm') || $el.closest('form[data-ajax-list]').length ? 'select2--small' : '';
                 const options = {
                     theme: 'bootstrap-5',
                     width: '100%',
+                    selectionCssClass: small,
+                    dropdownCssClass: small,
                     allowClear: !$el.prop('required'),
                     placeholder: $el.data('placeholder') || '',
                     dropdownParent: $modal.length ? $modal : $(document.body),

@@ -2,15 +2,19 @@
 <aside class="app-sidebar offcanvas-lg offcanvas-start" tabindex="-1" id="appSidebar" aria-labelledby="appSidebarLabel">
     <div class="app-sidebar-header">
         <a href="{{ route('home') }}" class="app-brand" id="appSidebarLabel">
-            {{-- The sidebar is dark by default, so prefer the "dark" logo (falls back to the normal logo). --}}
-            @if ($appearance['logo_dark_path'])
+            {{-- Dark sidebar: the "dark" logo. Light sidebar: the normal logo, swapped for the dark one in the dark theme
+                 (where a light sidebar turns dark, see AppearanceService::cssVariables). --}}
+            @if ($appearance['sidebar_is_light'] && $appearance['logo_path'])
+                <img src="{{ branding_url($appearance['logo_path']) }}" alt="" class="app-brand-logo app-logo-light-theme">
+                <img src="{{ branding_url($appearance['logo_dark_path']) }}" alt="" class="app-brand-logo app-logo-dark-theme">
+            @elseif ($appearance['logo_dark_path'])
                 <img src="{{ branding_url($appearance['logo_dark_path']) }}" alt="" class="app-brand-logo">
             @else
-                <i class="bi bi-droplet-half"></i>
+                <span class="app-brand-mark"><i class="bi bi-droplet-half"></i></span>
             @endif
             <span>{{ $appearance['app_name'] }}</span>
         </a>
-        <button type="button" class="btn-close btn-close-white d-lg-none" data-bs-dismiss="offcanvas"
+        <button type="button" class="btn-close {{ $appearance['sidebar_is_light'] ? '' : 'btn-close-white' }} d-lg-none" data-bs-dismiss="offcanvas"
                 data-bs-target="#appSidebar" aria-label="{{ __('Close menu') }}"></button>
     </div>
 

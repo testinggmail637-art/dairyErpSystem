@@ -3,18 +3,25 @@
 @section('title', __('Login'))
 
 @section('content')
-<div class="auth-page" @if ($appearance['login_background_path']) style="background-image: url('{{ branding_url($appearance['login_background_path']) }}')" @endif>
-    <div class="card auth-card shadow border-0">
-        <div class="card-body p-4 p-sm-5">
-            <div class="text-center mb-4">
-                @if ($appearance['logo_path'])
-                    <img src="{{ branding_url($appearance['logo_path']) }}" alt="{{ $appearance['app_name'] }}" class="auth-logo mb-3">
-                @endif
-                <h1 class="h4 fw-semibold text-primary mb-1">{{ $appearance['app_name'] }}</h1>
-                @if ($appearance['login_welcome_text'])
-                    <p class="text-body-secondary mb-0">{{ $appearance['login_welcome_text'] }}</p>
-                @endif
-            </div>
+<div class="auth-page">
+    <div class="auth-panel @if ($appearance['login_background_path']) auth-panel-photo @endif"
+         @if ($appearance['login_background_path']) style="background-image: url('{{ branding_url($appearance['login_background_path']) }}')" @endif>
+        <div class="auth-panel-inner">
+            @if ($appearance['logo_dark_path'])
+                <img src="{{ branding_url($appearance['logo_dark_path']) }}" alt="" class="auth-logo">
+            @else
+                <span class="app-brand-mark auth-mark"><i class="bi bi-droplet-half"></i></span>
+            @endif
+            <p class="auth-panel-name">{{ $appearance['app_name'] }}</p>
+            @if ($appearance['login_welcome_text'])
+                <p class="auth-panel-text">{{ $appearance['login_welcome_text'] }}</p>
+            @endif
+        </div>
+    </div>
+
+    <div class="auth-form-side">
+        <div class="auth-card">
+            <h1 class="h3 mb-4">{{ __('Log in') }}</h1>
 
             <form method="POST" action="{{ route('login.store') }}" novalidate>
                 @csrf
@@ -45,7 +52,7 @@
                 </div>
 
                 <button type="submit" class="btn btn-primary btn-lg w-100">
-                    <i class="bi bi-box-arrow-in-right me-1"></i> {{ __('Login') }}
+                    <i class="bi bi-box-arrow-in-right me-1"></i> {{ __('Log in') }}
                 </button>
             </form>
 
