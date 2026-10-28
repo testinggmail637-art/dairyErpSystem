@@ -19,6 +19,7 @@ class Activity extends BaseActivity
         VendorPayment::class,
         ExpenseImportBatch::class,
         Animal::class,
+        MilkProductionRecord::class,
     ];
 
     protected static function booted(): void

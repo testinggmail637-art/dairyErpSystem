@@ -292,6 +292,31 @@ body {
     max-width: 16rem;
 }
 
+/* Milk entry grid: narrow litre boxes, saved entries marked, Save bar always reachable on phones */
+.app-col-qty {
+    width: 8rem;
+}
+
+.app-input-qty {
+    max-width: 7rem;
+    margin-left: auto;
+    font-size: 1.1rem;
+}
+
+.app-input-saved {
+    border-color: var(--bs-success);
+    border-width: 2px;
+}
+
+.app-sticky-actions {
+    position: sticky;
+    bottom: 0;
+    z-index: 5;
+    padding: 0.75rem 0;
+    background: var(--bs-body-bg);
+    border-top: 1px solid var(--bs-border-color);
+}
+
 /* Animal photos: list thumbnail, form preview, profile picture */
 .app-col-photo {
     width: 3.5rem;

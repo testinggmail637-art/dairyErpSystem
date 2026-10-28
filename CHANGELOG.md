@@ -23,6 +23,12 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - Phase 2 · Task 4: expenses can be linked to an animal — FK `expenses.animal_id`, optional Animal search box on the expense
   form, Animal filter on the expense list, animal shown on list/detail, Animal column in the Excel export, "All expenses of
   this animal" link on the animal's Expenses tab. Animal search is available to expense users without animal screens.
+- Phase 2 · Task 5: milk production (`milk_production_records`, one per animal / date / shift, audit-logged) — Herd →
+  Milk Entry grid for a date and shift (all active milking females, saved litres pre-filled, last 3 entries of the shift
+  as a hint, live cow / buffalo / shift totals, Enter jumps to the next box, sticky Save bar for phones, reason when saved
+  litres change, staff same-day rule); entries list with date/shift/type/animal filters and litres per type; single entry
+  with fat / SNF (idempotent `client_uuid`), edit and delete with a reason; animal profile Milk tab with 60-day table,
+  7-day average and line chart. DemoSeeder adds a year of milk (~16,000 entries).
 
 ### Fixed
 - Expense Excel export test no longer fails when the clock ticks to the next second during the test.

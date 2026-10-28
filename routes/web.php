@@ -12,6 +12,7 @@ use App\Http\Controllers\Expenses\VendorPaymentController;
 use App\Http\Controllers\Farm\FarmSwitchController;
 use App\Http\Controllers\Herd\AnimalBreedController;
 use App\Http\Controllers\Herd\AnimalController;
+use App\Http\Controllers\Herd\MilkProductionController;
 use App\Http\Controllers\HomeController;
 use App\Http\Controllers\Reports\ExpenseReportController;
 use App\Http\Controllers\Reports\ReportController;
@@ -23,6 +24,7 @@ use App\Http\Controllers\Settings\RoleController;
 use App\Http\Controllers\Settings\SectionController;
 use App\Http\Controllers\Settings\UserController;
 use App\Models\Expense;
+use App\Models\MilkProductionRecord;
 use App\Models\VendorPayment;
 use App\Services\ExpenseReportService;
 use Illuminate\Support\Facades\Route;
@@ -122,6 +124,19 @@ Route::middleware(['auth', 'active', 'farm'])->group(function () {
             Route::put('{animal}', [AnimalController::class, 'update'])->middleware('can:animals.manage')->name('animals.update');
             Route::delete('{animal}', [AnimalController::class, 'destroy'])->middleware('can:animals.manage')->name('animals.destroy');
             Route::post('{animal}/change', [AnimalController::class, 'change'])->middleware('can:animals.manage')->name('animals.change');
+        });
+    });
+
+    Route::prefix('milk-production')->name('milk-production.')->group(function () {
+        Route::get('/', [MilkProductionController::class, 'index'])->middleware('can:viewAny,'.MilkProductionRecord::class)->name('index');
+        Route::post('bulk', [MilkProductionController::class, 'storeBulk'])->name('bulk'); // create, checked in the request
+        Route::get('entries', [MilkProductionController::class, 'entries'])->middleware('can:viewAny,'.MilkProductionRecord::class)->name('entries');
+        Route::get('create', [MilkProductionController::class, 'create'])->middleware('can:create,'.MilkProductionRecord::class)->name('create');
+        Route::post('/', [MilkProductionController::class, 'store'])->middleware('can:create,'.MilkProductionRecord::class)->name('store');
+        Route::whereNumber('record')->group(function () {
+            Route::get('{record}/edit', [MilkProductionController::class, 'edit'])->middleware('can:update,record')->name('edit');
+            Route::put('{record}', [MilkProductionController::class, 'update'])->middleware('can:update,record')->name('update');
+            Route::delete('{record}', [MilkProductionController::class, 'destroy'])->middleware('can:delete,record')->name('destroy');
         });
     });
 

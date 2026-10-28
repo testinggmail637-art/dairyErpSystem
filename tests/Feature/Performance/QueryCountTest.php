@@ -11,6 +11,7 @@ use App\Models\AnimalBreed;
 use App\Models\Expense;
 use App\Models\ExpenseCategory;
 use App\Models\Farm;
+use App\Models\MilkProductionRecord;
 use App\Models\User;
 use App\Models\Vendor;
 use App\Models\VendorPayment;
@@ -150,4 +151,23 @@ it('keeps the animals list and profile at a constant number of queries', functio
     $many = queriesFor(route('animals.index'), $this->owner);
 
     expect($many)->toBe($few)->toBeLessThanOrEqual(12);
+});
+
+it('keeps the milk entry grid and entries list at a constant number of queries', function () {
+    $this->actingAs($this->owner); // entries get created_by in both rounds, like real data
+    $make = function (int $count) {
+        Animal::factory()->count($count)->create(['farm_id' => $this->farm->id])->each(function (Animal $animal) {
+            foreach (range(1, 4) as $d) {
+                MilkProductionRecord::factory()->for($animal)->create(['production_date' => today()->subDays($d)->toDateString()]);
+            }
+        });
+    };
+
+    $make(2);
+    $fewGrid = queriesFor(route('milk-production.index'), $this->owner);
+    $fewList = queriesFor(route('milk-production.entries', ['from' => today()->subDays(10)->toDateString()]), $this->owner);
+
+    $make(25);
+    expect(queriesFor(route('milk-production.index'), $this->owner))->toBe($fewGrid)->toBeLessThanOrEqual(12)
+        ->and(queriesFor(route('milk-production.entries', ['from' => today()->subDays(10)->toDateString()]), $this->owner))->toBe($fewList);
 });
