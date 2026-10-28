@@ -8,11 +8,11 @@
 | Item | Value |
 |---|---|
 | Current phase | Phase 2 — Animals, Milk Production, Milk Stock (🟡 in progress) |
-| Last completed task | 2.8 — Milk production reports: daily (animal × shift), monthly (day by day), animal-wise — screen, Excel, PDF |
-| Next task | 2.9 — Milk drop alerts |
-| Overall progress | 32 / 88 tasks (36%) |
-| Tests passing | 398 |
-| Last updated (IST) | 2026-10-28 18:45 |
+| Last completed task | 2.9 — Milk drop alerts (Herd → Milk Alerts page + warning on the entry grid) |
+| Next task | 2.10 — Phase 2 acceptance tests + README/CHANGELOG |
+| Overall progress | 33 / 88 tasks (38%) |
+| Tests passing | 408 |
+| Last updated (IST) | 2026-10-28 19:30 |
 
 ## Phase overview
 
@@ -160,7 +160,7 @@ Status legend: ⬜ Not started · 🟡 In progress · ✅ Done · ⏸ On hold
 - [x] 2.6 MilkStockService + milk_stock_movements
 - [x] 2.7 Daily stock sheet, usage (wastage/home use/calf feeding) and adjustment forms, ledger view
 - [x] 2.8 Production reports (daily, monthly, animal-wise)
-- [ ] 2.9 Milk drop alerts
+- [x] 2.9 Milk drop alerts
 - [ ] 2.10 Phase 2 acceptance tests pass + README/CHANGELOG updated
 
 ### Phase log

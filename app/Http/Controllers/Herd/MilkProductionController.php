@@ -10,6 +10,7 @@ use App\Http\Requests\Herd\DeleteMilkEntryRequest;
 use App\Http\Requests\Herd\MilkEntryRequest;
 use App\Models\Animal;
 use App\Models\MilkProductionRecord;
+use App\Services\MilkDropAlertService;
 use App\Services\MilkProductionService;
 use App\Support\Money;
 use Illuminate\Http\RedirectResponse;
@@ -24,7 +25,10 @@ use Illuminate\View\View;
  */
 class MilkProductionController extends Controller
 {
-    public function __construct(private readonly MilkProductionService $milk) {}
+    public function __construct(
+        private readonly MilkProductionService $milk,
+        private readonly MilkDropAlertService $alerts,
+    ) {}
 
     /** The grid: every milking animal for one date and shift, saved litres pre-filled, last 3 entries as a hint. */
     public function index(Request $request): View
@@ -42,6 +46,19 @@ class MilkProductionController extends Controller
             'entries' => $this->milk->entriesFor($date, $shift, $ids),
             'hints' => $this->milk->lastEntries($ids, $shift, $date),
             'canCreate' => $request->user()->can('create', MilkProductionRecord::class),
+            'alerts' => $this->alerts->alerts($date, $shift),
+        ]);
+    }
+
+    /** Milk drop alerts of a date, both shifts (spec 7.3). */
+    public function alerts(Request $request): View
+    {
+        $date = $this->dateFrom($request->query('date'));
+
+        return view('herd.milk.alerts', [
+            'date' => $date,
+            'alerts' => $this->alerts->alerts($date),
+            'threshold' => $this->alerts->threshold(),
         ]);
     }
 
