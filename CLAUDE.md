@@ -4,8 +4,32 @@ You are building a Dairy ERP for an Indian dairy business that has (1) its own c
 (2) a milk collection center that buys milk from farmers, (3) milk sales (B2C home delivery + B2B bulk),
 and (4) cow/buffalo buying & selling.
 
-**The full specification is in `docs/DAIRY_ERP_SPEC.md`. Read it fully before writing any code.**
-It is the single source of truth. Every table, column, business rule, permission and phase is defined there.
+**The full specification is in `docs/DAIRY_ERP_SPEC.md`.** It is the single source of truth. Every table,
+column, business rule, permission and phase is defined there. Do **not** read it whole — see "Token budget" below.
+
+## Token budget (owner's rule — read less, write less)
+
+**Reading — never re-read the whole project or whole docs:**
+- Session start: read only the "Current status" block at the top of `docs/PROGRESS.md` (≈ first 30 lines)
+  and `docs/CODEMAP.md`. Nothing else up front.
+- Spec: read only the sections for the current task — its phase in §6 (schema), §7 (logic) and §8 (tasks),
+  plus §12 (out of scope). Find line numbers with `grep -n "^### " docs/DAIRY_ERP_SPEC.md`, then Read with
+  `offset`/`limit`. Global rules (§2–§5) are already summarised in this file; open them only when needed.
+- `docs/DECISIONS.md` is long: `grep` it for the topic; never read it fully.
+- Code: use `docs/CODEMAP.md` to jump straight to the file. Grep for a symbol, then Read only that range.
+  Copy the pattern from the reference module (Expenses); open at most one example per layer.
+- Do not re-read a file you just wrote/edited. Do not dump whole files with `cat`.
+- Run tests filtered while working (`php artisan test --filter=<Name>`); run the full suite once before commit.
+  Show only failures/summary (`--compact` or `| tail`), not the full output.
+
+**Writing — only what the task needs:**
+- Build exactly what the current spec task asks. No extra features, options, config, abstractions,
+  helper classes or "future-proofing". No refactors of code the task doesn't touch.
+- Reuse existing traits, helpers and Blade components (CODEMAP) instead of writing new ones.
+- Tests: cover the task's rules and acceptance criteria — no duplicate or trivial tests.
+- Comments only where logic is non-obvious. No docblocks that repeat the signature.
+- Docs updates: short. Tick PROGRESS, add DECISIONS entries only for real assumptions; long write-ups only
+  in the phase log at the end of a phase. Update `docs/CODEMAP.md` only when a new shared building block is added.
 
 ## How to work (autonomous mode)
 
@@ -16,8 +40,8 @@ It is the single source of truth. Every table, column, business rule, permission
    phase's acceptance criteria pass. Within a phase, follow the task order given in the spec.
 3. Keep `docs/PROGRESS.md` updated: a checklist of every task in every phase, ticked when done,
    plus a short "Current status / next task" section at the top. Create it at the start if missing.
-   If you are resumed in a new session, read `docs/PROGRESS.md` and `docs/DECISIONS.md` first and continue
-   from the next unticked task.
+   If you are resumed in a new session, read the "Current status" block of `docs/PROGRESS.md` and
+   `docs/CODEMAP.md`, then continue from the next unticked task (grep `docs/DECISIONS.md` only when needed).
 4. After each task: run `php artisan test` and `./vendor/bin/pint`. Fix failures before moving on.
    Then commit and push following **"Git workflow"** below (one branch + one Pull Request per task).
 5. **Never build anything listed under "Out of scope" in the spec**, even if it seems useful.
