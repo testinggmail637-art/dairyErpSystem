@@ -16,7 +16,7 @@ cow/buffalo buying & selling, expenses, staff, and profit reports — with every
 |---|---|---|
 | 0 | Foundation (login, roles, settings, appearance, monitoring, audit log, backups) | ✅ Done (v0.0.0) |
 | 1 | Expense Management (no approval) + Excel import | ✅ Done (v0.1.0) |
-| 2 | Animals, Milk Production, Milk Stock | 🟡 In progress |
+| 2 | Animals, Milk Production, Milk Stock | ✅ Done (v0.2.0) |
 | 3 | Customers, Delivery, Billing, Payments | ⬜ Not started |
 | 4 | Farmers & Collection Center | ⬜ Not started |
 | 5 | Health, Breeding, Feed | ⬜ Not started |
@@ -38,8 +38,17 @@ _TODO: for each module, list the working features in plain language once its pha
   reports — daily, monthly category × section, category-wise, vendor outstanding — on screen, Excel and PDF;
   **Excel import** — template with dropdowns, upload up to 5,000 rows, preview with per-cell errors and duplicate
   warnings, import valid rows, download error rows to fix and re-upload, import history, revert within 7 days.
-- **Herd & milk production** — _TODO_
-- **Milk stock** — _TODO_
+- **Herd & milk production** ✅ — cow/buffalo breeds (16 seeded); animals with photo, tag unique per farm, breed, mother,
+  stage, ownership and filters; animal profile (details, calves, milk history with chart, expenses, status history,
+  audit log); stage / status / ownership changes with date and reason kept as history; expenses can be linked to an
+  animal; **milk entry grid** for a date and shift (all active milking females, last 3 entries as a hint, live totals,
+  phone friendly), single entry with fat/SNF, edit/delete with a reason; **milk drop alerts** when an animal gives
+  20 % (farm setting) less than its usual; reports — daily (animal × shift), monthly (day by day), animal-wise — on
+  screen, Excel and PDF.
+- **Milk stock** ✅ — one ledger per stock (own farm / collection × cow / buffalo); every milk entry moves stock at once;
+  daily stock sheet (opening, in, delivered, wastage, home use, calf feeding, adjustment, closing); record wastage /
+  home use / calf feeding; adjustments (permission) with a reason; outgoing milk beyond the stock is refused unless the
+  farm allows negative stock; ledger with running balance.
 - **Customers, delivery & billing** — _TODO_
 - **Collection center** — _TODO_
 - **Health, breeding & feed** — _TODO_
@@ -167,8 +176,8 @@ php artisan test        # uses dairy_erp_test (MySQL), never the main DB
 ./vendor/bin/pint
 ```
 
-Current: 308 tests passing (end of Phase 1). `tests/Feature/Phase0AcceptanceTest.php` and
-`Phase1AcceptanceTest.php` walk through each phase's acceptance criteria end to end.
+Current: 414 tests passing (end of Phase 2). `tests/Feature/Phase0AcceptanceTest.php`, `Phase1AcceptanceTest.php` and
+`Phase2AcceptanceTest.php` walk through each phase's acceptance criteria end to end.
 
 ---
 
@@ -212,18 +221,20 @@ Full steps: [`docs/DEPLOYMENT.md`](docs/DEPLOYMENT.md) · Backups & restore: [`d
 
 ```
 app/
-├── Enums/                  # backed enums for every status/type (RoleName, ExpenseUnit, ImportBatchStatus …)
+├── Contracts/              # MovesMilkStock (records that own a milk stock movement)
+├── Enums/                  # backed enums for every status/type (RoleName, ExpenseUnit, AnimalType, MilkShift, MilkMovementType …)
+├── Exceptions/             # InsufficientMilkStockException (shown as a form error)
 ├── Exports/                # Excel exports (expenses, report tables, import template, import error rows)
 ├── Http/
 │   ├── Controllers/        # Auth, Account (profile, notifications, export downloads), Farm (switcher),
 │   │                       #   Settings (users, roles, farm, sections, payment modes, audit log, appearance),
-│   │                       #   Expenses (categories, expenses, vendors, vendor payments, import), Herd (breeds, animals), Reports
+│   │                       #   Expenses (categories, expenses, vendors, vendor payments, import), Herd (breeds, animals, milk entry, milk alerts), MilkStock, Reports
 │   ├── Middleware/         # EnsureFarmSelected (farm), EnsureUserIsActive (active)
 │   └── Requests/           # all validation (Form Requests), Concerns/RequiresReason
 ├── Imports/                # ExpenseImportColumns, ExpenseImportReader (xlsx/xls/csv)
 ├── Jobs/  Listeners/       # queued export notification; NotifyOwnersOfBackupProblem
 ├── Models/                 # Farm, User, Role, Activity, Section, PaymentMode, ExpenseCategory, Vendor, Expense,
-│   │                       #   VendorPayment, ExpenseImportBatch, ExpenseImportRow, AnimalBreed, Animal …
+│   │                       #   VendorPayment, ExpenseImportBatch, ExpenseImportRow, AnimalBreed, Animal, MilkProductionRecord, MilkStockMovement …
 │   ├── Concerns/           # BelongsToFarm, TracksUser, Auditable, HasFarmDefaults
 │   └── Scopes/             # FarmScope
 ├── Notifications/          # in-app (bell) notifications
@@ -232,7 +243,7 @@ app/
 ├── Providers/              # AppServiceProvider (bindings, gates, view composers), TelescopeServiceProvider (local)
 ├── Reports/                # ReportTable (one definition → screen, Excel, PDF)
 ├── Services/               # business logic: Expense, ExpenseImport, ExpenseReport, VendorLedger, VendorPayment,
-│                           #   Appearance, DocumentNumber, User, Role …
+│                           #   Animal, MilkProduction, MilkStock, MilkReport, MilkDropAlert, Appearance, DocumentNumber, User, Role …
 └── Support/                # Money, Format, FinancialYear, Color, CurrentFarm, Permissions, Exporter, ReceiptStorage, AnimalPhotoStorage,
                             #   SvgSanitizer, helpers.php
 config/                     # dairy.php (owner seed), menu.php (sidebar), backup, pulse, sentry, permission …

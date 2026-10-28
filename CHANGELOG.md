@@ -5,6 +5,8 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+## [0.2.0] - 2026-10-28 — Phase 2: Animals, Milk Production, Milk Stock
+
 ### Added
 - Phase 2 · Task 1: animal breeds (`animal_breeds`: cow/buffalo, name, active; unique per farm and type) — Herd → Breeds
   with type/status/search filters (AJAX), add/edit, deactivate instead of delete; the 9 cow and 7 buffalo breeds of the
@@ -49,6 +51,12 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   the farm's alert % (default 20 %) below the average of its previous 7 entries of that shift (min 3, last 30 days), with
   litres, average, drop % and "Check health — this is a signal, not a diagnosis."; the milk entry grid shows the alerts
   of its date and shift. Animal profile tabs can be opened by link (`?tab=milk`).
+- Phase 2 · Task 10: `tests/Feature/Phase2AcceptanceTest.php` walks through the six Phase 2 acceptance criteria end to end
+  (incl. a failed stock write rolling back the milk entry change).
+
+### Changed
+- Reports screen and PDF are shared by all modules; `ReportTable` has litre columns, bold subtotal rows and per-report
+  empty text (expense category-wise report now bolds categories through it).
 
 ### Fixed
 - Expense Excel export test no longer fails when the clock ticks to the next second during the test.
