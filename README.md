@@ -262,6 +262,7 @@ tests/Feature/ tests/Unit/ tests/Fixtures/ # Pest; PhaseNAcceptanceTest covers e
 | `docs/DAIRY_ERP_SPEC.md` | Full specification (tables, rules, phases) |
 | `docs/PROGRESS.md` | Phase-wise checklist and work log |
 | `docs/DECISIONS.md` | Assumptions and decisions taken during build |
+| `docs/CODEMAP.md` | Short map of the code (reference module, shared helpers/components) for quick lookup |
 | `docs/DEPLOYMENT.md` | Production deployment |
 | `docs/BACKUP_RESTORE.md` | Backup and restore steps |
 | `CHANGELOG.md` | Version history per phase |
