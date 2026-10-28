@@ -25,16 +25,17 @@ class AppearanceService
         'logo_path' => null,
         'logo_dark_path' => null,
         'favicon_path' => null,
-        'primary_color' => '#1F6F5C',
-        'secondary_color' => '#6C757D',
-        'success_color' => '#198754',
-        'danger_color' => '#DC3545',
-        'warning_color' => '#FFC107',
-        'sidebar_bg' => '#12332B',
-        'sidebar_text' => '#FFFFFF',
-        'topbar_bg' => '#FFFFFF',
-        'body_bg' => '#F5F7F6',
-        'font_family' => 'Inter',
+        'primary_color' => '#2D7A46',
+        'secondary_color' => '#5C6F64',
+        'success_color' => '#23855A',
+        'danger_color' => '#C23A2E',
+        'warning_color' => '#E3AA2B',
+        'sidebar_bg' => '#FCFDFA',
+        'sidebar_text' => '#1F3A2B',
+        'topbar_bg' => '#FCFDFA',
+        'body_bg' => '#EEF3EC',
+        'card_bg' => '#FFFFFF',
+        'font_family' => 'Figtree',
         'base_font_size' => 14,
         'theme_mode' => 'light',
         'border_radius' => 6,
@@ -48,11 +49,12 @@ class AppearanceService
 
     public const COLOR_KEYS = [
         'primary_color', 'secondary_color', 'success_color', 'danger_color', 'warning_color',
-        'sidebar_bg', 'sidebar_text', 'topbar_bg', 'body_bg',
+        'sidebar_bg', 'sidebar_text', 'topbar_bg', 'body_bg', 'card_bg',
     ];
 
     /** Font name => CSS font stack. Files live in public/vendor/fonts (no CDN). */
     public const FONTS = [
+        'Figtree' => "'Figtree', system-ui, -apple-system, 'Segoe UI', sans-serif",
         'Inter' => "'Inter', system-ui, -apple-system, 'Segoe UI', sans-serif",
         'Roboto' => "'Roboto', system-ui, -apple-system, 'Segoe UI', sans-serif",
         'Poppins' => "'Poppins', system-ui, -apple-system, 'Segoe UI', sans-serif",
@@ -74,29 +76,35 @@ class AppearanceService
 
     /** Ready-made colour sets that fill the form (spec 4.11). */
     public const PRESETS = [
+        'fresh_dairy' => [
+            'label' => 'Fresh Dairy',
+            'primary_color' => '#2D7A46', 'secondary_color' => '#5C6F64', 'success_color' => '#23855A',
+            'danger_color' => '#C23A2E', 'warning_color' => '#E3AA2B', 'sidebar_bg' => '#FCFDFA',
+            'sidebar_text' => '#1F3A2B', 'topbar_bg' => '#FCFDFA', 'body_bg' => '#EEF3EC', 'card_bg' => '#FFFFFF',
+        ],
         'green_dairy' => [
             'label' => 'Green Dairy',
             'primary_color' => '#1F6F5C', 'secondary_color' => '#6C757D', 'success_color' => '#198754',
             'danger_color' => '#DC3545', 'warning_color' => '#FFC107', 'sidebar_bg' => '#12332B',
-            'sidebar_text' => '#FFFFFF', 'topbar_bg' => '#FFFFFF', 'body_bg' => '#F5F7F6',
+            'sidebar_text' => '#FFFFFF', 'topbar_bg' => '#FFFFFF', 'body_bg' => '#F5F7F6', 'card_bg' => '#FFFFFF',
         ],
         'blue_professional' => [
             'label' => 'Blue Professional',
             'primary_color' => '#1D4ED8', 'secondary_color' => '#64748B', 'success_color' => '#15803D',
             'danger_color' => '#B91C1C', 'warning_color' => '#F59E0B', 'sidebar_bg' => '#0F172A',
-            'sidebar_text' => '#E2E8F0', 'topbar_bg' => '#FFFFFF', 'body_bg' => '#F1F5F9',
+            'sidebar_text' => '#E2E8F0', 'topbar_bg' => '#FFFFFF', 'body_bg' => '#F1F5F9', 'card_bg' => '#FFFFFF',
         ],
         'warm_orange' => [
             'label' => 'Warm Orange',
             'primary_color' => '#C2410C', 'secondary_color' => '#78716C', 'success_color' => '#15803D',
             'danger_color' => '#B91C1C', 'warning_color' => '#EAB308', 'sidebar_bg' => '#431407',
-            'sidebar_text' => '#FFF7ED', 'topbar_bg' => '#FFFFFF', 'body_bg' => '#FFFBF5',
+            'sidebar_text' => '#FFF7ED', 'topbar_bg' => '#FFFFFF', 'body_bg' => '#FFFBF5', 'card_bg' => '#FFFFFF',
         ],
         'dark_slate' => [
             'label' => 'Dark Slate',
             'primary_color' => '#0EA5E9', 'secondary_color' => '#94A3B8', 'success_color' => '#22C55E',
             'danger_color' => '#EF4444', 'warning_color' => '#F59E0B', 'sidebar_bg' => '#020617',
-            'sidebar_text' => '#CBD5E1', 'topbar_bg' => '#1E293B', 'body_bg' => '#0F172A',
+            'sidebar_text' => '#CBD5E1', 'topbar_bg' => '#1E293B', 'body_bg' => '#0F172A', 'card_bg' => '#1E293B',
         ],
     ];
 
@@ -162,8 +170,13 @@ class AppearanceService
             '--app-pdf-accent' => $a['pdf_accent_color'],
         ];
 
-        $light = ['--bs-body-bg' => $a['body_bg'], '--topbar-bg' => $a['topbar_bg']];
-        $dark = ['--topbar-bg' => 'var(--bs-tertiary-bg)'];
+        $light = ['--bs-body-bg' => $a['body_bg'], '--topbar-bg' => $a['topbar_bg'], '--app-card-bg' => $a['card_bg']];
+        $dark = ['--topbar-bg' => 'var(--bs-tertiary-bg)', '--app-card-bg' => 'var(--bs-tertiary-bg)'];
+
+        // A light sidebar would glare in the dark theme, so it follows the dark surfaces there.
+        if (Color::readableTextOn($a['sidebar_bg']) !== '#FFFFFF') {
+            $dark += ['--sidebar-bg' => 'var(--bs-tertiary-bg)', '--sidebar-text' => 'var(--bs-body-color)'];
+        }
 
         foreach (['primary', 'secondary', 'success', 'danger', 'warning'] as $name) {
             $hex = $a[$name.'_color'];
@@ -339,6 +352,7 @@ class AppearanceService
             : trim(($farm?->name ?? $a['app_name']).($farm?->address ? "\n".$farm->address : ''));
         $a['pdf_accent_color'] = filled($a['pdf_accent_color']) ? $a['pdf_accent_color'] : $a['primary_color'];
         $a['logo_dark_path'] = $a['logo_dark_path'] ?: $a['logo_path'];
+        $a['sidebar_is_light'] = Color::readableTextOn($a['sidebar_bg']) !== '#FFFFFF';
         $a['base_font_size'] = (int) $a['base_font_size'];
         $a['border_radius'] = (int) $a['border_radius'];
 

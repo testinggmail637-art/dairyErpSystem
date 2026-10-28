@@ -69,9 +69,16 @@
         if (dark) {
             s.removeProperty('--bs-body-bg');
             s.setProperty('--topbar-bg', 'var(--bs-tertiary-bg)');
+            s.setProperty('--app-card-bg', 'var(--bs-tertiary-bg)');
+            // Same rule as the server: a light sidebar follows the dark surfaces.
+            if (readable(color('sidebar_bg', '#000000')) !== '#FFFFFF') {
+                s.setProperty('--sidebar-bg', 'var(--bs-tertiary-bg)');
+                s.setProperty('--sidebar-text', 'var(--bs-body-color)');
+            }
         } else {
             s.setProperty('--bs-body-bg', color('body_bg', '#FFFFFF'));
             s.setProperty('--topbar-bg', color('topbar_bg', '#FFFFFF'));
+            s.setProperty('--app-card-bg', color('card_bg', '#FFFFFF'));
         }
 
         s.setProperty('--bs-body-font-family', (window.AppearanceFonts || {})[value('font_family')] || '');
