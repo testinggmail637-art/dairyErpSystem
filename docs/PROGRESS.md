@@ -8,11 +8,11 @@
 | Item | Value |
 |---|---|
 | Current phase | Phase 2 — Animals, Milk Production, Milk Stock (🟡 in progress) |
-| Last completed task | 2.6 — MilkStockService + `milk_stock_movements` (production entries move own-farm stock) |
-| Next task | 2.7 — Daily stock sheet, usage and adjustment forms, ledger view |
-| Overall progress | 30 / 88 tasks (34%) |
-| Tests passing | 378 |
-| Last updated (IST) | 2026-10-28 17:10 |
+| Last completed task | 2.7 — Milk Stock screens: daily stock sheet, usage and adjustment forms, ledger with running balance |
+| Next task | 2.8 — Production reports (daily, monthly, animal-wise) |
+| Overall progress | 31 / 88 tasks (35%) |
+| Tests passing | 393 |
+| Last updated (IST) | 2026-10-28 18:00 |
 
 ## Phase overview
 
@@ -158,7 +158,7 @@ Status legend: ⬜ Not started · 🟡 In progress · ✅ Done · ⏸ On hold
 - [x] 2.4 `expenses.animal_id` FK + animal select in expense form
 - [x] 2.5 Milk production bulk entry (date + shift grid) + single entry + animal history chart
 - [x] 2.6 MilkStockService + milk_stock_movements
-- [ ] 2.7 Daily stock sheet, usage (wastage/home use/calf feeding) and adjustment forms, ledger view
+- [x] 2.7 Daily stock sheet, usage (wastage/home use/calf feeding) and adjustment forms, ledger view
 - [ ] 2.8 Production reports (daily, monthly, animal-wise)
 - [ ] 2.9 Milk drop alerts
 - [ ] 2.10 Phase 2 acceptance tests pass + README/CHANGELOG updated

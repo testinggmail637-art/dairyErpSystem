@@ -5,6 +5,9 @@
 | Each test counts the queries for a small and a large data set and expects the same number.
 */
 
+use App\Enums\MilkMovementType;
+use App\Enums\MilkSource;
+use App\Enums\MilkType;
 use App\Enums\RoleName;
 use App\Models\Animal;
 use App\Models\AnimalBreed;
@@ -15,6 +18,8 @@ use App\Models\MilkProductionRecord;
 use App\Models\User;
 use App\Models\Vendor;
 use App\Models\VendorPayment;
+use App\Services\MilkStockService;
+use App\Support\CurrentFarm;
 use Illuminate\Support\Facades\DB;
 
 beforeEach(function () {
@@ -170,4 +175,27 @@ it('keeps the milk entry grid and entries list at a constant number of queries',
     $make(25);
     expect(queriesFor(route('milk-production.index'), $this->owner))->toBe($fewGrid)->toBeLessThanOrEqual(12)
         ->and(queriesFor(route('milk-production.entries', ['from' => today()->subDays(10)->toDateString()]), $this->owner))->toBe($fewList);
+});
+
+it('keeps the milk stock sheet and ledger at a constant number of queries', function () {
+    $this->actingAs($this->owner);
+    $stock = app(MilkStockService::class);
+    $make = function (int $count) use ($stock) {
+        Animal::factory()->count($count)->create(['farm_id' => $this->farm->id])->each(function (Animal $animal) use ($stock) {
+            foreach (range(0, 3) as $d) {
+                $record = MilkProductionRecord::factory()->for($animal)->create(['production_date' => today()->subDays($d)->toDateString()]);
+                $stock->syncForReference($record);
+            }
+            $stock->recordOut(MilkSource::OwnFarm, MilkType::from($animal->animal_type->value), today()->toDateString(), null, MilkMovementType::Wastage, '0.5', reason: 'Spilled');
+        });
+    };
+
+    app(CurrentFarm::class)->set($this->farm);
+    $make(2);
+    $fewSheet = queriesFor(route('milk-stock.index'), $this->owner);
+    $fewLedger = queriesFor(route('milk-stock.ledger'), $this->owner);
+
+    $make(25);
+    expect(queriesFor(route('milk-stock.index'), $this->owner))->toBe($fewSheet)->toBeLessThanOrEqual(12)
+        ->and(queriesFor(route('milk-stock.ledger'), $this->owner))->toBe($fewLedger)->toBeLessThanOrEqual(14);
 });

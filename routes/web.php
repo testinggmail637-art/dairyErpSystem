@@ -14,6 +14,7 @@ use App\Http\Controllers\Herd\AnimalBreedController;
 use App\Http\Controllers\Herd\AnimalController;
 use App\Http\Controllers\Herd\MilkProductionController;
 use App\Http\Controllers\HomeController;
+use App\Http\Controllers\MilkStock\MilkStockController;
 use App\Http\Controllers\Reports\ExpenseReportController;
 use App\Http\Controllers\Reports\ReportController;
 use App\Http\Controllers\Settings\AppearanceController;
@@ -137,6 +138,22 @@ Route::middleware(['auth', 'active', 'farm'])->group(function () {
             Route::get('{record}/edit', [MilkProductionController::class, 'edit'])->middleware('can:update,record')->name('edit');
             Route::put('{record}', [MilkProductionController::class, 'update'])->middleware('can:update,record')->name('update');
             Route::delete('{record}', [MilkProductionController::class, 'destroy'])->middleware('can:delete,record')->name('destroy');
+        });
+    });
+
+    /*
+    | Milk stock (spec 7.4) — usage needs milk_stock.view, adjustments milk_stock.adjust (also checked in the request)
+    */
+    Route::prefix('milk-stock')->name('milk-stock.')->group(function () {
+        Route::middleware('can:milk_stock.view')->group(function () {
+            Route::get('/', [MilkStockController::class, 'index'])->name('index');
+            Route::get('ledger', [MilkStockController::class, 'ledger'])->name('ledger');
+            Route::get('usage/create', [MilkStockController::class, 'createUsage'])->name('usage.create');
+            Route::post('usage', [MilkStockController::class, 'store'])->name('usage.store');
+        });
+        Route::middleware('can:milk_stock.adjust')->group(function () {
+            Route::get('adjustments/create', [MilkStockController::class, 'createAdjustment'])->name('adjustments.create');
+            Route::post('adjustments', [MilkStockController::class, 'store'])->name('adjustments.store');
         });
     });
 

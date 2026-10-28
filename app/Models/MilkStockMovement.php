@@ -34,6 +34,7 @@ class MilkStockMovement extends Model
         'reference_type',
         'reference_id',
         'reason',
+        'client_uuid',
     ];
 
     /**
