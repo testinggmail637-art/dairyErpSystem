@@ -13,10 +13,12 @@ use Illuminate\Support\Facades\DB;
 
 /**
  * Milk production entry (spec 7.3): the date + shift grid, single entries, and the numbers behind them.
- * Every write runs in a transaction so that the milk stock (Task 2.6) can be moved in the same one.
+ * Every write moves the own-farm milk stock (MilkStockService) in the same transaction.
  */
 class MilkProductionService
 {
+    public function __construct(private readonly MilkStockService $stock) {}
+
     /** How far back the "last 3 entries" hint looks. */
     private const HINT_DAYS = 60;
 
@@ -124,6 +126,7 @@ class MilkProductionService
 
         return DB::transaction(function () use ($date, $shift, $quantities) {
             $existing = $this->entriesFor($date, $shift, array_keys($quantities));
+            $animals = Animal::withTrashed()->select(['id', 'animal_type'])->findMany(array_keys($quantities))->keyBy('id');
             $counts = ['created' => 0, 'updated' => 0];
 
             foreach ($quantities as $animalId => $litres) {
@@ -131,14 +134,18 @@ class MilkProductionService
                 $record = $existing->get($animalId);
 
                 if ($record === null) {
-                    MilkProductionRecord::create([
+                    $record = MilkProductionRecord::create([
                         'production_date' => $date, 'shift' => $shift, 'animal_id' => $animalId, 'quantity_litre' => $litres,
                     ]);
                     $counts['created']++;
                 } elseif (Money::compare($record->quantity_litre, $litres) !== 0) {
                     $record->update(['quantity_litre' => $litres]);
                     $counts['updated']++;
+                } else {
+                    continue;
                 }
+
+                $this->stock->syncForReference($record->setRelation('animal', $animals->get($animalId)));
             }
 
             return $counts;
@@ -160,7 +167,12 @@ class MilkProductionService
         }
 
         try {
-            return [DB::transaction(fn () => MilkProductionRecord::create($this->attributes($data) + ['client_uuid' => $uuid])), true];
+            return [DB::transaction(function () use ($data, $uuid) {
+                $record = MilkProductionRecord::create($this->attributes($data) + ['client_uuid' => $uuid]);
+                $this->stock->syncForReference($record);
+
+                return $record;
+            }), true];
         } catch (UniqueConstraintViolationException $e) {
             // a double submit raced past the check above: the unique index kept the first one
             $existing = $uuid ? MilkProductionRecord::query()->where('client_uuid', $uuid)->first() : null;
@@ -176,14 +188,20 @@ class MilkProductionService
     /** @param  array<string, mixed>  $data */
     public function update(MilkProductionRecord $record, array $data): MilkProductionRecord
     {
-        DB::transaction(fn () => $record->update($this->attributes($data)));
+        DB::transaction(function () use ($record, $data) {
+            $record->update($this->attributes($data));
+            $this->stock->syncForReference($record);
+        });
 
         return $record;
     }
 
     public function delete(MilkProductionRecord $record): void
     {
-        DB::transaction(fn () => $record->delete());
+        DB::transaction(function () use ($record) {
+            $this->stock->deleteForReference($record);
+            $record->delete();
+        });
     }
 
     /**

@@ -10,6 +10,7 @@ use App\Models\Expense;
 use App\Models\ExpenseCategory;
 use App\Models\Farm;
 use App\Models\MilkProductionRecord;
+use App\Models\MilkStockMovement;
 use App\Models\PaymentMode;
 use App\Models\Section;
 use App\Models\User;
@@ -18,6 +19,7 @@ use App\Models\VendorPayment;
 use App\Support\CurrentFarm;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\DB;
 use RuntimeException;
 
 /**
@@ -86,8 +88,30 @@ class DemoSeeder extends Seeder
             $this->milkRecords($farm, $users);
         }
 
-        $this->command?->info(sprintf('Demo data: %d expenses, %d vendor payments, %d animals, %d milk entries.',
-            Expense::query()->count(), VendorPayment::query()->count(), Animal::query()->count(), MilkProductionRecord::query()->count()));
+        $this->productionStock($farm);
+
+        $this->command?->info(sprintf('Demo data: %d expenses, %d vendor payments, %d animals, %d milk entries, %d stock movements.',
+            Expense::query()->count(), VendorPayment::query()->count(), Animal::query()->count(), MilkProductionRecord::query()->count(),
+            MilkStockMovement::query()->count()));
+    }
+
+    /**
+     * Bulk-inserted milk entries skip MilkStockService, so their production movements are added here in one
+     * INSERT … SELECT — only for entries that have none yet, so re-running is safe.
+     */
+    private function productionStock(Farm $farm): void
+    {
+        DB::statement(<<<'SQL'
+            INSERT INTO milk_stock_movements
+                (farm_id, movement_date, shift, stock_source, milk_type, movement_type, quantity_in, quantity_out,
+                 reference_type, reference_id, created_by, updated_by, created_at, updated_at)
+            SELECT r.farm_id, r.production_date, r.shift, 'own_farm', a.animal_type, 'production', r.quantity_litre, 0,
+                   ?, r.id, r.created_by, r.updated_by, r.created_at, r.updated_at
+            FROM milk_production_records r
+            JOIN animals a ON a.id = r.animal_id
+            LEFT JOIN milk_stock_movements m ON m.reference_type = ? AND m.reference_id = r.id
+            WHERE r.farm_id = ? AND r.quantity_litre > 0 AND m.id IS NULL
+            SQL, [MilkProductionRecord::class, MilkProductionRecord::class, $farm->id]);
     }
 
     /**

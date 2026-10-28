@@ -29,6 +29,12 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   litres change, staff same-day rule); entries list with date/shift/type/animal filters and litres per type; single entry
   with fat / SNF (idempotent `client_uuid`), edit and delete with a reason; animal profile Milk tab with 60-day table,
   7-day average and line chart. DemoSeeder adds a year of milk (~16,000 entries).
+- Phase 2 · Task 6: milk stock ledger (`milk_stock_movements`, per source own farm / collection × milk type cow / buffalo)
+  and `MilkStockService` — `recordIn` / `recordOut` (outgoing milk refused beyond the balance up to that date unless the
+  farm allows negative stock; reason required for wastage, home use, calf feeding and adjustments), `syncForReference` /
+  `deleteForReference`, `balance`, `dailySummary`. Every milk entry (grid, single, edit, delete) now moves own-farm stock
+  in the same transaction; existing entries were back-filled by the migration and DemoSeeder adds the movements of its
+  bulk-inserted milk. New `MilkMovementType` enum and `InsufficientMilkStockException` (shown as a form error).
 
 ### Fixed
 - Expense Excel export test no longer fails when the clock ticks to the next second during the test.
