@@ -35,6 +35,11 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   `deleteForReference`, `balance`, `dailySummary`. Every milk entry (grid, single, edit, delete) now moves own-farm stock
   in the same transaction; existing entries were back-filled by the migration and DemoSeeder adds the movements of its
   bulk-inserted milk. New `MilkMovementType` enum and `InsufficientMilkStockException` (shown as a form error).
+- Phase 2 · Task 7: Milk Stock screens — daily stock sheet per date (own farm / collection × cow / buffalo plus combined:
+  opening, in, delivered, wastage, home use, calf feeding, net adjustment, closing) with the day's usage and adjustments;
+  "Record usage" form (wastage / home use / calf feeding, reason, `milk_stock.view`) and "Adjustment" form (in / out,
+  reason, `milk_stock.adjust`), both idempotent on `client_uuid` (new column) and refused beyond the balance unless
+  negative stock is allowed; ledger with AJAX filters (dates, stock, milk type, movement) and a running balance.
 
 ### Fixed
 - Expense Excel export test no longer fails when the clock ticks to the next second during the test.

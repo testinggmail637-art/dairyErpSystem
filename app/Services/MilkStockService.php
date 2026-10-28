@@ -9,10 +9,14 @@ use App\Enums\MilkSource;
 use App\Enums\MilkType;
 use App\Exceptions\InsufficientMilkStockException;
 use App\Models\Farm;
+use App\Models\MilkProductionRecord;
 use App\Models\MilkStockMovement;
 use App\Support\CurrentFarm;
 use App\Support\Money;
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\MorphTo;
+use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
 use InvalidArgumentException;
@@ -23,6 +27,8 @@ use InvalidArgumentException;
  */
 class MilkStockService
 {
+    public const LEDGER_PER_PAGE = 100;
+
     public function __construct(private readonly CurrentFarm $currentFarm) {}
 
     /** Milk into a stock (production, collection, adjustment in). */
@@ -100,6 +106,114 @@ class MilkStockService
 
             return $movement;
         });
+    }
+
+    /**
+     * Usage (wastage / home use / calf feeding) or adjustment from the milk stock forms (spec 7.4); idempotent on
+     * client_uuid (spec 4.7).
+     *
+     * @param  array{stock_source: string, milk_type: string, movement_date: string, shift?: ?string, movement_type: string, quantity: string, reason: string, client_uuid?: ?string}  $data
+     * @return array{0: MilkStockMovement, 1: bool} the movement and whether it was newly created
+     */
+    public function recordManual(array $data): array
+    {
+        $uuid = $data['client_uuid'] ?? null;
+
+        if ($uuid && ($existing = MilkStockMovement::query()->where('client_uuid', $uuid)->first())) {
+            return [$existing, false];
+        }
+
+        $type = MilkMovementType::from($data['movement_type']);
+        $movement = $this->write(
+            MilkSource::from($data['stock_source']),
+            MilkType::from($data['milk_type']),
+            $data['movement_date'],
+            MilkShift::tryFrom((string) ($data['shift'] ?? '')),
+            $type,
+            $data['quantity'],
+            null,
+            $data['reason'],
+            $uuid,
+        );
+
+        return [$movement, true];
+    }
+
+    /**
+     * Ledger with a running balance (spec 7.4), oldest first like a passbook. The running balance follows the
+     * source / milk type filter (both empty = all milk) and starts from the balance before $from; the movement
+     * type filter only hides rows, so the balance column stays true. Sums and the window run on lean rows; the page's
+     * rows are then loaded as models with their creator and source record.
+     *
+     * @param  array{from: string, to: string, source: string, milk_type: string, movement_type: string}  $filters
+     * @return array{opening: string, in: string, out: string, closing: string, rows: LengthAwarePaginator}
+     */
+    public function ledger(array $filters, int $page = 1, array $query = []): array
+    {
+        $source = MilkSource::tryFrom($filters['source']);
+        $milkType = MilkType::tryFrom($filters['milk_type']);
+        $opening = $this->balance($source, $milkType, Carbon::parse($filters['from'])->subDay()->toDateString());
+
+        $period = fn () => MilkStockMovement::query()->toBase()
+            ->when($source, fn ($q) => $q->where('stock_source', $source->value))
+            ->when($milkType, fn ($q) => $q->where('milk_type', $milkType->value))
+            ->whereBetween('movement_date', [$filters['from'], $filters['to']]);
+
+        // totals need no running balance: a plain aggregate
+        $totals = $period()
+            ->when($filters['movement_type'], fn ($q, $v) => $q->where('movement_type', $v))
+            ->selectRaw('COUNT(*) AS cnt, COALESCE(SUM(quantity_in), 0) AS qty_in, COALESCE(SUM(quantity_out), 0) AS qty_out')
+            ->first();
+
+        $lean = $period()
+            ->select(['id', 'movement_date', 'movement_type'])
+            // CAST keeps it exact: a bound string added to a DECIMAL would otherwise become a DOUBLE
+            ->selectRaw('CAST(? AS DECIMAL(14,2)) + SUM(quantity_in - quantity_out) OVER (ORDER BY movement_date, id ROWS UNBOUNDED PRECEDING) AS balance', [$opening]);
+        $rows = DB::query()->fromSub($lean, 'm')
+            ->when($filters['movement_type'], fn ($q, $v) => $q->where('movement_type', $v))
+            ->select(['id', 'balance'])->orderBy('movement_date')->orderBy('id')
+            ->forPage($page, self::LEDGER_PER_PAGE)
+            ->get();
+
+        $models = MilkStockMovement::query()
+            ->with(['creator:id,name', 'reference' => fn (MorphTo $m) => $m->morphWith([MilkProductionRecord::class => ['animal:id,tag_no,name']])])
+            ->findMany($rows->pluck('id'))
+            ->keyBy('id');
+        $items = $rows->map(fn ($row) => $models->get($row->id)->setAttribute('balance', Money::round2((string) $row->balance)));
+
+        $in = Money::round2((string) $totals->qty_in);
+        $out = Money::round2((string) $totals->qty_out);
+        $closing = $filters['movement_type'] === ''
+            ? Money::sub(Money::add($opening, $in), $out)
+            : $this->balance($source, $milkType, $filters['to']);
+
+        return [
+            'opening' => $opening,
+            'in' => $in,
+            'out' => $out,
+            'closing' => $closing,
+            'rows' => new LengthAwarePaginator($items, (int) $totals->cnt, self::LEDGER_PER_PAGE, $page, [
+                'path' => request()->url(),
+                'query' => $query,
+            ]),
+        ];
+    }
+
+    /**
+     * The day's usage and adjustments (manual movements) for the stock sheet, with who entered them.
+     *
+     * @return Collection<int, MilkStockMovement>
+     */
+    public function manualMovementsOn(string $date): Collection
+    {
+        $types = array_map(fn (MilkMovementType $t) => $t->value, array_filter(MilkMovementType::cases(), fn ($t) => $t->requiresReason()));
+
+        return MilkStockMovement::query()
+            ->with('creator:id,name')
+            ->where('movement_date', $date)
+            ->whereIn('movement_type', $types)
+            ->orderBy('id')
+            ->get();
     }
 
     /** The source record is being deleted: its movement goes with it. Call inside the same transaction. */
@@ -196,6 +310,7 @@ class MilkStockService
         mixed $quantity,
         ?Model $reference,
         ?string $reason,
+        ?string $clientUuid = null,
     ): MilkStockMovement {
         $quantity = Money::round2($quantity);
         $reason = filled($reason) ? trim($reason) : null;
@@ -207,7 +322,7 @@ class MilkStockService
             throw new InvalidArgumentException("A {$type->value} movement needs a reason.");
         }
 
-        return DB::transaction(function () use ($source, $milkType, $date, $shift, $type, $quantity, $reference, $reason) {
+        return DB::transaction(function () use ($source, $milkType, $date, $shift, $type, $quantity, $reference, $reason, $clientUuid) {
             if (! $type->isIn()) {
                 $this->ensureAvailable($source, $milkType, $date, $quantity);
             }
@@ -224,6 +339,7 @@ class MilkStockService
                 'reference_type' => $reference?->getMorphClass(),
                 'reference_id' => $reference?->getKey(),
                 'reason' => $reason,
+                'client_uuid' => $clientUuid,
             ]);
         });
     }
