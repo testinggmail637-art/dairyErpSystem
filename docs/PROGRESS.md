@@ -11,8 +11,8 @@
 | Last completed task | 3.1 — Routes CRUD |
 | Next task | 3.2 — Products CRUD + seeder |
 | Overall progress | 35 / 88 tasks (40%) |
-| Tests passing | 426 |
-| Last updated (IST) | 2026-10-29 (task/3.1-routes-crud) |
+| Tests passing | 428 |
+| Last updated (IST) | 2026-10-29 (fix/security-review) |
 
 ## Phase overview
 

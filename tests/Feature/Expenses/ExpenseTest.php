@@ -297,3 +297,11 @@ it('sends create-only staff back to a new form after saving, keeps export for vi
     $this->actingAs($this->accountant)->get(route('expenses.show', $foreign))->assertNotFound();
     $this->actingAs($this->accountant)->get(route('expenses.receipt', $foreign))->assertNotFound();
 });
+
+it('refuses a receipt whose name does not match its content (e.g. a PDF named .html)', function () {
+    $pdf = UploadedFile::fake()->createWithContent('bill.html', "%PDF-1.4\n1 0 obj << /Type /Catalog >> endobj\ntrailer << /Root 1 0 R >>\n%%EOF\n");
+
+    $this->actingAs($this->accountant)->post(route('expenses.store'), expensePayload(['receipt' => $pdf]))->assertSessionHasErrors('receipt');
+
+    expect(Expense::count())->toBe(0);
+});
