@@ -11,6 +11,7 @@ use App\Enums\MilkType;
 use App\Enums\RoleName;
 use App\Models\Animal;
 use App\Models\AnimalBreed;
+use App\Models\DeliveryRoute;
 use App\Models\Expense;
 use App\Models\ExpenseCategory;
 use App\Models\Farm;
@@ -198,4 +199,15 @@ it('keeps the milk stock sheet and ledger at a constant number of queries', func
     $make(25);
     expect(queriesFor(route('milk-stock.index'), $this->owner))->toBe($fewSheet)->toBeLessThanOrEqual(12)
         ->and(queriesFor(route('milk-stock.ledger'), $this->owner))->toBe($fewLedger)->toBeLessThanOrEqual(14);
+});
+
+it('keeps the delivery routes list at a constant number of queries', function () {
+    $boy = User::factory()->forFarm($this->farm)->withRole(RoleName::DeliveryBoy)->create();
+    DeliveryRoute::factory()->count(2)->create(['farm_id' => $this->farm->id, 'delivery_user_id' => $boy->id]);
+    $few = queriesFor(route('delivery-routes.index'), $this->owner);
+
+    DeliveryRoute::factory()->count(40)->create(['farm_id' => $this->farm->id, 'delivery_user_id' => $boy->id]);
+    $many = queriesFor(route('delivery-routes.index'), $this->owner);
+
+    expect($many)->toBe($few)->toBeLessThanOrEqual(10);
 });
