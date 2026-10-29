@@ -127,17 +127,33 @@
     });
 
     /* ---------- presets ---------- */
-    $('[data-preset]').each(function () {
-        $(this).find('[data-swatch]').each(function () {
-            this.style.backgroundColor = this.dataset.swatch;
+    const $presets = $('[data-preset]');
+    // tick the preset whose colours equal the form's current colours
+    const markPreset = function () {
+        $presets.each(function () {
+            const preset = $(this).data('preset') || {};
+            const match = Object.keys(preset).every((key) => {
+                const $field = $form.find('[data-color="' + key + '"]');
+                return $field.length
+                    ? String($field.val()).toUpperCase() === String(preset[key]).toUpperCase()
+                    : String($form.find('[name="' + key + '"]').val()) === String(preset[key]);
+            });
+            $(this).toggleClass('is-active', match).attr('aria-pressed', match ? 'true' : 'false');
         });
-    }).on('click', function () {
+    };
+
+    $presets.on('click', function () {
         const preset = $(this).data('preset') || {};
         Object.keys(preset).forEach((key) => {
-            $form.find('[data-color="' + key + '"]').val(preset[key]).trigger('input');
+            const $field = $form.find('[data-color="' + key + '"]');
+            ($field.length ? $field : $form.find('[name="' + key + '"]')).val(preset[key]).trigger('input').trigger('change');
         });
         update();
+        markPreset();
     });
+
+    $form.on('input change', 'input, select', markPreset);
+    markPreset();
 
     $form.on('input change', 'input, select', update);
     update();

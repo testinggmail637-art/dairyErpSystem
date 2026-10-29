@@ -2,9 +2,16 @@
 
 namespace App\Providers;
 
+use App\Models\Animal;
+use App\Models\Expense;
 use App\Models\Farm;
+use App\Models\MilkProductionRecord;
+use App\Models\MilkStockMovement;
 use App\Models\User;
+use App\Models\Vendor;
+use App\Models\VendorPayment;
 use App\Services\AppearanceService;
+use App\Services\DashboardService;
 use App\Support\AuditReason;
 use App\Support\CurrentFarm;
 use App\Support\Menu;
@@ -42,6 +49,12 @@ class AppServiceProvider extends ServiceProvider
         Model::preventSilentlyDiscardingAttributes(! $this->app->isProduction());
 
         Paginator::useBootstrapFive();
+
+        // Dashboard numbers are cached per farm for 5 minutes; any write to a source table clears them (spec Phase 7).
+        foreach ([Animal::class, Expense::class, MilkProductionRecord::class, MilkStockMovement::class, VendorPayment::class, Vendor::class] as $model) {
+            $model::saved(fn (Model $m) => DashboardService::forget($m->farm_id));
+            $model::deleted(fn (Model $m) => DashboardService::forget($m->farm_id));
+        }
 
         // Backups on MariaDB: older MariaDB (e.g. XAMPP's 10.4) ships only `mysqldump`, not `mariadb-dump`.
         DbDumperFactory::extend('mariadb', function () {

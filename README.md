@@ -54,7 +54,7 @@ _TODO: for each module, list the working features in plain language once its pha
 - **Health, breeding & feed** — _TODO_
 - **Animal trading** — _TODO_
 - **Staff & salary** — _TODO_
-- **Dashboard & reports** — _TODO_
+- **Dashboard & reports** 🟡 — dashboard cards and charts for milk, stock, herd, expenses and vendor payable (cached 5 min, permission-aware); expense and milk production reports. Remaining cards and reports come with Phases 3–7.
 - **Admin panel** ✅ — login by email or mobile (inactive users blocked, even mid-session); users with roles and
   farms, owner-role protection; roles with a permission matrix; farm settings; sections and payment modes; audit log
   (who changed what, old → new, reason); **Appearance** (logo, colours, fonts, light/dark/auto theme, login page, PDF
@@ -202,7 +202,7 @@ After adding a permission in code run `php artisan db:seed --class=RolesAndPermi
 
 Settings → **Appearance**: app name, logo, favicon, colors (primary, sidebar, top bar, background, status
 colors), font, font size, corner radius, light/dark/auto theme, login page, PDF header/footer. Includes live
-preview, presets (Green Dairy, Blue Professional, Warm Orange, Dark Slate) and "Reset to defaults". No code changes needed.
+preview, presets (Fresh Dairy, Green Dairy, Cream & Butter, Teal Breeze, Blue Professional, Forest Night, Dark Slate) and "Reset to defaults". No code changes needed.
 Permission: `appearance.manage` (owner + admin). Each user can pick their own theme in **My profile**.
 "Sample PDF" shows the print branding. Developers: colours/fonts come only from the CSS variables printed by
 `App\Services\AppearanceService` — never add colour literals to Blade, `app.css`, JS charts (`App.chartColors()`) or PDFs.

@@ -4,6 +4,7 @@ use App\Http\Controllers\Account\ExportDownloadController;
 use App\Http\Controllers\Account\NotificationController;
 use App\Http\Controllers\Account\ProfileController;
 use App\Http\Controllers\Auth\LoginController;
+use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\Expenses\ExpenseCategoryController;
 use App\Http\Controllers\Expenses\ExpenseController;
 use App\Http\Controllers\Expenses\ExpenseImportController;
@@ -51,7 +52,7 @@ Route::post('logout', [LoginController::class, 'destroy'])->middleware('auth')->
 */
 Route::middleware(['auth', 'active', 'farm'])->group(function () {
     Route::get('/', HomeController::class)->name('home');
-    Route::view('dashboard', 'dashboard')->middleware('can:dashboard.view')->name('dashboard');
+    Route::get('dashboard', DashboardController::class)->middleware('can:dashboard.view')->name('dashboard');
 
     // Farm switcher (top bar; shown only when the user has more than one farm)
     Route::post('farm/switch', FarmSwitchController::class)->name('farm.switch');

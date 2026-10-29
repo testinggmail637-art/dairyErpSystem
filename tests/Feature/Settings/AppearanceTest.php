@@ -193,3 +193,17 @@ it('prints the card background and keeps a light sidebar readable in the dark th
     expect($css)->toContain('--app-card-bg: #FAFFF0;')
         ->and(str($css)->after('[data-bs-theme="dark"]')->toString())->toContain('--sidebar-bg: var(--bs-tertiary-bg);');
 });
+
+it('offers presets that each set every colour and a theme, and save as valid settings', function () {
+    foreach (AppearanceService::PRESETS as $key => $preset) {
+        expect(array_keys($preset))->toContain(...AppearanceService::COLOR_KEYS)
+            ->and($preset['theme_mode'])->toBeIn(AppearanceService::THEMES);
+
+        $this->actingAs($this->owner)
+            ->put(route('settings.appearance.update'), appearancePayload(collect($preset)->except(['label', 'description'])->all()))
+            ->assertSessionHasNoErrors();
+    }
+
+    $this->actingAs($this->owner)->get(route('settings.appearance.edit'))
+        ->assertSee('Cream &amp; Butter', false)->assertSee('Forest Night')->assertSee('preset-card');
+});
