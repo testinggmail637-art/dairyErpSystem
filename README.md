@@ -202,7 +202,7 @@ After adding a permission in code run `php artisan db:seed --class=RolesAndPermi
 
 Settings → **Appearance**: app name, logo, favicon, colors (primary, sidebar, top bar, background, status
 colors), font, font size, corner radius, light/dark/auto theme, login page, PDF header/footer. Includes live
-preview, presets (Green Dairy, Blue Professional, Warm Orange, Dark Slate) and "Reset to defaults". No code changes needed.
+preview, presets (Fresh Dairy, Green Dairy, Cream & Butter, Teal Breeze, Blue Professional, Forest Night, Dark Slate) and "Reset to defaults". No code changes needed.
 Permission: `appearance.manage` (owner + admin). Each user can pick their own theme in **My profile**.
 "Sample PDF" shows the print branding. Developers: colours/fonts come only from the CSS variables printed by
 `App\Services\AppearanceService` — never add colour literals to Blade, `app.css`, JS charts (`App.chartColors()`) or PDFs.

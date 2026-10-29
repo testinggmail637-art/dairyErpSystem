@@ -111,13 +111,6 @@ class AppearanceService
             'sidebar_text' => '#E2E8F0', 'topbar_bg' => '#FFFFFF', 'body_bg' => '#F1F5F9', 'card_bg' => '#FFFFFF',
             'theme_mode' => 'light',
         ],
-        'warm_orange' => [
-            'label' => 'Warm Orange', 'description' => 'Earthy terracotta',
-            'primary_color' => '#C2410C', 'secondary_color' => '#78716C', 'success_color' => '#15803D',
-            'danger_color' => '#B91C1C', 'warning_color' => '#EAB308', 'sidebar_bg' => '#431407',
-            'sidebar_text' => '#FFF7ED', 'topbar_bg' => '#FFFFFF', 'body_bg' => '#FFFBF5', 'card_bg' => '#FFFFFF',
-            'theme_mode' => 'light',
-        ],
         'forest_night' => [
             'label' => 'Forest Night', 'description' => 'Dark theme, soft green glow',
             'primary_color' => '#3BA36F', 'secondary_color' => '#8FA39A', 'success_color' => '#3FB37A',

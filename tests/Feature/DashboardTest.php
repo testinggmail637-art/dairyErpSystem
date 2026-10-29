@@ -58,6 +58,8 @@ it('totals milk, stock, herd, expenses and vendor payable from the source tables
         ->and($data['expenses']['month'])->toBe('5000.00')
         ->and($data['expenses']['last_month'])->toBe('500.00')
         ->and($data['expenses']['chart']['values'])->toHaveCount(DashboardService::CHART_MONTHS)
+        ->and($data['production']['chart'])->toMatchArray(['total' => '19.00', 'average' => '0.63']) // 27 Oct + 30 Sep, today excluded
+        ->and($data['expenses']['chart'])->toMatchArray(['total' => '5500.00', 'average' => '458.33'])
         ->and($data['vendor_payable'])->toBe('1500.00');
 });
 

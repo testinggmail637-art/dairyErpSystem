@@ -120,6 +120,8 @@ class DashboardService
             'chart' => [
                 'labels' => array_map(fn ($d) => Carbon::parse($d)->format('d M'), array_keys($days)),
                 'series' => collect(MilkType::cases())->mapWithKeys(fn (MilkType $t) => [$t->value => array_column($days, $t->value)])->all(),
+                'total' => $chartTotal = Money::sum(array_merge(...array_map('array_values', array_values($days)))),
+                'average' => Money::div($chartTotal, (string) self::CHART_DAYS),
             ],
         ];
     }
@@ -166,6 +168,7 @@ class DashboardService
         $stages = collect(LifecycleStage::cases())
             ->map(fn (LifecycleStage $s) => ['label' => $s->label(), 'count' => (int) ($counts[$s->value] ?? 0)])
             ->filter(fn ($s) => $s['count'] > 0)
+            ->sortByDesc('count') // the biggest group gets the primary colour
             ->values()
             ->all();
 
@@ -237,7 +240,12 @@ class DashboardService
             'month' => end($months) ?: '0.00',
             'last_month' => Money::round2((string) ($monthly[$monthStart->copy()->subMonth()->format('Y-m')] ?? 0)),
             'categories' => $categories,
-            'chart' => ['labels' => array_keys($months), 'values' => array_values($months)],
+            'chart' => [
+                'labels' => array_keys($months),
+                'values' => array_values($months),
+                'total' => $chartTotal = Money::sum($months),
+                'average' => Money::div($chartTotal, (string) self::CHART_MONTHS),
+            ],
         ];
     }
 

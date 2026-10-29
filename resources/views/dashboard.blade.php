@@ -137,14 +137,22 @@
             @if ($canMilk)
                 <div class="{{ $canHerd ? 'col-lg-8' : 'col-12' }}">
                     <div class="card h-100">
-                        <div class="card-header d-flex align-items-center justify-content-between">
-                            <span><i class="bi bi-graph-up me-1"></i>{{ __('Milk production — last :n days', ['n' => \App\Services\DashboardService::CHART_DAYS]) }}</span>
+                        <div class="card-header chart-head">
+                            <div>
+                                <div class="chart-title"><i class="bi bi-graph-up me-1"></i>{{ __('Milk production') }}</div>
+                                <div class="chart-sub">{{ __('Last :n days, cow and buffalo', ['n' => \App\Services\DashboardService::CHART_DAYS]) }}</div>
+                            </div>
+                            <div class="chart-figures">
+                                <div><span>{{ __('Total') }}</span><strong>{{ fmt_qty($production['chart']['total']) }} L</strong></div>
+                                <div><span>{{ __('Daily avg') }}</span><strong>{{ fmt_qty($production['chart']['average']) }} L</strong></div>
+                            </div>
                         </div>
                         <div class="card-body">
                             <div class="chart-box">
                                 <canvas id="chart-production" role="img" aria-label="{{ __('Milk production per day') }}"
                                         data-chart='@json($production['chart'])'
-                                        data-label-cow="{{ __('Cow') }}" data-label-buffalo="{{ __('Buffalo') }}"></canvas>
+                                        data-label-cow="{{ __('Cow') }}" data-label-buffalo="{{ __('Buffalo') }}"
+                                        data-label-total="{{ __('Total') }}" data-label-average="{{ __('Daily avg') }}"></canvas>
                             </div>
                         </div>
                     </div>
@@ -153,13 +161,20 @@
             @if ($canHerd)
                 <div class="{{ $canMilk ? 'col-lg-4' : 'col-12' }}">
                     <div class="card h-100">
-                        <div class="card-header"><i class="bi bi-pie-chart me-1"></i>{{ __('Herd by stage') }}</div>
+                        <div class="card-header chart-head">
+                            <div>
+                                <div class="chart-title"><i class="bi bi-pie-chart me-1"></i>{{ __('Herd by stage') }}</div>
+                                <div class="chart-sub">{{ __('Active animals') }}</div>
+                            </div>
+                        </div>
                         <div class="card-body">
                             @if ($herd['stages'])
-                                <div class="chart-box">
+                                <div class="chart-donut">
                                     <canvas id="chart-herd" role="img" aria-label="{{ __('Active animals by stage') }}"
-                                            data-chart='@json($herd['stages'])'></canvas>
+                                            data-chart='@json($herd['stages'])' data-value="count"></canvas>
+                                    <div class="chart-donut-center"><strong>{{ $herd['active'] }}</strong><span>{{ __('animals') }}</span></div>
                                 </div>
+                                <ul class="chart-legend" data-legend-for="chart-herd"></ul>
                             @else
                                 <p class="text-body-secondary text-center my-5">{{ __('No active animals yet.') }}</p>
                             @endif
@@ -175,24 +190,41 @@
         <div class="row g-3 mb-3">
             <div class="col-lg-8">
                 <div class="card h-100">
-                    <div class="card-header"><i class="bi bi-bar-chart me-1"></i>{{ __('Expenses — last :n months', ['n' => \App\Services\DashboardService::CHART_MONTHS]) }}</div>
+                    <div class="card-header chart-head">
+                        <div>
+                            <div class="chart-title"><i class="bi bi-bar-chart me-1"></i>{{ __('Expenses') }}</div>
+                            <div class="chart-sub">{{ __('Last :n months, current month highlighted', ['n' => \App\Services\DashboardService::CHART_MONTHS]) }}</div>
+                        </div>
+                        <div class="chart-figures">
+                            <div><span>{{ __('Total') }}</span><strong>{{ inr($expenses['chart']['total']) }}</strong></div>
+                            <div><span>{{ __('Monthly avg') }}</span><strong>{{ inr($expenses['chart']['average']) }}</strong></div>
+                        </div>
+                    </div>
                     <div class="card-body">
                         <div class="chart-box">
                             <canvas id="chart-expenses" role="img" aria-label="{{ __('Expenses per month') }}"
-                                    data-chart='@json($expenses['chart'])' data-label="{{ __('Expenses') }}"></canvas>
+                                    data-chart='@json($expenses['chart'])' data-label="{{ __('Expenses') }}"
+                                    data-label-average="{{ __('Monthly avg') }}" data-label-vs="{{ __('vs avg') }}"></canvas>
                         </div>
                     </div>
                 </div>
             </div>
             <div class="col-lg-4">
                 <div class="card h-100">
-                    <div class="card-header"><i class="bi bi-tags me-1"></i>{{ __('This month by category') }}</div>
+                    <div class="card-header chart-head">
+                        <div>
+                            <div class="chart-title"><i class="bi bi-tags me-1"></i>{{ __('Where the money went') }}</div>
+                            <div class="chart-sub">{{ __('This month by category') }}</div>
+                        </div>
+                    </div>
                     <div class="card-body">
                         @if ($expenses['categories'])
-                            <div class="chart-box">
+                            <div class="chart-donut">
                                 <canvas id="chart-categories" role="img" aria-label="{{ __('Expenses by category') }}"
-                                        data-chart='@json($expenses['categories'])'></canvas>
+                                        data-chart='@json($expenses['categories'])' data-value="amount" data-money="1"></canvas>
+                                <div class="chart-donut-center"><strong data-short-money="{{ $expenses['month'] }}" title="{{ inr($expenses['month']) }}">{{ inr($expenses['month']) }}</strong><span>{{ __('this month') }}</span></div>
                             </div>
+                            <ul class="chart-legend" data-legend-for="chart-categories"></ul>
                         @else
                             <p class="text-body-secondary text-center my-5">{{ __('No expenses this month.') }}</p>
                         @endif
