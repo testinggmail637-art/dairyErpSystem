@@ -54,7 +54,7 @@ _TODO: for each module, list the working features in plain language once its pha
 - **Health, breeding & feed** — _TODO_
 - **Animal trading** — _TODO_
 - **Staff & salary** — _TODO_
-- **Dashboard & reports** — _TODO_
+- **Dashboard & reports** 🟡 — dashboard cards and charts for milk, stock, herd, expenses and vendor payable (cached 5 min, permission-aware); expense and milk production reports. Remaining cards and reports come with Phases 3–7.
 - **Admin panel** ✅ — login by email or mobile (inactive users blocked, even mid-session); users with roles and
   farms, owner-role protection; roles with a permission matrix; farm settings; sections and payment modes; audit log
   (who changed what, old → new, reason); **Appearance** (logo, colours, fonts, light/dark/auto theme, login page, PDF

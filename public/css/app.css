@@ -734,3 +734,73 @@ h1, h2, h3, h4, h5, h6,
 .app-report-card:hover {
     border-color: var(--bs-primary);
 }
+
+/* ---------- Dashboard: KPI cards and chart boxes ---------- */
+.stat-card {
+    color: var(--bs-body-color);
+    transition: border-color 0.15s ease, box-shadow 0.15s ease, transform 0.15s ease;
+}
+
+.stat-card:hover {
+    border-color: color-mix(in srgb, var(--bs-primary) 35%, transparent);
+    box-shadow: 0 0.5rem 1.25rem color-mix(in srgb, var(--bs-primary) 10%, transparent);
+    transform: translateY(-1px);
+}
+
+.stat-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 2.5rem;
+    height: 2.5rem;
+    margin-bottom: 0.75rem;
+    border-radius: var(--bs-border-radius);
+    background: var(--app-tint-strong);
+    color: var(--bs-primary);
+    font-size: 1.15rem;
+}
+
+.stat-icon.is-warning {
+    background: color-mix(in srgb, var(--bs-warning) 18%, var(--app-card-bg, var(--bs-body-bg)));
+    color: var(--bs-warning-text-emphasis);
+}
+
+.stat-label {
+    color: var(--bs-secondary-color);
+    font-size: 0.8125rem;
+    font-weight: 500;
+}
+
+.stat-value {
+    font-size: 1.6rem;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+    line-height: 1.2;
+    font-variant-numeric: tabular-nums;
+}
+
+.stat-value small {
+    color: var(--bs-secondary-color);
+    font-size: 0.55em;
+    font-weight: 600;
+}
+
+.stat-meta {
+    margin-top: 0.35rem;
+    color: var(--bs-secondary-color);
+    font-size: 0.8125rem;
+}
+
+.stat-change {
+    margin-left: 0.25rem;
+    font-weight: 600;
+    white-space: nowrap;
+}
+
+.stat-change.is-up { color: var(--bs-success); }
+.stat-change.is-down { color: var(--bs-danger); }
+
+.chart-box {
+    position: relative;
+    height: 280px;
+}
