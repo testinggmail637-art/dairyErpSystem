@@ -74,37 +74,63 @@ class AppearanceService
         'login_background' => 'login_background_path',
     ];
 
-    /** Ready-made colour sets that fill the form (spec 4.11). */
+    /** Ready-made colour sets that fill the form (spec 4.11); a dark preset also switches the theme to dark. */
     public const PRESETS = [
         'fresh_dairy' => [
-            'label' => 'Fresh Dairy',
+            'label' => 'Fresh Dairy', 'description' => 'Light and airy, meadow green',
             'primary_color' => '#2D7A46', 'secondary_color' => '#5C6F64', 'success_color' => '#23855A',
             'danger_color' => '#C23A2E', 'warning_color' => '#E3AA2B', 'sidebar_bg' => '#FCFDFA',
             'sidebar_text' => '#1F3A2B', 'topbar_bg' => '#FCFDFA', 'body_bg' => '#EEF3EC', 'card_bg' => '#FFFFFF',
+            'theme_mode' => 'light',
         ],
         'green_dairy' => [
-            'label' => 'Green Dairy',
+            'label' => 'Green Dairy', 'description' => 'Classic dark green sidebar',
             'primary_color' => '#1F6F5C', 'secondary_color' => '#6C757D', 'success_color' => '#198754',
             'danger_color' => '#DC3545', 'warning_color' => '#FFC107', 'sidebar_bg' => '#12332B',
             'sidebar_text' => '#FFFFFF', 'topbar_bg' => '#FFFFFF', 'body_bg' => '#F5F7F6', 'card_bg' => '#FFFFFF',
+            'theme_mode' => 'light',
+        ],
+        'cream_butter' => [
+            'label' => 'Cream & Butter', 'description' => 'Warm cream with ghee-gold accents',
+            'primary_color' => '#9A5B13', 'secondary_color' => '#7A6E62', 'success_color' => '#2F7D4F',
+            'danger_color' => '#B4372B', 'warning_color' => '#D99A1E', 'sidebar_bg' => '#FFF9EE',
+            'sidebar_text' => '#4A3418', 'topbar_bg' => '#FFFDF8', 'body_bg' => '#F6EFE2', 'card_bg' => '#FFFFFF',
+            'theme_mode' => 'light',
+        ],
+        'teal_breeze' => [
+            'label' => 'Teal Breeze', 'description' => 'Calm teal, deep sea sidebar',
+            'primary_color' => '#0F766E', 'secondary_color' => '#5B6B73', 'success_color' => '#15803D',
+            'danger_color' => '#BE123C', 'warning_color' => '#D97706', 'sidebar_bg' => '#0B3B3C',
+            'sidebar_text' => '#E6FFFA', 'topbar_bg' => '#FFFFFF', 'body_bg' => '#EFF6F5', 'card_bg' => '#FFFFFF',
+            'theme_mode' => 'light',
         ],
         'blue_professional' => [
-            'label' => 'Blue Professional',
+            'label' => 'Blue Professional', 'description' => 'Crisp corporate blue',
             'primary_color' => '#1D4ED8', 'secondary_color' => '#64748B', 'success_color' => '#15803D',
             'danger_color' => '#B91C1C', 'warning_color' => '#F59E0B', 'sidebar_bg' => '#0F172A',
             'sidebar_text' => '#E2E8F0', 'topbar_bg' => '#FFFFFF', 'body_bg' => '#F1F5F9', 'card_bg' => '#FFFFFF',
+            'theme_mode' => 'light',
         ],
         'warm_orange' => [
-            'label' => 'Warm Orange',
+            'label' => 'Warm Orange', 'description' => 'Earthy terracotta',
             'primary_color' => '#C2410C', 'secondary_color' => '#78716C', 'success_color' => '#15803D',
             'danger_color' => '#B91C1C', 'warning_color' => '#EAB308', 'sidebar_bg' => '#431407',
             'sidebar_text' => '#FFF7ED', 'topbar_bg' => '#FFFFFF', 'body_bg' => '#FFFBF5', 'card_bg' => '#FFFFFF',
+            'theme_mode' => 'light',
+        ],
+        'forest_night' => [
+            'label' => 'Forest Night', 'description' => 'Dark theme, soft green glow',
+            'primary_color' => '#3BA36F', 'secondary_color' => '#8FA39A', 'success_color' => '#3FB37A',
+            'danger_color' => '#E5534B', 'warning_color' => '#F2B441', 'sidebar_bg' => '#0B1A13',
+            'sidebar_text' => '#CFE3D6', 'topbar_bg' => '#13241B', 'body_bg' => '#0E1C15', 'card_bg' => '#15271D',
+            'theme_mode' => 'dark',
         ],
         'dark_slate' => [
-            'label' => 'Dark Slate',
+            'label' => 'Dark Slate', 'description' => 'Dark theme, sky-blue accents',
             'primary_color' => '#0EA5E9', 'secondary_color' => '#94A3B8', 'success_color' => '#22C55E',
             'danger_color' => '#EF4444', 'warning_color' => '#F59E0B', 'sidebar_bg' => '#020617',
             'sidebar_text' => '#CBD5E1', 'topbar_bg' => '#1E293B', 'body_bg' => '#0F172A', 'card_bg' => '#1E293B',
+            'theme_mode' => 'dark',
         ],
     ];
 

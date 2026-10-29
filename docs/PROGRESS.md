@@ -11,7 +11,7 @@
 | Last completed task | 2.10 — Phase 2 acceptance tests + README/CHANGELOG (Phase 2 done, v0.2.0) |
 | Next task | 3.1 — Routes CRUD |
 | Overall progress | 34 / 88 tasks (39%) |
-| Tests passing | 418 |
+| Tests passing | 419 |
 | Last updated (IST) | 2026-10-29 (UI refresh + dashboard charts, fix/ui-redesign-dairy) |
 
 ## Phase overview

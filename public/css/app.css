@@ -668,15 +668,6 @@ h1, h2, h3, h4, h5, h6,
     background-color: var(--bs-tertiary-bg);
 }
 
-.app-swatch {
-    display: inline-block;
-    width: 0.8rem;
-    height: 0.8rem;
-    border-radius: 50%;
-    border: 1px solid var(--bs-border-color);
-    vertical-align: -0.1em;
-}
-
 @media (min-width: 1200px) {
     .app-preview-sticky {
         position: sticky;
@@ -685,6 +676,12 @@ h1, h2, h3, h4, h5, h6,
 }
 
 .app-preview {
+    /* re-derived here: the :root values were computed from the page's colours, not the previewed ones */
+    --app-line: color-mix(in srgb, var(--bs-body-color) 10%, transparent);
+    --app-line-strong: color-mix(in srgb, var(--bs-body-color) 16%, transparent);
+    --app-tint: color-mix(in srgb, var(--bs-primary) 6%, var(--app-card-bg, var(--bs-body-bg)));
+    --app-tint-strong: color-mix(in srgb, var(--bs-primary) 12%, var(--app-card-bg, var(--bs-body-bg)));
+    --bs-border-color: var(--app-line-strong);
     font-family: var(--bs-body-font-family);
     font-size: var(--bs-body-font-size);
     color: var(--bs-body-color);
@@ -803,4 +800,148 @@ h1, h2, h3, h4, h5, h6,
 .chart-box {
     position: relative;
     height: 280px;
+}
+
+/* ---------- Settings → Appearance: preset cards (thumbnails use each preset's own colours via --pv-*) ---------- */
+.preset-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(135px, 1fr));
+    gap: 0.75rem;
+}
+
+.preset-card {
+    display: flex;
+    flex-direction: column;
+    gap: 0.15rem;
+    padding: 0.5rem 0.5rem 0.6rem;
+    border: 1px solid var(--app-line-strong);
+    border-radius: var(--bs-border-radius-lg);
+    background: var(--app-card-bg, var(--bs-body-bg));
+    color: var(--bs-body-color);
+    text-align: left;
+    transition: border-color 0.15s ease, box-shadow 0.15s ease, transform 0.15s ease;
+}
+
+.preset-card:hover {
+    border-color: color-mix(in srgb, var(--bs-primary) 45%, transparent);
+    transform: translateY(-2px);
+    box-shadow: 0 0.5rem 1rem color-mix(in srgb, var(--bs-body-color) 8%, transparent);
+}
+
+.preset-card.is-active {
+    border-color: var(--bs-primary);
+    box-shadow: 0 0 0 2px color-mix(in srgb, var(--bs-primary) 30%, transparent);
+}
+
+.preset-thumb {
+    display: flex;
+    height: 84px;
+    margin-bottom: 0.4rem;
+    overflow: hidden;
+    border-radius: var(--bs-border-radius);
+    border: 1px solid var(--app-line);
+    background: var(--pv-body);
+}
+
+.preset-thumb i { display: block; font-style: normal; }
+
+.pv-sidebar {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    width: 30%;
+    padding: 6px 5px;
+    background: var(--pv-sidebar);
+    border-right: 1px solid color-mix(in srgb, var(--pv-sidebar-text) 12%, transparent);
+}
+
+.pv-logo {
+    width: 60%;
+    height: 6px;
+    margin-bottom: 3px;
+    border-radius: 3px;
+    background: var(--pv-sidebar-text);
+    opacity: 0.85;
+}
+
+.pv-nav {
+    height: 5px;
+    border-radius: 3px;
+    background: var(--pv-sidebar-text);
+    opacity: 0.3;
+}
+
+.pv-nav.is-active {
+    height: 8px;
+    background: var(--pv-primary);
+    opacity: 1;
+}
+
+.pv-main {
+    display: flex;
+    flex: 1;
+    flex-direction: column;
+    min-width: 0;
+}
+
+.pv-topbar {
+    height: 12px;
+    background: var(--pv-topbar);
+    border-bottom: 1px solid color-mix(in srgb, var(--pv-sidebar-text) 10%, transparent);
+}
+
+.pv-body {
+    display: flex;
+    flex: 1;
+    gap: 5px;
+    padding: 6px;
+}
+
+.pv-card {
+    display: flex;
+    flex: 1;
+    flex-direction: column;
+    gap: 4px;
+    padding: 5px;
+    border-radius: 4px;
+    background: var(--pv-card);
+    box-shadow: 0 1px 2px color-mix(in srgb, var(--bs-body-color) 12%, transparent);
+}
+
+.pv-line { width: 70%; height: 3px; border-radius: 2px; background: color-mix(in srgb, var(--pv-sidebar-text) 30%, var(--pv-card)); }
+.pv-value { width: 50%; height: 6px; border-radius: 2px; background: color-mix(in srgb, var(--pv-sidebar-text) 65%, var(--pv-card)); }
+.pv-btn { width: 60%; height: 8px; margin-top: auto; border-radius: 3px; background: var(--pv-primary); }
+
+.pv-chart {
+    flex-direction: row;
+    align-items: flex-end;
+    gap: 3px;
+}
+
+.pv-chart i { flex: 1; border-radius: 2px 2px 0 0; background: color-mix(in srgb, var(--pv-primary) 45%, var(--pv-card)); }
+.pv-chart i:nth-child(1) { height: 40%; }
+.pv-chart i:nth-child(2) { height: 65%; }
+.pv-chart i:nth-child(3) { height: 50%; background: var(--pv-warning); }
+.pv-chart i:nth-child(4) { height: 85%; }
+.pv-chart i:nth-child(5) { height: 100%; background: var(--pv-primary); }
+
+.preset-name {
+    display: flex;
+    align-items: center;
+    font-size: 0.875rem;
+    font-weight: 600;
+}
+
+.preset-check {
+    margin-left: auto;
+    color: var(--bs-primary);
+    visibility: hidden;
+}
+
+.preset-card.is-active .preset-check { visibility: visible; }
+
+.preset-desc {
+    color: var(--bs-secondary-color);
+    font-size: 0.75rem;
+    line-height: 1.3;
 }

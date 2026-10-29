@@ -44,16 +44,33 @@
 
             <div class="card mb-3">
                 <div class="card-header fw-semibold"><i class="bi bi-palette2 me-1"></i>{{ __('Presets') }}</div>
-                <div class="card-body d-flex flex-wrap gap-2">
-                    @foreach ($presets as $key => $preset)
-                        <button type="button" class="btn btn-outline-secondary btn-sm" data-preset='@json(\Illuminate\Support\Arr::except($preset, ['label']))'>
-                            @foreach (['sidebar_bg', 'primary_color', 'body_bg'] as $swatch)
-                                <span class="app-swatch" data-swatch="{{ $preset[$swatch] }}"></span>
-                            @endforeach
-                            {{ __($preset['label']) }}
-                        </button>
-                    @endforeach
-                    <div class="form-text w-100 mb-0">{{ __('A preset only fills the colours below — press Save to apply it.') }}</div>
+                <div class="card-body">
+                    <div class="preset-grid">
+                        @foreach ($presets as $key => $preset)
+                            {{-- the thumbnail is drawn in the preset's own colours (data, not hard-coded styling) --}}
+                            <button type="button" class="preset-card" aria-pressed="false"
+                                    data-preset='@json(\Illuminate\Support\Arr::except($preset, ['label', 'description']))'
+                                    style="--pv-sidebar: {{ $preset['sidebar_bg'] }}; --pv-sidebar-text: {{ $preset['sidebar_text'] }}; --pv-topbar: {{ $preset['topbar_bg'] }}; --pv-body: {{ $preset['body_bg'] }}; --pv-card: {{ $preset['card_bg'] }}; --pv-primary: {{ $preset['primary_color'] }}; --pv-success: {{ $preset['success_color'] }}; --pv-warning: {{ $preset['warning_color'] }};">
+                                <span class="preset-thumb" aria-hidden="true">
+                                    <span class="pv-sidebar"><i class="pv-logo"></i><i class="pv-nav is-active"></i><i class="pv-nav"></i><i class="pv-nav"></i><i class="pv-nav"></i></span>
+                                    <span class="pv-main">
+                                        <span class="pv-topbar"></span>
+                                        <span class="pv-body">
+                                            <span class="pv-card"><i class="pv-line"></i><i class="pv-value"></i><i class="pv-btn"></i></span>
+                                            <span class="pv-card pv-chart"><i></i><i></i><i></i><i></i><i></i></span>
+                                        </span>
+                                    </span>
+                                </span>
+                                <span class="preset-name">
+                                    {{ __($preset['label']) }}
+                                    @if ($preset['theme_mode'] === 'dark')<span class="badge text-bg-secondary ms-1">{{ __('Dark') }}</span>@endif
+                                    <i class="bi bi-check-circle-fill preset-check"></i>
+                                </span>
+                                <span class="preset-desc">{{ __($preset['description']) }}</span>
+                            </button>
+                        @endforeach
+                    </div>
+                    <div class="form-text mt-2 mb-0">{{ __('A preset only fills the colours and theme below — press Save to apply it.') }}</div>
                 </div>
             </div>
 
