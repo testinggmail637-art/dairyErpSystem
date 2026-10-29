@@ -4,6 +4,7 @@ namespace App\Http\Requests\Settings;
 
 use App\Enums\RoleName;
 use App\Http\Requests\Concerns\RequiresReason;
+use App\Models\Role;
 use App\Models\User;
 use App\Services\UserService;
 use Illuminate\Foundation\Http\FormRequest;
@@ -13,9 +14,9 @@ use Illuminate\Validation\Validator;
 /**
  * Create / edit a user from Settings → Users.
  *
- * Rules beyond the fields: only an owner may give or take the owner role (or edit an owner),
- * at least one active owner must remain, nobody can deactivate themselves, and farms are limited
- * to the editor's own farms.
+ * Rules beyond the fields: only an owner may give or take the owner role (or edit an owner), a non-owner
+ * may only give roles within his own permissions, at least one active owner must remain, nobody can
+ * deactivate themselves, and farms are limited to the editor's own farms.
  */
 class UserRequest extends FormRequest
 {
@@ -87,6 +88,19 @@ class UserRequest extends FormRequest
 
             if ($givesOwner && ! $isOwner && ! $this->editorIsOwner()) {
                 $validator->errors()->add('roles', __('Only an owner can give the owner role.'));
+            }
+
+            // A non-owner (e.g. admin) may not hand out a role stronger than his own — that would let him
+            // reach farms.manage, roles.manage, … through a custom role. Roles the user already has may stay.
+            if (! $this->editorIsOwner()) {
+                $mine = $this->user()->getAllPermissions()->pluck('name');
+                $newRoles = array_diff($this->input('roles', []), $target?->roles->pluck('name')->all() ?? [], [RoleName::Owner->value]);
+                $stronger = Role::query()->whereIn('name', $newRoles)->with('permissions:id,name')->get()
+                    ->first(fn (Role $role) => $role->permissions->pluck('name')->diff($mine)->isNotEmpty());
+
+                if ($stronger) {
+                    $validator->errors()->add('roles', __('You cannot give the role ":role": it has permissions you do not have.', ['role' => role_label($stronger->name)]));
+                }
             }
 
             if ($target === null) {

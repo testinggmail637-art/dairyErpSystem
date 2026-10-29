@@ -20,8 +20,12 @@ final class ReceiptStorage
 
     public static function store(UploadedFile $file, int $farmId): string
     {
-        $extension = strtolower($file->getClientOriginalExtension() ?: (string) $file->extension());
-        $extension = $extension === 'jpeg' ? 'jpg' : $extension;
+        // Extension from the file's content (what validation checked), never from the name the browser sent.
+        $extension = match ((string) $file->extension()) {
+            'jpg', 'jpeg' => 'jpg',
+            'png' => 'png',
+            default => 'pdf',
+        };
         $path = sprintf('receipts/%d/%s/%s.%s', $farmId, now()->format('Y/m'), Str::uuid(), $extension);
 
         if (in_array($extension, ['jpg', 'png'], true)) {

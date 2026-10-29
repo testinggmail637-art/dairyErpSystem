@@ -2,6 +2,7 @@
 
 use App\Enums\RoleName;
 use App\Models\Farm;
+use App\Models\Role;
 use App\Models\User;
 use Illuminate\Support\Facades\DB;
 
@@ -168,4 +169,20 @@ it('returns 404 for a user of another farm', function () {
     $stranger = User::factory()->forFarm()->create();
 
     $this->actingAs($this->owner)->get(route('users.edit', $stranger))->assertNotFound();
+});
+
+it('stops an admin from giving a role with permissions the admin does not have', function () {
+    $admin = User::factory()->forFarm($this->farm)->withRole(RoleName::Admin)->create();
+    $strong = Role::create(['name' => 'farm_manager', 'guard_name' => 'web']);
+    $strong->givePermissionTo(['farms.manage', 'dashboard.view']);
+    $weak = Role::create(['name' => 'helper', 'guard_name' => 'web']);
+    $weak->givePermissionTo(['dashboard.view']);
+
+    $this->actingAs($admin)->post(route('users.store'), userPayload(['roles' => ['farm_manager']]))->assertSessionHasErrors('roles');
+    $this->actingAs($admin)->put(route('users.update', $admin), userPayload(['name' => $admin->name, 'phone' => $admin->phone, 'roles' => ['admin', 'farm_manager']]))
+        ->assertSessionHasErrors('roles');
+    expect($admin->fresh()->hasRole('farm_manager'))->toBeFalse();
+
+    $this->actingAs($admin)->post(route('users.store'), userPayload(['roles' => ['helper']]))->assertSessionHasNoErrors();
+    $this->actingAs($this->owner)->post(route('users.store'), userPayload(['phone' => '9876522222', 'roles' => ['farm_manager']]))->assertSessionHasNoErrors();
 });

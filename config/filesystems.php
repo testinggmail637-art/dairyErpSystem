@@ -33,7 +33,8 @@ return [
         'local' => [
             'driver' => 'local',
             'root' => storage_path('app/private'),
-            'serve' => true,
+            // Off: private files (receipts, imports, exports) are served only by our own authorized routes.
+            'serve' => false,
             'throw' => false,
             'report' => false,
         ],

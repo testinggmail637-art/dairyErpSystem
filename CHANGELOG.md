@@ -5,6 +5,11 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+### Security
+- An admin can no longer give a user a role that has permissions the admin does not have (e.g. a custom role with farm or role management).
+- Updated Livewire (used by Pulse) and Symfony packages for published advisories; `composer audit` is clean.
+- Private files (receipts, imports, exports) are served only through the app's own permission-checked routes; receipts are named by their real content type.
+
 ### Added
 - Phase 3 · Task 1: delivery routes (`routes`) — Sales → Routes: list with status / search filters (AJAX), add / edit with delivery person (active farm users who can update deliveries), order and active switch; deactivate instead of delete.
 - Appearance presets shown as preview cards (mini sidebar, cards and chart in the preset's colours, description, tick on the active one) and three new presets: Cream & Butter, Teal Breeze, Forest Night (Warm Orange removed); dark presets also switch the theme to dark.
