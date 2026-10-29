@@ -8,11 +8,11 @@
 | Item | Value |
 |---|---|
 | Current phase | Phase 3 — Customers, Delivery, Billing, Payments (🟡 in progress) |
-| Last completed task | 3.1 — Routes CRUD |
-| Next task | 3.2 — Products CRUD + seeder |
-| Overall progress | 35 / 88 tasks (40%) |
-| Tests passing | 428 |
-| Last updated (IST) | 2026-10-29 (fix/security-review) |
+| Last completed task | 3.2 — Products CRUD + seeder |
+| Next task | 3.3 — Customers CRUD + customer rates (PricingService) |
+| Overall progress | 36 / 88 tasks (41%) |
+| Tests passing | 440 |
+| Last updated (IST) | 2026-10-29 (task/3.2-products) |
 
 ## Phase overview
 
@@ -215,7 +215,7 @@ Status legend: ⬜ Not started · 🟡 In progress · ✅ Done · ⏸ On hold
 
 ### Checklist
 - [x] 3.1 Routes CRUD
-- [ ] 3.2 Products CRUD + seeder
+- [x] 3.2 Products CRUD + seeder
 - [ ] 3.3 Customers CRUD + customer rates (PricingService)
 - [ ] 3.4 Subscriptions + pauses
 - [ ] 3.5 Delivery sheet generation (command + button + schedule)

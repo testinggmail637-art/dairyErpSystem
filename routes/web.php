@@ -20,6 +20,7 @@ use App\Http\Controllers\Reports\ExpenseReportController;
 use App\Http\Controllers\Reports\MilkReportController;
 use App\Http\Controllers\Reports\ReportController;
 use App\Http\Controllers\Sales\DeliveryRouteController;
+use App\Http\Controllers\Sales\ProductController;
 use App\Http\Controllers\Settings\AppearanceController;
 use App\Http\Controllers\Settings\AuditLogController;
 use App\Http\Controllers\Settings\FarmSettingsController;
@@ -166,10 +167,14 @@ Route::middleware(['auth', 'active', 'farm'])->group(function () {
     });
 
     /*
-    | Sales (spec Phase 3) — routes: customers.view to see, customers.manage to add / edit
+    | Sales (spec Phase 3) — routes and products: customers.view to see, customers.manage to add / edit
     */
     Route::get('delivery-routes', [DeliveryRouteController::class, 'index'])->middleware('can:customers.view')->name('delivery-routes.index');
     Route::resource('delivery-routes', DeliveryRouteController::class)
+        ->only(['create', 'store', 'edit', 'update'])
+        ->middleware('can:customers.manage');
+    Route::get('products', [ProductController::class, 'index'])->middleware('can:customers.view')->name('products.index');
+    Route::resource('products', ProductController::class)
         ->only(['create', 'store', 'edit', 'update'])
         ->middleware('can:customers.manage');
 
