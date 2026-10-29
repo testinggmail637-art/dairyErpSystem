@@ -7,12 +7,12 @@
 
 | Item | Value |
 |---|---|
-| Current phase | Phase 3 — Customers, Delivery, Billing, Payments (⬜ not started — starts after the Phase 2 PR is merged and tagged) |
-| Last completed task | 2.10 — Phase 2 acceptance tests + README/CHANGELOG (Phase 2 done, v0.2.0) |
-| Next task | 3.1 — Routes CRUD |
-| Overall progress | 34 / 88 tasks (39%) |
-| Tests passing | 419 |
-| Last updated (IST) | 2026-10-29 (UI refresh + dashboard charts, fix/ui-redesign-dairy) |
+| Current phase | Phase 3 — Customers, Delivery, Billing, Payments (🟡 in progress) |
+| Last completed task | 3.1 — Routes CRUD |
+| Next task | 3.2 — Products CRUD + seeder |
+| Overall progress | 35 / 88 tasks (40%) |
+| Tests passing | 426 |
+| Last updated (IST) | 2026-10-29 (task/3.1-routes-crud) |
 
 ## Phase overview
 
@@ -21,7 +21,7 @@
 | 0 | Foundation | ✅ Done | 2026-10-15 | 2026-10-15 | `phase-0-done` |
 | 1 | Expense Management (no approval) | ✅ Done | 2026-10-16 | 2026-10-18 | `phase-1-done` |
 | 2 | Animals, Milk Production, Milk Stock | ✅ Done | 2026-10-19 | 2026-10-28 | `phase-2-done` |
-| 3 | Customers, Delivery, Billing, Payments | ⬜ Not started | | | |
+| 3 | Customers, Delivery, Billing, Payments | 🟡 In progress | 2026-10-29 | | |
 | 4 | Farmers & Collection Center | ⬜ Not started | | | |
 | 5 | Health, Breeding, Feed | ⬜ Not started | | | |
 | 6 | Animal Trading & Staff | ⬜ Not started | | | |
@@ -214,7 +214,7 @@ Status legend: ⬜ Not started · 🟡 In progress · ✅ Done · ⏸ On hold
 ## Phase 3 — Customers, Delivery, Billing, Payments
 
 ### Checklist
-- [ ] 3.1 Routes CRUD
+- [x] 3.1 Routes CRUD
 - [ ] 3.2 Products CRUD + seeder
 - [ ] 3.3 Customers CRUD + customer rates (PricingService)
 - [ ] 3.4 Subscriptions + pauses

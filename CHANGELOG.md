@@ -6,6 +6,7 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 ## [Unreleased]
 
 ### Added
+- Phase 3 · Task 1: delivery routes (`routes`) — Sales → Routes: list with status / search filters (AJAX), add / edit with delivery person (active farm users who can update deliveries), order and active switch; deactivate instead of delete.
 - Appearance presets shown as preview cards (mini sidebar, cards and chart in the preset's colours, description, tick on the active one) and three new presets: Cream & Butter, Teal Breeze, Forest Night (Warm Orange removed); dark presets also switch the theme to dark.
 - Dashboard with cards and charts for the modules built so far: milk today / this month, milk in stock, active animals, milk drop alerts, expenses today / this month, vendor payable; charts for milk per day (30 days, stacked cow + buffalo with daily average, total in the tooltip), herd by stage, expenses per month (12 months, average line, % vs average) and this month by category; doughnuts show the total in the centre and a clickable legend with value and share. Each block follows the user's permissions; numbers are cached for 5 minutes and refresh on every change.
 

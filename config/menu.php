@@ -49,6 +49,7 @@ return [
         'icon' => 'bi-truck',
         'items' => [
             ['label' => 'Customers', 'route' => 'customers.index', 'active' => 'customers.*', 'permission' => 'customers.view'],
+            ['label' => 'Routes', 'route' => 'delivery-routes.index', 'active' => 'delivery-routes.*', 'permission' => 'customers.view'],
             ['label' => 'Subscriptions', 'route' => 'subscriptions.index', 'active' => 'subscriptions.*', 'permission' => 'subscriptions.manage'],
             ['label' => 'Deliveries', 'route' => 'deliveries.index', 'active' => 'deliveries.*', 'permission' => 'deliveries.view'],
             ['label' => 'Bills', 'route' => 'bills.index', 'active' => 'bills.*', 'permission' => 'bills.view'],
