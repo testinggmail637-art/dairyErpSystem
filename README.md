@@ -93,7 +93,6 @@ cp .env.example .env && php artisan key:generate
 cp .env.example .env.testing   # set DB_DATABASE=dairy_erp_test
 php artisan key:generate --env=testing
 php artisan migrate --seed
-php artisan storage:link
 php artisan db:seed --class=DemoSeeder   # optional demo data
 php artisan serve
 ```
@@ -206,7 +205,7 @@ preview, presets (Fresh Dairy, Green Dairy, Cream & Butter, Teal Breeze, Blue Pr
 Permission: `appearance.manage` (owner + admin). Each user can pick their own theme in **My profile**.
 "Sample PDF" shows the print branding. Developers: colours/fonts come only from the CSS variables printed by
 `App\Services\AppearanceService` — never add colour literals to Blade, `app.css`, JS charts (`App.chartColors()`) or PDFs.
-Uploaded branding files live in `storage/app/public/branding/{farm_id}/` (run `php artisan storage:link` once).
+Uploaded images are saved in `public/uploads/` by folder: `branding/{farm_id}/` (logo, favicon, login background) and `animals/{farm_id}/` (animal photos + thumbnails). No `storage:link` needed.
 
 ---
 

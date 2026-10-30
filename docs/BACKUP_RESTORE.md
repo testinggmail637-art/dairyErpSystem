@@ -9,7 +9,7 @@ Package: [`spatie/laravel-backup`](https://spatie.be/docs/laravel-backup). Setti
 
 | Item | Details |
 |---|---|
-| **What** | The whole database (MySQL/MariaDB dump) + uploaded files: `storage/app/public` (receipts, logos, animal photos) and `storage/app/private`. Code is **not** in the backup — it lives in git. |
+| **What** | The whole database (MySQL/MariaDB dump) + uploaded files: `public/uploads` (logos, animal photos) and `storage/app/private` (receipts, imports). Code is **not** in the backup — it lives in git. |
 | **When** | Every day at **02:00 IST** (`backup:run`). Old backups are removed at **02:30** (`backup:clean`). A health check runs at **03:00** (`backup:monitor`). |
 | **Where** | One zip per day in `storage/app/backups/dairy-erp/`, e.g. `2026-10-15-02-00-01.zip` (disk `backups`). |
 | **How long** | **14 days.** Older zips are deleted automatically. |
@@ -26,7 +26,7 @@ Inside each zip:
 
 ```
 db-dumps/mysql-dairy_erp.sql   ← full database dump
-public/…                       ← storage/app/public
+uploads/…                      ← public/uploads
 private/…                      ← storage/app/private
 ```
 
@@ -122,13 +122,12 @@ C:\xampp\mysql\bin\mysql -u root dairy_erp < db-dumps\mysql-dairy_erp.sql
 
 ```bash
 cd /var/www/dairy-erp
-rsync -a --delete /tmp/restore/public/  storage/app/public/
+rsync -a --delete /tmp/restore/uploads/ public/uploads/
 rsync -a --delete /tmp/restore/private/ storage/app/private/
-chown -R www-data:www-data storage/app/public storage/app/private
-php artisan storage:link   # only if the public/storage link is missing
+chown -R www-data:www-data public/uploads storage/app/private
 ```
 
-On Windows copy the `public` and `private` folders over `storage\app\public` and `storage\app\private`.
+On Windows copy the `uploads` folder over `public\uploads` and the `private` folder over `storage\app\private`.
 
 ### 5.5 Bring the app back
 
