@@ -27,7 +27,7 @@ return [
                  */
                 // Code lives in git; back up only what users create: uploads (receipts, logos, photos) and private files.
                 'include' => [
-                    storage_path('app'.DIRECTORY_SEPARATOR.'public'),
+                    public_path('uploads'),
                     storage_path('app'.DIRECTORY_SEPARATOR.'private'),
                 ],
 

@@ -36,7 +36,7 @@ it('keeps backups for 14 days on the backups disk, with database and uploads onl
         ->and(config('backup.backup.destination.disks'))->toBe(['backups'])
         ->and(config('backup.backup.source.databases'))->toBe([config('database.default')])
         ->and(config('backup.backup.source.files.include'))->toBe([
-            storage_path('app'.DIRECTORY_SEPARATOR.'public'),
+            public_path('uploads'),
             storage_path('app'.DIRECTORY_SEPARATOR.'private'),
         ])
         ->and(config('filesystems.disks.backups.root'))->toBe(storage_path('app/backups'));

@@ -86,9 +86,9 @@ Edit `.env` (checklist in section 4), then:
 ```bash
 php artisan migrate --force
 php artisan db:seed --force          # roles & permissions, default farm, owner user, master data
-php artisan storage:link
-sudo chown -R www-data:www-data storage bootstrap/cache
-sudo chmod -R ug+rwx storage bootstrap/cache
+mkdir -p public/uploads
+sudo chown -R www-data:www-data storage bootstrap/cache public/uploads
+sudo chmod -R ug+rwx storage bootstrap/cache public/uploads
 php artisan optimize                 # caches config, routes, views, events
 ```
 
