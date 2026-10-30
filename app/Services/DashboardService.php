@@ -11,8 +11,10 @@ use App\Models\Animal;
 use App\Models\Expense;
 use App\Models\MilkProductionRecord;
 use App\Models\MilkStockMovement;
+use App\Models\Product;
 use App\Models\VendorPayment;
 use App\Support\CurrentFarm;
+use App\Support\FinancialYear;
 use App\Support\Money;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Cache;
@@ -20,8 +22,8 @@ use Illuminate\Support\Facades\DB;
 
 /**
  * Dashboard cards and charts (spec 7.5) for the modules built so far: milk production, milk stock, herd, expenses,
- * vendor payable. Every figure is an SQL aggregate; the whole set is cached per farm and day for 5 minutes and
- * cleared when a milk entry, stock movement, animal, expense or vendor payment is written (AppServiceProvider).
+ * income vs expenses (income estimated until sales exist), vendor payable. Every figure is an SQL aggregate; the whole set is cached per farm and day for 5 minutes and
+ * cleared when a milk entry, stock movement, animal, expense, vendor payment or product is written (AppServiceProvider).
  */
 class DashboardService
 {
@@ -31,26 +33,42 @@ class DashboardService
 
     public const CHART_MONTHS = 12;
 
+    public const CHART_WEEKS = 12;
+
+    public const CHART_YEARS = 5;
+
+    public const PERIODS = ['day', 'week', 'month', 'year'];
+
     public function __construct(
         private readonly CurrentFarm $currentFarm,
         private readonly MilkDropAlertService $alerts,
     ) {}
 
-    public static function cacheKey(int $farmId, ?string $date = null): string
+    public static function cacheKey(int $farmId, ?string $date = null, string $part = ''): string
     {
-        return 'dashboard.'.$farmId.'.'.($date ?? today()->toDateString());
+        return 'dashboard.'.$farmId.'.'.($date ?? today()->toDateString()).$part;
     }
 
     public static function forget(?int $farmId): void
     {
         if ($farmId) {
             Cache::forget(self::cacheKey($farmId));
+            foreach (self::PERIODS as $period) {
+                Cache::forget(self::cacheKey($farmId, null, '.finance.'.$period));
+            }
         }
     }
 
     public function data(): array
     {
         return Cache::remember(self::cacheKey($this->currentFarm->id()), self::TTL, fn () => $this->build(today()));
+    }
+
+    /** Income vs expenses for one period (day / week / month / year), cached like the rest of the dashboard. */
+    public function finance(string $period): array
+    {
+        return Cache::remember(self::cacheKey($this->currentFarm->id(), null, '.finance.'.$period), self::TTL,
+            fn () => $this->incomeVsExpenses($period, today()));
     }
 
     private function build(Carbon $today): array
@@ -61,8 +79,120 @@ class DashboardService
             'herd' => $this->herd(),
             'alerts' => $this->dropAlerts($today),
             'expenses' => $this->expenses($today),
+            'finance' => $this->incomeVsExpenses('month', $today),
             'vendor_payable' => $this->vendorPayable(),
         ];
+    }
+
+    /**
+     * Income vs expenses per day (30 days), week (12, Monday first), month (12) or financial year (5, April–March) —
+     * spec 7.5. Until sales are recorded (deliveries and bills, Phase 3), income is an **estimate**: own milk produced ×
+     * the current default rate of the active product of that milk type (lowest id). Profit = income − expenses.
+     * Two GROUP BY queries on indexed date ranges; the bucket is computed in SQL.
+     */
+    private function incomeVsExpenses(string $period, Carbon $today): array
+    {
+        [$from, $bucket, $labels, $subtitle] = $this->buckets($period, $today);
+        $zero = array_fill_keys(array_keys($labels), '0.00');
+        $range = [$from->toDateString(), $today->toDateString()];
+
+        $rates = Product::query()->active()->orderBy('id')->get(['milk_type', 'default_rate'])
+            ->unique(fn (Product $p) => $p->milk_type->value)
+            ->mapWithKeys(fn (Product $p) => [$p->milk_type->value => $p->default_rate])
+            ->all();
+
+        $income = $zero;
+        $milkBucket = sprintf($bucket, 'milk_production_records.production_date');
+        MilkProductionRecord::query()->toBase()
+            ->join('animals', 'animals.id', '=', 'milk_production_records.animal_id')
+            ->whereBetween('milk_production_records.production_date', $range)
+            ->groupByRaw("{$milkBucket}, animals.animal_type")
+            ->selectRaw("{$milkBucket} AS bucket, animals.animal_type AS type, SUM(milk_production_records.quantity_litre) AS litres")
+            ->get()
+            ->each(function ($row) use (&$income, $rates) {
+                if (isset($income[$row->bucket])) {
+                    $income[$row->bucket] = Money::add($income[$row->bucket], Money::mul((string) $row->litres, $rates[$row->type] ?? '0'));
+                }
+            });
+
+        $expenses = $zero;
+        $expenseBucket = sprintf($bucket, 'expense_date');
+        Expense::query()->toBase()
+            ->whereBetween('expense_date', $range)
+            ->groupByRaw($expenseBucket)
+            ->selectRaw("{$expenseBucket} AS bucket, SUM(amount) AS total")
+            ->get()
+            ->each(function ($row) use (&$expenses) {
+                if (isset($expenses[$row->bucket])) {
+                    $expenses[$row->bucket] = Money::round2((string) $row->total);
+                }
+            });
+
+        $income = array_values($income);
+        $expenses = array_values($expenses);
+        $profit = array_map(fn ($in, $out) => Money::sub($in, $out), $income, $expenses);
+        $totalIncome = Money::sum($income);
+        $totalExpenses = Money::sum($expenses);
+        $totalProfit = Money::sub($totalIncome, $totalExpenses);
+
+        return [
+            'period' => $period,
+            'subtitle' => $subtitle,
+            'labels' => array_values($labels),
+            'income' => $income,
+            'expenses' => $expenses,
+            'profit' => $profit,
+            'total_income' => $totalIncome,
+            'total_expenses' => $totalExpenses,
+            'total_profit' => $totalProfit,
+            'display' => ['total_income' => inr($totalIncome), 'total_expenses' => inr($totalExpenses), 'total_profit' => inr($totalProfit)],
+            'rates' => $rates,
+        ];
+    }
+
+    /**
+     * Start date, SQL bucket expression (`%1$s` = the date column; every bucket it yields matches a PHP key),
+     * bucket key => label, and the chart subtitle for a period. Bucket keys are never numeric, so PHP keeps them strings.
+     *
+     * @return array{0: Carbon, 1: string, 2: array<string, string>, 3: string}
+     */
+    private function buckets(string $period, Carbon $today): array
+    {
+        $labels = [];
+
+        switch ($period) {
+            case 'day':
+                $from = $today->copy()->subDays(self::CHART_DAYS - 1);
+                for ($d = $from->copy(); $d->lte($today); $d->addDay()) {
+                    $labels[$d->toDateString()] = $d->format('d M');
+                }
+
+                return [$from, 'DATE(%1$s)', $labels, __('Last :n days', ['n' => self::CHART_DAYS])];
+
+            case 'week':
+                $from = $today->copy()->startOfWeek(Carbon::MONDAY)->subWeeks(self::CHART_WEEKS - 1);
+                for ($d = $from->copy(); $d->lte($today); $d->addWeek()) {
+                    $labels[$d->toDateString()] = $d->format('d M');
+                }
+
+                return [$from, 'DATE(DATE_SUB(%1$s, INTERVAL WEEKDAY(%1$s) DAY))', $labels, __('Last :n weeks, Monday to Sunday', ['n' => self::CHART_WEEKS])];
+
+            case 'year':
+                $from = Carbon::parse(FinancialYear::start($today))->subYears(self::CHART_YEARS - 1);
+                for ($d = $from->copy(); $d->lte($today); $d->addYear()) {
+                    $labels['fy'.$d->year] = 'FY '.FinancialYear::label($d);
+                }
+
+                return [$from, "CONCAT('fy', YEAR(%1\$s) - (MONTH(%1\$s) < 4))", $labels, __('Last :n financial years, April to March', ['n' => self::CHART_YEARS])];
+
+            default:
+                $from = $today->copy()->startOfMonth()->subMonths(self::CHART_MONTHS - 1);
+                for ($d = $from->copy(); $d->lte($today); $d->addMonth()) {
+                    $labels[$d->format('Y-m')] = $d->format('M y');
+                }
+
+                return [$from, "DATE_FORMAT(%1\$s, '%%Y-%%m')", $labels, __('Last :n months', ['n' => self::CHART_MONTHS])];
+        }
     }
 
     /** Today / yesterday / month-to-date litres by milk type, plus the daily series for the last 30 days. */
@@ -196,23 +326,18 @@ class DashboardService
         ];
     }
 
-    /** Today, month-to-date, this month by category, and the last 12 months. */
+    /** Today, this month, last month and this month by category. */
     private function expenses(Carbon $today): array
     {
         $monthStart = $today->copy()->startOfMonth();
-        $from = $monthStart->copy()->subMonths(self::CHART_MONTHS - 1);
+        $lastMonth = $monthStart->copy()->subMonth();
 
         $monthly = Expense::query()->toBase()
             ->whereNull('deleted_at')
-            ->whereBetween('expense_date', [$from->toDateString(), $today->toDateString()])
+            ->whereBetween('expense_date', [$lastMonth->toDateString(), $today->toDateString()])
             ->groupByRaw("DATE_FORMAT(expense_date, '%Y-%m')")
             ->selectRaw("DATE_FORMAT(expense_date, '%Y-%m') AS ym, SUM(amount) AS total")
             ->pluck('total', 'ym');
-
-        $months = [];
-        for ($m = $from->copy(); $m->lte($monthStart); $m->addMonth()) {
-            $months[$m->format('M y')] = Money::round2((string) ($monthly[$m->format('Y-m')] ?? 0));
-        }
 
         $byCategory = Expense::query()->toBase()
             ->join('expense_categories AS c', 'c.id', '=', 'expenses.category_id')
@@ -237,15 +362,9 @@ class DashboardService
 
         return [
             'today' => Money::round2((string) $todayTotal),
-            'month' => end($months) ?: '0.00',
-            'last_month' => Money::round2((string) ($monthly[$monthStart->copy()->subMonth()->format('Y-m')] ?? 0)),
+            'month' => Money::round2((string) ($monthly[$monthStart->format('Y-m')] ?? 0)),
+            'last_month' => Money::round2((string) ($monthly[$lastMonth->format('Y-m')] ?? 0)),
             'categories' => $categories,
-            'chart' => [
-                'labels' => array_keys($months),
-                'values' => array_values($months),
-                'total' => $chartTotal = Money::sum($months),
-                'average' => Money::div($chartTotal, (string) self::CHART_MONTHS),
-            ],
         ];
     }
 

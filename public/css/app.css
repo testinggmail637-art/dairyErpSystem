@@ -1048,3 +1048,11 @@ h1, h2, h3, h4, h5, h6,
 
 .chart-legend li.is-off { opacity: 0.4; }
 .chart-legend li.is-off .chart-legend-label { text-decoration: line-through; }
+
+.chart-note {
+    margin-top: 0.75rem;
+    color: var(--bs-secondary-color);
+    font-size: 0.75rem;
+}
+
+.chart-periods[aria-busy="true"] { opacity: 0.6; pointer-events: none; }

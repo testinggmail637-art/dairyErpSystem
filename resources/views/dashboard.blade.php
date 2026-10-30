@@ -190,22 +190,36 @@
         <div class="row g-3 mb-3">
             <div class="col-lg-8">
                 <div class="card h-100">
+                    @php($finance = $data['finance'])
                     <div class="card-header chart-head">
                         <div>
-                            <div class="chart-title"><i class="bi bi-bar-chart me-1"></i>{{ __('Expenses') }}</div>
-                            <div class="chart-sub">{{ __('Last :n months, current month highlighted', ['n' => \App\Services\DashboardService::CHART_MONTHS]) }}</div>
+                            <div class="chart-title"><i class="bi bi-bar-chart me-1"></i>{{ __('Income vs Expenses') }}</div>
+                            <div class="chart-sub" data-finance-text="subtitle">{{ $finance['subtitle'] }}</div>
                         </div>
                         <div class="chart-figures">
-                            <div><span>{{ __('Total') }}</span><strong>{{ inr($expenses['chart']['total']) }}</strong></div>
-                            <div><span>{{ __('Monthly avg') }}</span><strong>{{ inr($expenses['chart']['average']) }}</strong></div>
+                            <div><span>{{ __('Income (est.)') }}</span><strong class="text-success" data-finance-text="total_income">{{ $finance['display']['total_income'] }}</strong></div>
+                            <div><span>{{ __('Expenses') }}</span><strong data-finance-text="total_expenses">{{ $finance['display']['total_expenses'] }}</strong></div>
+                            <div><span>{{ __('Profit') }}</span><strong class="{{ str_starts_with($finance['total_profit'], '-') ? 'text-danger' : 'text-success' }}" data-finance-text="total_profit">{{ $finance['display']['total_profit'] }}</strong></div>
                         </div>
                     </div>
                     <div class="card-body">
-                        <div class="chart-box">
-                            <canvas id="chart-expenses" role="img" aria-label="{{ __('Expenses per month') }}"
-                                    data-chart='@json($expenses['chart'])' data-label="{{ __('Expenses') }}"
-                                    data-label-average="{{ __('Monthly avg') }}" data-label-vs="{{ __('vs avg') }}"></canvas>
+                        <div class="btn-group btn-group-sm chart-periods mb-2" role="group" aria-label="{{ __('Period') }}"
+                             data-finance-url="{{ route('dashboard.finance') }}" data-finance-error="{{ __('Could not load this period. Please try again.') }}">
+                            @foreach (['day' => __('Day'), 'week' => __('Week'), 'month' => __('Month'), 'year' => __('Year')] as $period => $label)
+                                <button type="button" class="btn btn-outline-secondary {{ $period === $finance['period'] ? 'active' : '' }}" data-period="{{ $period }}"
+                                        aria-pressed="{{ $period === $finance['period'] ? 'true' : 'false' }}">{{ $label }}</button>
+                            @endforeach
                         </div>
+                        <div class="chart-box">
+                            <canvas id="chart-finance" role="img" aria-label="{{ __('Income and expenses per period') }}"
+                                    data-chart='@json($finance)' data-label-income="{{ __('Income (est.)') }}"
+                                    data-label-expenses="{{ __('Expenses') }}" data-label-profit="{{ __('Profit') }}"></canvas>
+                        </div>
+                        <p class="chart-note mb-0">
+                            <i class="bi bi-info-circle me-1"></i>
+                            {{ __('Income is estimated until milk sales are recorded: own milk produced × today\'s default rate') }}
+                            ({{ collect($finance['rates'])->map(fn ($rate, $type) => \App\Enums\MilkType::from($type)->label().' '.inr($rate))->implode(', ') ?: __('no active products') }}).
+                        </p>
                     </div>
                 </div>
             </div>

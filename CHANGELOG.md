@@ -11,6 +11,7 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - Private files (receipts, imports, exports) are served only through the app's own permission-checked routes; receipts are named by their real content type.
 
 ### Added
+- Dashboard: one **Income vs Expenses** chart with **Day / Week / Month / Year** buttons (30 days, 12 weeks, 12 months, 5 financial years): income and expense bars, profit line, totals and margin. Income is estimated from own milk × default product rate until sales are recorded.
 - Phase 3 · Task 1: delivery routes (`routes`) — Sales → Routes: list with status / search filters (AJAX), add / edit with delivery person (active farm users who can update deliveries), order and active switch; deactivate instead of delete.
 - Phase 3 · Task 2: products (`products`) — Sales → Products: name, code, cow / buffalo milk, default rate per litre, active; Cow Milk ₹60 and Buffalo Milk ₹70 seeded for every farm (editable).
 - Appearance presets shown as preview cards (mini sidebar, cards and chart in the preset's colours, description, tick on the active one) and three new presets: Cream & Butter, Teal Breeze, Forest Night (Warm Orange removed); dark presets also switch the theme to dark.
