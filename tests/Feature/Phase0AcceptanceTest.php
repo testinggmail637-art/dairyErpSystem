@@ -93,7 +93,7 @@ it('5. appearance changes the whole panel, login page and PDF header; reset rest
     Storage::fake('public');
 
     $payload = collect(AppearanceService::DEFAULTS)
-        ->except(['logo_path', 'logo_dark_path', 'favicon_path', 'login_background_path'])
+        ->except(['logo_path', 'logo_dark_path', 'logo_mobile_path', 'favicon_path', 'login_background_path'])
         ->map(fn ($v) => $v ?? '')
         ->merge(['primary_color' => '#7A1F5C', 'sidebar_bg' => '#202040', 'logo' => UploadedFile::fake()->image('logo.png', 500, 120)])
         ->all();

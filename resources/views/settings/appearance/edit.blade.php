@@ -18,6 +18,7 @@
     $uploads = [
         'logo' => [__('Logo'), 'logo_path', 'PNG, JPG, SVG or WEBP, max 2 MB (resized to 400 px wide)', 'image/png,image/jpeg,image/svg+xml,image/webp'],
         'logo_dark' => [__('Logo for dark backgrounds'), 'logo_dark_path', 'Optional. Used on a dark sidebar and in the dark theme; falls back to the logo', 'image/png,image/jpeg,image/svg+xml,image/webp'],
+        'logo_mobile' => [__('Mobile logo'), 'logo_mobile_path', 'Optional. Small or square image shown in the top bar on phones; falls back to the logo', 'image/png,image/jpeg,image/svg+xml,image/webp'],
         'favicon' => [__('Browser tab icon (favicon)'), 'favicon_path', 'PNG or ICO, max 512 KB (made 64×64)', 'image/png,image/x-icon,.ico'],
     ];
 @endphp

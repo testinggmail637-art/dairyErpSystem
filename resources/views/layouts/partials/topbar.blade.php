@@ -4,6 +4,15 @@
         <i class="bi bi-list"></i>
     </button>
 
+    {{-- Phones: the sidebar is a drawer, so the brand sits here. Mobile logo, else the logo, else the app name. --}}
+    <a href="{{ route('home') }}" class="app-topbar-brand d-lg-none" data-testid="topbar-brand">
+        @if ($appearance['logo_mobile_path'] || $appearance['logo_path'])
+            <img src="{{ branding_url($appearance['logo_mobile_path'] ?: $appearance['logo_path']) }}" alt="{{ $appearance['app_name'] }}" class="app-topbar-logo">
+        @else
+            <span>{{ $appearance['app_name'] }}</span>
+        @endif
+    </a>
+
     @include('layouts.partials.farm-switcher')
 
     <div class="ms-auto d-flex align-items-center gap-1">

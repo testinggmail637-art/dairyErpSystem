@@ -657,6 +657,23 @@ h1, h2, h3, h4, h5, h6,
     object-fit: contain;
 }
 
+.app-topbar-brand {
+    display: inline-flex;
+    align-items: center;
+    min-width: 0;
+    margin-right: 0.5rem;
+    font-weight: 700;
+    text-decoration: none;
+    white-space: nowrap;
+    color: inherit;
+}
+
+.app-topbar-logo {
+    max-height: 30px;
+    max-width: 110px;
+    object-fit: contain;
+}
+
 /* ---------- Settings → Appearance ---------- */
 .app-upload-preview {
     max-height: 40px;

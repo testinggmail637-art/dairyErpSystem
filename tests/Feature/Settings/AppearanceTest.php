@@ -16,7 +16,7 @@ beforeEach(function () {
 function appearancePayload(array $overrides = []): array
 {
     return array_merge(collect(AppearanceService::DEFAULTS)
-        ->except(['logo_path', 'logo_dark_path', 'favicon_path', 'login_background_path'])
+        ->except(['logo_path', 'logo_dark_path', 'logo_mobile_path', 'favicon_path', 'login_background_path'])
         ->map(fn ($v) => $v ?? '')
         ->all(), $overrides);
 }
@@ -206,4 +206,22 @@ it('offers presets that each set every colour and a theme, and save as valid set
 
     $this->actingAs($this->owner)->get(route('settings.appearance.edit'))
         ->assertSee('Cream &amp; Butter', false)->assertSee('Forest Night')->assertSee('preset-card');
+});
+
+it('hides the app name when a logo exists and shows the mobile logo in the phone top bar', function () {
+    $this->actingAs($this->owner)->get(route('profile.edit'))
+        ->assertSee('<span>'.e(AppearanceService::DEFAULTS['app_name']).'</span>', false);
+
+    $this->actingAs($this->owner)->put(route('settings.appearance.update'), appearancePayload([
+        'app_name' => 'Shree Milk ERP',
+        'logo' => UploadedFile::fake()->image('logo.png', 400, 100),
+        'logo_mobile' => UploadedFile::fake()->image('mobile.png', 100, 100),
+    ]))->assertSessionDoesntHaveErrors();
+
+    $stored = app(AppearanceService::class)->stored($this->farm->fresh());
+    expect($stored['logo_mobile_path'])->toStartWith("branding/{$this->farm->id}/logo_mobile-");
+
+    $this->actingAs($this->owner)->get(route('profile.edit'))
+        ->assertDontSee('<span>Shree Milk ERP</span>', false)
+        ->assertSee('src="'.Storage::disk('public')->url($stored['logo_mobile_path']).'" alt="Shree Milk ERP" class="app-topbar-logo"', false);
 });

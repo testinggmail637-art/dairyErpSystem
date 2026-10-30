@@ -24,6 +24,7 @@ class AppearanceService
         'app_name' => 'Dairy ERP',
         'logo_path' => null,
         'logo_dark_path' => null,
+        'logo_mobile_path' => null,
         'favicon_path' => null,
         'primary_color' => '#2D7A46',
         'secondary_color' => '#5C6F64',
@@ -70,6 +71,7 @@ class AppearanceService
     public const UPLOADS = [
         'logo' => 'logo_path',
         'logo_dark' => 'logo_dark_path',
+        'logo_mobile' => 'logo_mobile_path',
         'favicon' => 'favicon_path',
         'login_background' => 'login_background_path',
     ];
