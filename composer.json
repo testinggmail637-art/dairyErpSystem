@@ -12,15 +12,15 @@
         "php": "^8.3",
         "barryvdh/laravel-dompdf": "^3.1",
         "intervention/image": "^3.11",
-        "laravel/framework": "^12.0",
+        "laravel/framework": "^13.0",
         "laravel/pulse": "^1.8",
-        "laravel/tinker": "^2.10.1",
+        "laravel/tinker": "^3.0",
         "maatwebsite/excel": "^3.1",
         "sentry/sentry-laravel": "^4.29",
         "spatie/laravel-activitylog": "^4.12",
-        "spatie/laravel-backup": "^9.3",
+        "spatie/laravel-backup": "^10.3",
         "spatie/laravel-permission": "^6.25",
-        "yajra/laravel-datatables-oracle": "^12.7"
+        "yajra/laravel-datatables-oracle": "^13.3"
     },
     "require-dev": {
         "fakerphp/faker": "^1.23",
@@ -31,7 +31,7 @@
         "mockery/mockery": "^1.6",
         "nunomaduro/collision": "^8.6",
         "pestphp/pest": "^4.0",
-        "pestphp/pest-plugin-laravel": "^4.0",
+        "pestphp/pest-plugin-laravel": "^4.1",
         "phpunit/phpunit": "^12.0"
     },
     "autoload": {
