@@ -11,6 +11,7 @@ use App\Models\Animal;
 use App\Models\Expense;
 use App\Models\MilkProductionRecord;
 use App\Models\MilkStockMovement;
+use App\Models\Product;
 use App\Models\VendorPayment;
 use App\Support\CurrentFarm;
 use App\Support\Money;
@@ -20,8 +21,8 @@ use Illuminate\Support\Facades\DB;
 
 /**
  * Dashboard cards and charts (spec 7.5) for the modules built so far: milk production, milk stock, herd, expenses,
- * vendor payable. Every figure is an SQL aggregate; the whole set is cached per farm and day for 5 minutes and
- * cleared when a milk entry, stock movement, animal, expense or vendor payment is written (AppServiceProvider).
+ * income vs expenses (income estimated until sales exist), vendor payable. Every figure is an SQL aggregate; the whole set is cached per farm and day for 5 minutes and
+ * cleared when a milk entry, stock movement, animal, expense, vendor payment or product is written (AppServiceProvider).
  */
 class DashboardService
 {
@@ -55,13 +56,63 @@ class DashboardService
 
     private function build(Carbon $today): array
     {
+        $expenses = $this->expenses($today);
+
         return [
             'production' => $this->production($today),
             'stock' => $this->stock($today),
             'herd' => $this->herd(),
             'alerts' => $this->dropAlerts($today),
-            'expenses' => $this->expenses($today),
+            'expenses' => $expenses,
+            'finance' => $this->incomeVsExpenses($today, $expenses['chart']),
             'vendor_payable' => $this->vendorPayable(),
+        ];
+    }
+
+    /**
+     * Month-wise income vs expenses (spec 7.5) for the expense chart's 12 months. Until sales are recorded (deliveries
+     * and bills, Phase 3), income is an **estimate**: own milk produced × the current default rate of the active product
+     * of that milk type (lowest id). Profit = income − expenses.
+     */
+    private function incomeVsExpenses(Carbon $today, array $expenseChart): array
+    {
+        $from = $today->copy()->startOfMonth()->subMonths(self::CHART_MONTHS - 1);
+
+        $rates = Product::query()->active()->orderBy('id')->get(['milk_type', 'default_rate'])
+            ->unique(fn (Product $p) => $p->milk_type->value)
+            ->mapWithKeys(fn (Product $p) => [$p->milk_type->value => $p->default_rate])
+            ->all();
+
+        $income = array_fill_keys(array_map(fn ($i) => $from->copy()->addMonths($i)->format('Y-m'), range(0, self::CHART_MONTHS - 1)), '0.00');
+
+        MilkProductionRecord::query()->toBase()
+            ->join('animals', 'animals.id', '=', 'milk_production_records.animal_id')
+            ->whereBetween('milk_production_records.production_date', [$from->toDateString(), $today->toDateString()])
+            ->groupByRaw("DATE_FORMAT(milk_production_records.production_date, '%Y-%m'), animals.animal_type")
+            ->selectRaw("DATE_FORMAT(milk_production_records.production_date, '%Y-%m') AS ym, animals.animal_type AS type, SUM(milk_production_records.quantity_litre) AS litres")
+            ->get()
+            ->each(function ($row) use (&$income, $rates) {
+                if (isset($income[$row->ym])) {
+                    $income[$row->ym] = Money::add($income[$row->ym], Money::mul((string) $row->litres, $rates[$row->type] ?? '0'));
+                }
+            });
+
+        $income = array_values($income);
+        $expenses = $expenseChart['values'];
+        $profit = array_map(fn ($in, $out) => Money::sub($in, $out), $income, $expenses);
+        $totalIncome = Money::sum($income);
+        $totalExpenses = Money::sum($expenses);
+
+        return [
+            'labels' => $expenseChart['labels'],
+            'income' => $income,
+            'expenses' => $expenses,
+            'profit' => $profit,
+            'total_income' => $totalIncome,
+            'total_expenses' => $totalExpenses,
+            'total_profit' => Money::sub($totalIncome, $totalExpenses),
+            'month_profit' => end($profit) ?: '0.00',
+            'rates' => $rates,
         ];
     }
 

@@ -9,6 +9,7 @@ use App\Models\Animal;
 use App\Models\Expense;
 use App\Models\Farm;
 use App\Models\MilkProductionRecord;
+use App\Models\Product;
 use App\Models\User;
 use App\Models\Vendor;
 use App\Models\VendorPayment;
@@ -75,8 +76,33 @@ it('caches the numbers and clears them when a source record is written', functio
 
 it('shows charts to the owner and hides financial cards from herd staff', function () {
     $this->actingAs($this->owner)->get(route('dashboard'))->assertOk()
-        ->assertSee('chart-production')->assertSee('chart-expenses')->assertSee(__('Vendor payable'));
+        ->assertSee('chart-production')->assertSee('chart-finance')->assertSee(__('Vendor payable'));
 
     $this->actingAs($this->herdStaff)->get(route('dashboard'))->assertOk()
-        ->assertSee('chart-production')->assertDontSee('chart-expenses')->assertDontSee(__('Vendor payable'));
+        ->assertSee('chart-production')->assertDontSee('chart-finance')->assertDontSee(__('Vendor payable'));
+});
+
+it('estimates income from own milk × the active default rate and sets it against expenses per month', function () {
+    $cow = Animal::factory()->create(['farm_id' => $this->farm->id]);
+    $buffalo = Animal::factory()->buffalo()->create(['farm_id' => $this->farm->id]);
+    Product::factory()->create(['farm_id' => $this->farm->id, 'milk_type' => MilkType::Cow, 'default_rate' => '60.00']);
+    Product::factory()->buffalo()->create(['farm_id' => $this->farm->id, 'default_rate' => '70.00']);
+    Product::factory()->create(['farm_id' => $this->farm->id, 'milk_type' => MilkType::Cow, 'default_rate' => '99.00', 'is_active' => false]);
+    MilkProductionRecord::factory()->for($cow)->create(['production_date' => '2026-10-28', 'shift' => 'morning', 'quantity_litre' => '20.50']);
+    MilkProductionRecord::factory()->for($buffalo)->create(['production_date' => '2026-10-28', 'shift' => 'morning', 'quantity_litre' => '6.25']);
+    MilkProductionRecord::factory()->for($cow)->create(['production_date' => '2026-09-30', 'shift' => 'morning', 'quantity_litre' => '9.00']);
+    Expense::factory()->create(['farm_id' => $this->farm->id, 'expense_date' => '2026-10-02', 'amount' => '5000.00']);
+    Expense::factory()->create(['farm_id' => $this->farm->id, 'expense_date' => '2026-09-15', 'amount' => '500.00']);
+
+    $finance = app(DashboardService::class)->data()['finance'];
+
+    // Oct: 20.50 × 60 + 6.25 × 70 = 1,667.50 · Sep: 9 × 60 = 540
+    expect(array_slice($finance['labels'], -2))->toBe(['Sep 26', 'Oct 26'])
+        ->and(array_slice($finance['income'], -2))->toBe(['540.00', '1667.50'])
+        ->and(array_slice($finance['expenses'], -2))->toBe(['500.00', '5000.00'])
+        ->and(array_slice($finance['profit'], -2))->toBe(['40.00', '-3332.50'])
+        ->and($finance)->toMatchArray([
+            'total_income' => '2207.50', 'total_expenses' => '5500.00', 'total_profit' => '-3292.50',
+            'month_profit' => '-3332.50', 'rates' => ['cow' => '60.00', 'buffalo' => '70.00'],
+        ]);
 });

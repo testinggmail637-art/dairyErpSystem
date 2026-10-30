@@ -1,6 +1,6 @@
 /*
- * Dashboard charts: 30-day milk production (cow / buffalo, stacked areas + daily average), 12-month expenses (bars +
- * monthly average), and two doughnuts (herd by stage, this month by category) with a clickable legend.
+ * Dashboard charts: 30-day milk production (cow / buffalo, stacked areas + daily average), 12-month income vs expenses
+ * (paired bars + profit line), and two doughnuts (herd by stage, this month by category) with a clickable legend.
  * Values arrive as decimal strings from the server; Number() is used only to draw, never to calculate.
  * Colours come from the Appearance CSS variables, so the charts follow the theme and every preset.
  */
@@ -41,11 +41,12 @@
     const qty = (v) => Number(v).toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
     const inr = (v) => '₹' + Number(v).toLocaleString('en-IN', { maximumFractionDigits: 0 });
     const inrShort = (v) => {
-        const n = Number(v);
-        if (n >= 1e7) return '₹' + (n / 1e7).toFixed(1).replace(/\.0$/, '') + ' Cr';
-        if (n >= 1e5) return '₹' + (n / 1e5).toFixed(1).replace(/\.0$/, '') + ' L';
-        if (n >= 1e3) return '₹' + (n / 1e3).toFixed(0) + 'k';
-        return '₹' + n;
+        const n = Math.abs(Number(v));
+        const sign = Number(v) < 0 ? '-' : '';
+        if (n >= 1e7) return sign + '₹' + (n / 1e7).toFixed(1).replace(/\.0$/, '') + ' Cr';
+        if (n >= 1e5) return sign + '₹' + (n / 1e5).toFixed(1).replace(/\.0$/, '') + ' L';
+        if (n >= 1e3) return sign + '₹' + (n / 1e3).toFixed(0) + 'k';
+        return sign + '₹' + n;
     };
     const read = (id) => {
         const el = document.getElementById(id);
@@ -164,46 +165,61 @@
         });
     }
 
-    /* ---------- expenses: gradient bars + average ---------- */
-    [el, data] = read('chart-expenses');
+    /* ---------- income vs expenses: paired bars + profit line ---------- */
+    [el, data] = read('chart-finance');
     if (el && data) {
-        const last = data.values.length - 1;
-        const average = Number(data.average);
-        new Chart(el, {
+        const incomeColor = theme.success;
+        const expenseColor = cssVar('--bs-danger');
+        const labels = { income: el.dataset.labelIncome, expenses: el.dataset.labelExpenses, profit: el.dataset.labelProfit };
+        const bars = (key, label, color) => ({
             type: 'bar',
+            label: label,
+            data: data[key].map(Number),
+            backgroundColor: (c) => (c.chart.chartArea ? gradient(c.chart.ctx, c.chart.chartArea, color, 90, 55) : alpha(color, 70)),
+            hoverBackgroundColor: resolve(color),
+            borderRadius: { topLeft: 6, topRight: 6 },
+            borderSkipped: 'bottom',
+            maxBarThickness: 22,
+            categoryPercentage: 0.7,
+            barPercentage: 0.9,
+            order: 2,
+        });
+        new Chart(el, {
             data: {
                 labels: data.labels,
                 datasets: [
+                    bars('income', labels.income, incomeColor),
+                    bars('expenses', labels.expenses, expenseColor),
                     {
-                        label: el.dataset.label,
-                        data: data.values.map(Number),
-                        backgroundColor: (c) => {
-                            if (!c.chart.chartArea) return alpha(theme.primary, 40);
-                            return c.dataIndex === last
-                                ? gradient(c.chart.ctx, c.chart.chartArea, theme.primary, 100, 75)
-                                : gradient(c.chart.ctx, c.chart.chartArea, theme.primary, 45, 18);
-                        },
-                        hoverBackgroundColor: resolve(theme.primary),
-                        borderRadius: { topLeft: 8, topRight: 8 },
-                        borderSkipped: 'bottom',
-                        maxBarThickness: 34,
+                        type: 'line',
+                        label: labels.profit,
+                        data: data.profit.map(Number),
+                        borderColor: theme.text,
+                        backgroundColor: theme.card,
+                        borderWidth: 2,
+                        pointRadius: 3,
+                        pointHoverRadius: 5,
+                        pointBorderWidth: 2,
+                        pointBackgroundColor: (c) => (c.raw < 0 ? resolve(expenseColor) : theme.card),
+                        tension: 0.35,
                         order: 1,
                     },
-                    averageLine(el.dataset.labelAverage, data.average, theme.text, data.labels.length),
                 ],
             },
+            plugins: [hoverLine],
             options: {
                 interaction: { mode: 'index', intersect: false },
                 plugins: {
-                    legend: { display: false },
+                    legend: { position: 'top', align: 'end', labels: { usePointStyle: true, boxWidth: 8, boxHeight: 8, sort: (a, b) => a.datasetIndex - b.datasetIndex } },
                     tooltip: Object.assign({}, tooltip, {
-                        filter: (item) => item.datasetIndex === 0,
+                        itemSort: (a, b) => a.datasetIndex - b.datasetIndex,
                         callbacks: {
-                            label: (c) => ' ' + inr(c.parsed.y),
+                            label: (c) => ' ' + c.dataset.label + ': ' + inr(c.parsed.y),
                             footer: (items) => {
-                                if (!average) return '';
-                                const diff = ((items[0].parsed.y - average) / average) * 100;
-                                return (diff >= 0 ? '▲ ' : '▼ ') + Math.abs(diff).toFixed(0) + '% ' + el.dataset.labelVs;
+                                const income = items.find((i) => i.datasetIndex === 0);
+                                const profit = items.find((i) => i.datasetIndex === 2);
+                                if (!income || !profit || !income.parsed.y) return '';
+                                return ((profit.parsed.y / income.parsed.y) * 100).toFixed(0) + '% margin';
                             },
                         },
                     }),
@@ -213,7 +229,7 @@
                     y: {
                         beginAtZero: true,
                         border: { display: false },
-                        grid: { drawTicks: false },
+                        grid: { drawTicks: false, color: (c) => (c.tick.value === 0 ? alpha(theme.text, 35) : Chart.defaults.borderColor) },
                         ticks: { padding: 8, maxTicksLimit: 6, callback: inrShort },
                     },
                 },

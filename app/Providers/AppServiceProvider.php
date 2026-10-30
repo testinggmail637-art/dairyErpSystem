@@ -7,6 +7,7 @@ use App\Models\Expense;
 use App\Models\Farm;
 use App\Models\MilkProductionRecord;
 use App\Models\MilkStockMovement;
+use App\Models\Product;
 use App\Models\User;
 use App\Models\Vendor;
 use App\Models\VendorPayment;
@@ -51,7 +52,7 @@ class AppServiceProvider extends ServiceProvider
         Paginator::useBootstrapFive();
 
         // Dashboard numbers are cached per farm for 5 minutes; any write to a source table clears them (spec Phase 7).
-        foreach ([Animal::class, Expense::class, MilkProductionRecord::class, MilkStockMovement::class, VendorPayment::class, Vendor::class] as $model) {
+        foreach ([Animal::class, Expense::class, MilkProductionRecord::class, MilkStockMovement::class, Product::class, VendorPayment::class, Vendor::class] as $model) {
             $model::saved(fn (Model $m) => DashboardService::forget($m->farm_id));
             $model::deleted(fn (Model $m) => DashboardService::forget($m->farm_id));
         }
