@@ -4,10 +4,14 @@
         <i class="bi bi-list"></i>
     </button>
 
-    {{-- Phones: the sidebar is a drawer, so the brand sits here. Mobile logo, else the logo, else the app name. --}}
+    {{-- Phones: the sidebar is a drawer, so the brand sits here (logo choice: AppearanceService::withDerived).
+         Light top bar: normal version, swapped for the dark one in the dark theme; dark top bar: dark version. --}}
     <a href="{{ route('home') }}" class="app-topbar-brand d-lg-none" data-testid="topbar-brand">
-        @if ($appearance['logo_mobile_path'] || $appearance['logo_path'])
-            <img src="{{ branding_url($appearance['logo_mobile_path'] ?: $appearance['logo_path']) }}" alt="{{ $appearance['app_name'] }}" class="app-topbar-logo">
+        @if ($appearance['topbar_logo_path'] && $appearance['topbar_is_light'])
+            <img src="{{ branding_url($appearance['topbar_logo_path']) }}" alt="{{ $appearance['app_name'] }}" class="app-topbar-logo app-logo-light-theme">
+            <img src="{{ branding_url($appearance['topbar_logo_dark_path']) }}" alt="{{ $appearance['app_name'] }}" class="app-topbar-logo app-logo-dark-theme">
+        @elseif ($appearance['topbar_logo_dark_path'])
+            <img src="{{ branding_url($appearance['topbar_logo_dark_path']) }}" alt="{{ $appearance['app_name'] }}" class="app-topbar-logo">
         @else
             <span>{{ $appearance['app_name'] }}</span>
         @endif

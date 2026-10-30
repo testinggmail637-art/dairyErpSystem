@@ -25,6 +25,7 @@ class AppearanceService
         'logo_path' => null,
         'logo_dark_path' => null,
         'logo_mobile_path' => null,
+        'logo_mobile_dark_path' => null,
         'favicon_path' => null,
         'primary_color' => '#2D7A46',
         'secondary_color' => '#5C6F64',
@@ -72,6 +73,7 @@ class AppearanceService
         'logo' => 'logo_path',
         'logo_dark' => 'logo_dark_path',
         'logo_mobile' => 'logo_mobile_path',
+        'logo_mobile_dark' => 'logo_mobile_dark_path',
         'favicon' => 'favicon_path',
         'login_background' => 'login_background_path',
     ];
@@ -373,8 +375,12 @@ class AppearanceService
             ? $a['print_header_text']
             : trim(($farm?->name ?? $a['app_name']).($farm?->address ? "\n".$farm->address : ''));
         $a['pdf_accent_color'] = filled($a['pdf_accent_color']) ? $a['pdf_accent_color'] : $a['primary_color'];
+        // Phone top bar: mobile logo, else the logo; each with its own dark-background version.
+        $a['topbar_logo_path'] = $a['logo_mobile_path'] ?: $a['logo_path'];
+        $a['topbar_logo_dark_path'] = $a['logo_mobile_dark_path'] ?: ($a['logo_mobile_path'] ?: ($a['logo_dark_path'] ?: $a['logo_path']));
         $a['logo_dark_path'] = $a['logo_dark_path'] ?: $a['logo_path'];
         $a['sidebar_is_light'] = Color::readableTextOn($a['sidebar_bg']) !== '#FFFFFF';
+        $a['topbar_is_light'] = Color::readableTextOn($a['topbar_bg']) !== '#FFFFFF';
         $a['base_font_size'] = (int) $a['base_font_size'];
         $a['border_radius'] = (int) $a['border_radius'];
 

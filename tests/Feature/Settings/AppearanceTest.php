@@ -16,7 +16,7 @@ beforeEach(function () {
 function appearancePayload(array $overrides = []): array
 {
     return array_merge(collect(AppearanceService::DEFAULTS)
-        ->except(['logo_path', 'logo_dark_path', 'logo_mobile_path', 'favicon_path', 'login_background_path'])
+        ->except(['logo_path', 'logo_dark_path', 'logo_mobile_path', 'logo_mobile_dark_path', 'favicon_path', 'login_background_path'])
         ->map(fn ($v) => $v ?? '')
         ->all(), $overrides);
 }
@@ -216,6 +216,7 @@ it('hides the app name when a logo exists and shows the mobile logo in the phone
         'app_name' => 'Shree Milk ERP',
         'logo' => UploadedFile::fake()->image('logo.png', 400, 100),
         'logo_mobile' => UploadedFile::fake()->image('mobile.png', 100, 100),
+        'logo_mobile_dark' => UploadedFile::fake()->image('mobile-dark.png', 100, 100),
     ]))->assertSessionDoesntHaveErrors();
 
     $stored = app(AppearanceService::class)->stored($this->farm->fresh());
@@ -223,7 +224,8 @@ it('hides the app name when a logo exists and shows the mobile logo in the phone
 
     $this->actingAs($this->owner)->get(route('profile.edit'))
         ->assertDontSee('<span>Shree Milk ERP</span>', false)
-        ->assertSee('src="'.Storage::disk('public')->url($stored['logo_mobile_path']).'" alt="Shree Milk ERP" class="app-topbar-logo"', false);
+        ->assertSee('src="'.Storage::disk('public')->url($stored['logo_mobile_path']).'" alt="Shree Milk ERP" class="app-topbar-logo app-logo-light-theme"', false)
+        ->assertSee('src="'.Storage::disk('public')->url($stored['logo_mobile_dark_path']).'" alt="Shree Milk ERP" class="app-topbar-logo app-logo-dark-theme"', false);
 });
 
 it('fills settings added after the appearance was cached', function () {

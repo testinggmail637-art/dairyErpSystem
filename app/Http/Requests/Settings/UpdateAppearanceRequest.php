@@ -47,6 +47,7 @@ class UpdateAppearanceRequest extends FormRequest
             'logo' => ['nullable', 'file', 'mimes:png,jpg,jpeg,svg,webp', 'max:2048'],
             'logo_dark' => ['nullable', 'file', 'mimes:png,jpg,jpeg,svg,webp', 'max:2048'],
             'logo_mobile' => ['nullable', 'file', 'mimes:png,jpg,jpeg,svg,webp', 'max:2048'],
+            'logo_mobile_dark' => ['nullable', 'file', 'mimes:png,jpg,jpeg,svg,webp', 'max:2048'],
             'favicon' => ['nullable', 'file', 'extensions:png,ico', 'max:512'],
             'login_background' => ['nullable', 'file', 'mimes:jpg,jpeg,webp', 'max:3072'],
             'remove' => ['array'],
