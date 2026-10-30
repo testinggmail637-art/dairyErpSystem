@@ -184,7 +184,7 @@
             barPercentage: 0.9,
             order: 2,
         });
-        new Chart(el, {
+        const financeChart = new Chart(el, {
             data: {
                 labels: data.labels,
                 datasets: [
@@ -201,7 +201,7 @@
                         pointHoverRadius: 5,
                         pointBorderWidth: 2,
                         pointBackgroundColor: (c) => (c.raw < 0 ? resolve(expenseColor) : theme.card),
-                        tension: 0.35,
+                        cubicInterpolationMode: 'monotone', // never bends past a point (no fake profit between zeros)
                         order: 1,
                     },
                 ],
@@ -235,6 +235,59 @@
                 },
             },
         });
+
+        // Day / Week / Month / Year buttons: fetch that period and redraw in place (totals and subtitle too)
+        const periods = document.querySelector('.chart-periods');
+        if (periods) {
+            const buttons = periods.querySelectorAll('[data-period]');
+            const select = (active) => buttons.forEach((b) => {
+                b.classList.toggle('active', b === active);
+                b.setAttribute('aria-pressed', b === active ? 'true' : 'false');
+            });
+            let current = periods.querySelector('.active');
+
+            periods.addEventListener('click', (e) => {
+                const button = e.target.closest('[data-period]');
+                if (!button || button === current) return;
+                const previous = current;
+                current = button;
+                select(button);
+                periods.setAttribute('aria-busy', 'true');
+
+                fetch(periods.dataset.financeUrl + '?period=' + encodeURIComponent(button.dataset.period), {
+                    headers: { Accept: 'application/json', 'X-Requested-With': 'XMLHttpRequest' },
+                    credentials: 'same-origin',
+                })
+                    .then((r) => {
+                        if (!r.ok) throw new Error(r.status);
+                        return r.json();
+                    })
+                    .then((json) => {
+                        if (current !== button) return; // a newer click won
+                        financeChart.data.labels = json.labels;
+                        financeChart.data.datasets[0].data = json.income.map(Number);
+                        financeChart.data.datasets[1].data = json.expenses.map(Number);
+                        financeChart.data.datasets[2].data = json.profit.map(Number);
+                        financeChart.update();
+                        document.querySelectorAll('[data-finance-text]').forEach((node) => {
+                            const key = node.dataset.financeText;
+                            node.textContent = key === 'subtitle' ? json.subtitle : json.display[key];
+                            if (key === 'total_profit') {
+                                const loss = String(json.total_profit).startsWith('-');
+                                node.classList.toggle('text-danger', loss);
+                                node.classList.toggle('text-success', !loss);
+                            }
+                        });
+                    })
+                    .catch(() => {
+                        current = previous;
+                        select(previous);
+                        const message = periods.dataset.financeError;
+                        window.Swal ? Swal.fire({ icon: 'error', text: message }) : window.alert(message);
+                    })
+                    .finally(() => periods.removeAttribute('aria-busy'));
+            });
+        }
     }
 
     /* ---------- doughnuts with an HTML legend (value + share, click to hide) ---------- */

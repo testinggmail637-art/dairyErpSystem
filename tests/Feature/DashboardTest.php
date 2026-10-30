@@ -58,9 +58,9 @@ it('totals milk, stock, herd, expenses and vendor payable from the source tables
         ->and($data['expenses']['today'])->toBe('1200.00')
         ->and($data['expenses']['month'])->toBe('5000.00')
         ->and($data['expenses']['last_month'])->toBe('500.00')
-        ->and($data['expenses']['chart']['values'])->toHaveCount(DashboardService::CHART_MONTHS)
+        ->and($data['finance']['expenses'])->toHaveCount(DashboardService::CHART_MONTHS)
         ->and($data['production']['chart'])->toMatchArray(['total' => '19.00', 'average' => '0.63']) // 27 Oct + 30 Sep, today excluded
-        ->and($data['expenses']['chart'])->toMatchArray(['total' => '5500.00', 'average' => '458.33'])
+        ->and($data['finance']['total_expenses'])->toBe('5500.00')
         ->and($data['vendor_payable'])->toBe('1500.00');
 });
 
@@ -103,6 +103,42 @@ it('estimates income from own milk × the active default rate and sets it agains
         ->and(array_slice($finance['profit'], -2))->toBe(['40.00', '-3332.50'])
         ->and($finance)->toMatchArray([
             'total_income' => '2207.50', 'total_expenses' => '5500.00', 'total_profit' => '-3292.50',
-            'month_profit' => '-3332.50', 'rates' => ['cow' => '60.00', 'buffalo' => '70.00'],
+            'rates' => ['cow' => '60.00', 'buffalo' => '70.00'],
         ]);
+});
+
+it('groups income and expenses by day, Monday weeks and April–March financial years', function () {
+    $cow = Animal::factory()->create(['farm_id' => $this->farm->id]);
+    Product::factory()->create(['farm_id' => $this->farm->id, 'milk_type' => MilkType::Cow, 'default_rate' => '60.00']);
+    MilkProductionRecord::factory()->for($cow)->create(['production_date' => '2026-10-27', 'shift' => 'morning', 'quantity_litre' => '10.00']); // Tuesday
+    MilkProductionRecord::factory()->for($cow)->create(['production_date' => '2026-10-25', 'shift' => 'morning', 'quantity_litre' => '5.00']);  // Sunday, week before
+    MilkProductionRecord::factory()->for($cow)->create(['production_date' => '2026-03-31', 'shift' => 'morning', 'quantity_litre' => '2.00']);  // FY 2025-26
+    Expense::factory()->create(['farm_id' => $this->farm->id, 'expense_date' => '2026-10-26', 'amount' => '100.00']); // Monday
+    Expense::factory()->create(['farm_id' => $this->farm->id, 'expense_date' => '2026-04-01', 'amount' => '50.00']);  // FY 2026-27
+
+    $service = app(DashboardService::class);
+
+    $day = $service->finance('day');
+    expect($day['labels'])->toHaveCount(30)->and(end($day['labels']))->toBe('28 Oct')
+        ->and(array_slice($day['income'], -4))->toBe(['300.00', '0.00', '600.00', '0.00'])
+        ->and(array_slice($day['expenses'], -3))->toBe(['100.00', '0.00', '0.00']);
+
+    $week = $service->finance('week');
+    expect($week['labels'])->toHaveCount(12)->and(array_slice($week['labels'], -2))->toBe(['19 Oct', '26 Oct'])
+        ->and(array_slice($week['income'], -2))->toBe(['300.00', '600.00'])
+        ->and(end($week['expenses']))->toBe('100.00');
+
+    $year = $service->finance('year');
+    expect($year['labels'])->toBe(['FY 2022-23', 'FY 2023-24', 'FY 2024-25', 'FY 2025-26', 'FY 2026-27'])
+        ->and(array_slice($year['income'], -2))->toBe(['120.00', '900.00'])
+        ->and(array_slice($year['expenses'], -2))->toBe(['0.00', '150.00'])
+        ->and($year['display']['total_profit'])->toBe('₹870.00');
+});
+
+it('serves a period over JSON only to users who see the money cards', function () {
+    $this->actingAs($this->owner)->getJson(route('dashboard.finance', ['period' => 'week']))
+        ->assertOk()->assertJsonPath('period', 'week')->assertJsonCount(12, 'labels');
+    $this->getJson(route('dashboard.finance', ['period' => 'hour']))->assertUnprocessable();
+
+    $this->actingAs($this->herdStaff)->getJson(route('dashboard.finance', ['period' => 'month']))->assertForbidden();
 });

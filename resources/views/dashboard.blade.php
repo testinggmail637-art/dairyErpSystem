@@ -194,17 +194,24 @@
                     <div class="card-header chart-head">
                         <div>
                             <div class="chart-title"><i class="bi bi-bar-chart me-1"></i>{{ __('Income vs Expenses') }}</div>
-                            <div class="chart-sub">{{ __('Last :n months', ['n' => \App\Services\DashboardService::CHART_MONTHS]) }}</div>
+                            <div class="chart-sub" data-finance-text="subtitle">{{ $finance['subtitle'] }}</div>
                         </div>
                         <div class="chart-figures">
-                            <div><span>{{ __('Income (est.)') }}</span><strong class="text-success">{{ inr($finance['total_income']) }}</strong></div>
-                            <div><span>{{ __('Expenses') }}</span><strong>{{ inr($finance['total_expenses']) }}</strong></div>
-                            <div><span>{{ __('Profit') }}</span><strong class="{{ str_starts_with($finance['total_profit'], '-') ? 'text-danger' : 'text-success' }}">{{ inr($finance['total_profit']) }}</strong></div>
+                            <div><span>{{ __('Income (est.)') }}</span><strong class="text-success" data-finance-text="total_income">{{ $finance['display']['total_income'] }}</strong></div>
+                            <div><span>{{ __('Expenses') }}</span><strong data-finance-text="total_expenses">{{ $finance['display']['total_expenses'] }}</strong></div>
+                            <div><span>{{ __('Profit') }}</span><strong class="{{ str_starts_with($finance['total_profit'], '-') ? 'text-danger' : 'text-success' }}" data-finance-text="total_profit">{{ $finance['display']['total_profit'] }}</strong></div>
                         </div>
                     </div>
                     <div class="card-body">
+                        <div class="btn-group btn-group-sm chart-periods mb-2" role="group" aria-label="{{ __('Period') }}"
+                             data-finance-url="{{ route('dashboard.finance') }}" data-finance-error="{{ __('Could not load this period. Please try again.') }}">
+                            @foreach (['day' => __('Day'), 'week' => __('Week'), 'month' => __('Month'), 'year' => __('Year')] as $period => $label)
+                                <button type="button" class="btn btn-outline-secondary {{ $period === $finance['period'] ? 'active' : '' }}" data-period="{{ $period }}"
+                                        aria-pressed="{{ $period === $finance['period'] ? 'true' : 'false' }}">{{ $label }}</button>
+                            @endforeach
+                        </div>
                         <div class="chart-box">
-                            <canvas id="chart-finance" role="img" aria-label="{{ __('Income and expenses per month') }}"
+                            <canvas id="chart-finance" role="img" aria-label="{{ __('Income and expenses per period') }}"
                                     data-chart='@json($finance)' data-label-income="{{ __('Income (est.)') }}"
                                     data-label-expenses="{{ __('Expenses') }}" data-label-profit="{{ __('Profit') }}"></canvas>
                         </div>

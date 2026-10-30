@@ -55,6 +55,7 @@ Route::post('logout', [LoginController::class, 'destroy'])->middleware('auth')->
 Route::middleware(['auth', 'active', 'farm'])->group(function () {
     Route::get('/', HomeController::class)->name('home');
     Route::get('dashboard', DashboardController::class)->middleware('can:dashboard.view')->name('dashboard');
+    Route::get('dashboard/finance', [DashboardController::class, 'finance'])->middleware('can:dashboard.view')->name('dashboard.finance');
 
     // Farm switcher (top bar; shown only when the user has more than one farm)
     Route::post('farm/switch', FarmSwitchController::class)->name('farm.switch');
