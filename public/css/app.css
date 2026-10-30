@@ -513,10 +513,10 @@ h1, h2, h3, h4, h5, h6,
     display: flex;
     align-items: flex-end;
     padding: 2rem 1.5rem;
-    background-color: var(--bs-primary);
+    background-color: var(--auth-panel-bg);
     background-size: cover;
     background-position: center;
-    color: var(--app-on-primary);
+    color: var(--auth-panel-text);
 }
 
 /* Uploaded photo: darken the bottom so the text stays readable */
@@ -530,7 +530,7 @@ h1, h2, h3, h4, h5, h6,
     position: absolute;
     inset: 0;
     z-index: -1;
-    background: linear-gradient(to top, color-mix(in srgb, var(--bs-primary) 88%, transparent), transparent 70%);
+    background: linear-gradient(to top, color-mix(in srgb, var(--auth-panel-bg) 88%, transparent), transparent 70%);
 }
 
 @media (min-width: 992px) {
@@ -547,8 +547,8 @@ h1, h2, h3, h4, h5, h6,
     width: 3rem;
     height: 3rem;
     font-size: 1.5rem;
-    background-color: var(--app-on-primary);
-    color: var(--bs-primary);
+    background-color: var(--auth-panel-text);
+    color: var(--auth-panel-bg);
 }
 
 .auth-panel-name {
@@ -578,8 +578,9 @@ h1, h2, h3, h4, h5, h6,
 }
 
 .auth-logo {
-    max-height: 64px;
-    max-width: 220px;
+    max-height: 96px;
+    max-width: 100%;
+    margin-bottom: 0.5rem;
 }
 
 

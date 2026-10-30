@@ -7,12 +7,15 @@
     <div class="auth-panel @if ($appearance['login_background_path']) auth-panel-photo @endif"
          @if ($appearance['login_background_path']) style="background-image: url('{{ branding_url($appearance['login_background_path']) }}')" @endif>
         <div class="auth-panel-inner">
-            @if ($appearance['logo_dark_path'])
-                <img src="{{ branding_url($appearance['logo_dark_path']) }}" alt="" class="auth-logo">
+            {{-- Login logo, else the dark logo, else the logo. Heading: login title, else the app name when no logo. --}}
+            @if ($appearance['login_logo_path'])
+                <img src="{{ branding_url($appearance['login_logo_path']) }}" alt="{{ $appearance['app_name'] }}" class="auth-logo">
             @else
                 <span class="app-brand-mark auth-mark"><i class="bi bi-droplet-half"></i></span>
             @endif
-            <p class="auth-panel-name">{{ $appearance['app_name'] }}</p>
+            @if (filled($appearance['login_title']) || ! $appearance['login_logo_path'])
+                <p class="auth-panel-name">{{ filled($appearance['login_title']) ? $appearance['login_title'] : $appearance['app_name'] }}</p>
+            @endif
             @if ($appearance['login_welcome_text'])
                 <p class="auth-panel-text">{{ $appearance['login_welcome_text'] }}</p>
             @endif

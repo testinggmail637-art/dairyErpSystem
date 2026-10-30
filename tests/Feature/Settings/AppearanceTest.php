@@ -16,7 +16,7 @@ beforeEach(function () {
 function appearancePayload(array $overrides = []): array
 {
     return array_merge(collect(AppearanceService::DEFAULTS)
-        ->except(['logo_path', 'logo_dark_path', 'logo_mobile_path', 'logo_mobile_dark_path', 'favicon_path', 'login_background_path'])
+        ->except(['logo_path', 'logo_dark_path', 'logo_mobile_path', 'logo_mobile_dark_path', 'favicon_path', 'login_background_path', 'login_logo_path'])
         ->map(fn ($v) => $v ?? '')
         ->all(), $overrides);
 }
@@ -235,4 +235,28 @@ it('fills settings added after the appearance was cached', function () {
 
     expect(app(AppearanceService::class)->get($this->farm))->toHaveKey('logo_mobile_path', null);
     $this->actingAs($this->owner)->get(route('profile.edit'))->assertOk();
+});
+
+it('gives the login page its own logo, heading and colours', function () {
+    $this->actingAs($this->owner)->put(route('settings.appearance.update'), appearancePayload([
+        'login_logo' => UploadedFile::fake()->image('login.png', 600, 200),
+        'login_title' => 'Yashadhya Organics',
+        'login_panel_color' => '#1b5e20',
+        'login_text_color' => '#ffffff',
+    ]))->assertSessionDoesntHaveErrors();
+
+    $stored = app(AppearanceService::class)->stored($this->farm->fresh());
+    expect($stored['login_panel_color'])->toBe('#1B5E20');
+    auth()->logout();
+
+    $this->get(route('login'))
+        ->assertSee('src="'.Storage::disk('public')->url($stored['login_logo_path']).'"', false)
+        ->assertSee('<p class="auth-panel-name">Yashadhya Organics</p>', false)
+        ->assertSee('--auth-panel-bg: #1B5E20', false)
+        ->assertSee('--auth-panel-text: #FFFFFF', false);
+
+    $this->actingAs($this->owner)->put(route('settings.appearance.update'), appearancePayload(['login_title' => '']));
+    auth()->logout();
+
+    $this->get(route('login'))->assertDontSee('auth-panel-name', false);
 });

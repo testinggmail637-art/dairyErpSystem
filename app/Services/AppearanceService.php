@@ -44,6 +44,10 @@ class AppearanceService
         'table_density' => 'normal',
         'login_background_path' => null,
         'login_welcome_text' => 'Welcome to Dairy ERP',
+        'login_logo_path' => null,     // null = dark logo, then logo
+        'login_title' => null,         // null = app name (hidden when a logo is shown)
+        'login_panel_color' => null,   // null = primary colour
+        'login_text_color' => null,    // null = readable on the panel colour
         'print_header_text' => null,   // null = farm name + address
         'print_footer_text' => null,
         'pdf_accent_color' => null,    // null = primary colour
@@ -76,6 +80,7 @@ class AppearanceService
         'logo_mobile_dark' => 'logo_mobile_dark_path',
         'favicon' => 'favicon_path',
         'login_background' => 'login_background_path',
+        'login_logo' => 'login_logo_path',
     ];
 
     /** Ready-made colour sets that fill the form (spec 4.11); a dark preset also switches the theme to dark. */
@@ -192,6 +197,8 @@ class AppearanceService
             '--app-table-cell-py' => $a['table_density'] === 'compact' ? '0.3rem' : '0.55rem',
             '--app-table-cell-px' => $a['table_density'] === 'compact' ? '0.4rem' : '0.6rem',
             '--app-pdf-accent' => $a['pdf_accent_color'],
+            '--auth-panel-bg' => $a['login_panel_color'],
+            '--auth-panel-text' => $a['login_text_color'],
         ];
 
         $light = ['--bs-body-bg' => $a['body_bg'], '--topbar-bg' => $a['topbar_bg'], '--app-card-bg' => $a['card_bg']];
@@ -380,6 +387,9 @@ class AppearanceService
         $a['topbar_logo_dark_path'] = $a['logo_mobile_dark_path'] ?: ($a['logo_mobile_path'] ?: ($a['logo_dark_path'] ?: $a['logo_path']));
         $a['logo_dark_path'] = $a['logo_dark_path'] ?: $a['logo_path'];
         $a['sidebar_is_light'] = Color::readableTextOn($a['sidebar_bg']) !== '#FFFFFF';
+        $a['login_logo_path'] = $a['login_logo_path'] ?: $a['logo_dark_path'];
+        $a['login_panel_color'] = filled($a['login_panel_color']) ? $a['login_panel_color'] : $a['primary_color'];
+        $a['login_text_color'] = filled($a['login_text_color']) ? $a['login_text_color'] : Color::readableTextOn($a['login_panel_color']);
         $a['topbar_is_light'] = Color::readableTextOn($a['topbar_bg']) !== '#FFFFFF';
         $a['base_font_size'] = (int) $a['base_font_size'];
         $a['border_radius'] = (int) $a['border_radius'];
