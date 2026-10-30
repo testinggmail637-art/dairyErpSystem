@@ -141,11 +141,12 @@ class AppearanceService
             return $this->withDerived(self::DEFAULTS, null);
         }
 
+        // `+ DEFAULTS` fills keys added after the entry was cached (e.g. a new upload), so old caches never break views.
         return Cache::rememberForever(self::cacheKey($farm), function () use ($farm) {
             $saved = array_intersect_key((array) $farm->setting('appearance', []), self::DEFAULTS);
 
             return $this->withDerived(array_replace(self::DEFAULTS, $saved), $farm);
-        });
+        }) + self::DEFAULTS;
     }
 
     /**

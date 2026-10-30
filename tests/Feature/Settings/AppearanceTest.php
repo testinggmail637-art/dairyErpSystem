@@ -225,3 +225,12 @@ it('hides the app name when a logo exists and shows the mobile logo in the phone
         ->assertDontSee('<span>Shree Milk ERP</span>', false)
         ->assertSee('src="'.Storage::disk('public')->url($stored['logo_mobile_path']).'" alt="Shree Milk ERP" class="app-topbar-logo"', false);
 });
+
+it('fills settings added after the appearance was cached', function () {
+    $cached = app(AppearanceService::class)->get($this->farm);
+    unset($cached['logo_mobile_path']);
+    Cache::forever(AppearanceService::cacheKey($this->farm), $cached);
+
+    expect(app(AppearanceService::class)->get($this->farm))->toHaveKey('logo_mobile_path', null);
+    $this->actingAs($this->owner)->get(route('profile.edit'))->assertOk();
+});
