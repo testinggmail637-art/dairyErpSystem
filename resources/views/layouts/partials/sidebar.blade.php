@@ -5,14 +5,14 @@
             {{-- Dark sidebar: the "dark" logo. Light sidebar: the normal logo, swapped for the dark one in the dark theme
                  (where a light sidebar turns dark, see AppearanceService::cssVariables). --}}
             @if ($appearance['sidebar_is_light'] && $appearance['logo_path'])
-                <img src="{{ branding_url($appearance['logo_path']) }}" alt="" class="app-brand-logo app-logo-light-theme">
-                <img src="{{ branding_url($appearance['logo_dark_path']) }}" alt="" class="app-brand-logo app-logo-dark-theme">
+                <img src="{{ branding_url($appearance['logo_path']) }}" alt="{{ $appearance['app_name'] }}" class="app-brand-logo app-logo-light-theme">
+                <img src="{{ branding_url($appearance['logo_dark_path']) }}" alt="{{ $appearance['app_name'] }}" class="app-brand-logo app-logo-dark-theme">
             @elseif ($appearance['logo_dark_path'])
-                <img src="{{ branding_url($appearance['logo_dark_path']) }}" alt="" class="app-brand-logo">
+                <img src="{{ branding_url($appearance['logo_dark_path']) }}" alt="{{ $appearance['app_name'] }}" class="app-brand-logo">
             @else
                 <span class="app-brand-mark"><i class="bi bi-droplet-half"></i></span>
+                <span>{{ $appearance['app_name'] }}</span>
             @endif
-            <span>{{ $appearance['app_name'] }}</span>
         </a>
         <button type="button" class="btn-close {{ $appearance['sidebar_is_light'] ? '' : 'btn-close-white' }} d-lg-none" data-bs-dismiss="offcanvas"
                 data-bs-target="#appSidebar" aria-label="{{ __('Close menu') }}"></button>

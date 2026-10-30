@@ -18,6 +18,8 @@
     $uploads = [
         'logo' => [__('Logo'), 'logo_path', 'PNG, JPG, SVG or WEBP, max 2 MB (resized to 400 px wide)', 'image/png,image/jpeg,image/svg+xml,image/webp'],
         'logo_dark' => [__('Logo for dark backgrounds'), 'logo_dark_path', 'Optional. Used on a dark sidebar and in the dark theme; falls back to the logo', 'image/png,image/jpeg,image/svg+xml,image/webp'],
+        'logo_mobile' => [__('Mobile logo'), 'logo_mobile_path', 'Optional. Small or square image shown in the top bar on phones (light theme); falls back to the logo', 'image/png,image/jpeg,image/svg+xml,image/webp'],
+        'logo_mobile_dark' => [__('Mobile logo for dark backgrounds'), 'logo_mobile_dark_path', 'Optional. Used on phones in the dark theme; falls back to the mobile logo, then the dark logo', 'image/png,image/jpeg,image/svg+xml,image/webp'],
         'favicon' => [__('Browser tab icon (favicon)'), 'favicon_path', 'PNG or ICO, max 512 KB (made 64×64)', 'image/png,image/x-icon,.ico'],
     ];
 @endphp
@@ -158,7 +160,51 @@
             <div class="card mb-3">
                 <div class="card-header fw-semibold"><i class="bi bi-box-arrow-in-right me-1"></i>{{ __('Login page') }}</div>
                 <div class="card-body">
+                    <x-form.group :label="__('Login logo')" for="login_logo" name="login_logo"
+                                  :help="__('Optional. Shown on the coloured panel; falls back to the dark logo, then the logo.')">
+                        <div class="d-flex align-items-center gap-3">
+                            @if ($values['login_logo_path'])
+                                <img src="{{ branding_url($values['login_logo_path']) }}" alt="" class="app-upload-preview">
+                            @endif
+                            <input type="file" id="login_logo" name="login_logo" accept="image/png,image/jpeg,image/svg+xml,image/webp"
+                                   class="form-control @error('login_logo') is-invalid @enderror">
+                        </div>
+                        @if ($values['login_logo_path'])
+                            <div class="form-check mt-1">
+                                <input class="form-check-input" type="checkbox" name="remove[]" value="login_logo" id="remove_login_logo">
+                                <label class="form-check-label small" for="remove_login_logo">{{ __('Remove the current file') }}</label>
+                            </div>
+                        @endif
+                    </x-form.group>
+                    <x-form.input name="login_title" :label="__('Heading')" :value="$values['login_title']" maxlength="60"
+                                  :placeholder="__('Empty = app name (hidden when a logo is shown)')" />
                     <x-form.input name="login_welcome_text" :label="__('Welcome text')" :value="$values['login_welcome_text']" maxlength="150" />
+                    <div class="row g-3 mb-3">
+                        <div class="col-12 col-md-6">
+                            <x-form.group :label="__('Panel colour')" for="login_panel_color" name="login_panel_color" class="mb-0" :help="__('Empty = automatic.')">
+                                <div class="input-group app-input-narrow">
+                                    <input type="color" class="form-control form-control-color"
+                                           value="{{ old('login_panel_color', $values['login_panel_color'] ?? $values['primary_color']) }}"
+                                           data-color-for="login_panel_color" aria-label="{{ __('Panel colour') }}">
+                                    <input type="text" id="login_panel_color" name="login_panel_color" maxlength="7"
+                                           value="{{ old('login_panel_color', $values['login_panel_color']) }}"
+                                           class="form-control text-uppercase font-monospace @error('login_panel_color') is-invalid @enderror" data-color="login_panel_color">
+                                </div>
+                            </x-form.group>
+                        </div>
+                        <div class="col-12 col-md-6">
+                            <x-form.group :label="__('Panel text colour')" for="login_text_color" name="login_text_color" class="mb-0" :help="__('Empty = automatic.')">
+                                <div class="input-group app-input-narrow">
+                                    <input type="color" class="form-control form-control-color"
+                                           value="{{ old('login_text_color', $values['login_text_color'] ?? '#FFFFFF') }}"
+                                           data-color-for="login_text_color" aria-label="{{ __('Panel text colour') }}">
+                                    <input type="text" id="login_text_color" name="login_text_color" maxlength="7"
+                                           value="{{ old('login_text_color', $values['login_text_color']) }}"
+                                           class="form-control text-uppercase font-monospace @error('login_text_color') is-invalid @enderror" data-color="login_text_color">
+                                </div>
+                            </x-form.group>
+                        </div>
+                    </div>
                     <x-form.group :label="__('Background image')" for="login_background" name="login_background"
                                   :help="__('JPG or WEBP, max 3 MB (resized to 1920 px wide). Empty = sidebar colour.')" class="mb-0">
                         <div class="d-flex align-items-center gap-3">

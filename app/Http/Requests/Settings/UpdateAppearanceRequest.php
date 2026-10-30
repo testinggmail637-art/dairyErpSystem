@@ -15,11 +15,14 @@ class UpdateAppearanceRequest extends FormRequest
         return $this->user()->can('appearance.manage');
     }
 
+    /** Colours that may be left empty (= automatic). */
+    private const OPTIONAL_COLORS = ['pdf_accent_color', 'login_panel_color', 'login_text_color'];
+
     protected function prepareForValidation(): void
     {
         $colors = [];
 
-        foreach ([...AppearanceService::COLOR_KEYS, 'pdf_accent_color'] as $key) {
+        foreach ([...AppearanceService::COLOR_KEYS, ...self::OPTIONAL_COLORS] as $key) {
             $value = trim((string) $this->input($key));
             $colors[$key] = $value === '' ? null : strtoupper($value);
         }
@@ -36,6 +39,9 @@ class UpdateAppearanceRequest extends FormRequest
         $rules = [
             'app_name' => ['required', 'string', 'max:60'],
             'pdf_accent_color' => ['nullable', $hex],
+            'login_panel_color' => ['nullable', $hex],
+            'login_text_color' => ['nullable', $hex],
+            'login_title' => ['nullable', 'string', 'max:60'],
             'font_family' => ['required', Rule::in(array_keys(AppearanceService::FONTS))],
             'base_font_size' => ['required', 'integer', 'between:13,16'],
             'theme_mode' => ['required', Rule::in(AppearanceService::THEMES)],
@@ -46,8 +52,11 @@ class UpdateAppearanceRequest extends FormRequest
             'print_footer_text' => ['nullable', 'string', 'max:300'],
             'logo' => ['nullable', 'file', 'mimes:png,jpg,jpeg,svg,webp', 'max:2048'],
             'logo_dark' => ['nullable', 'file', 'mimes:png,jpg,jpeg,svg,webp', 'max:2048'],
+            'logo_mobile' => ['nullable', 'file', 'mimes:png,jpg,jpeg,svg,webp', 'max:2048'],
+            'logo_mobile_dark' => ['nullable', 'file', 'mimes:png,jpg,jpeg,svg,webp', 'max:2048'],
             'favicon' => ['nullable', 'file', 'extensions:png,ico', 'max:512'],
             'login_background' => ['nullable', 'file', 'mimes:jpg,jpeg,webp', 'max:3072'],
+            'login_logo' => ['nullable', 'file', 'mimes:png,jpg,jpeg,svg,webp', 'max:2048'],
             'remove' => ['array'],
             'remove.*' => [Rule::in(array_keys(AppearanceService::UPLOADS))],
         ];
@@ -64,7 +73,7 @@ class UpdateAppearanceRequest extends FormRequest
      */
     public function messages(): array
     {
-        return collect([...AppearanceService::COLOR_KEYS, 'pdf_accent_color'])
+        return collect([...AppearanceService::COLOR_KEYS, ...self::OPTIONAL_COLORS])
             ->mapWithKeys(fn ($key) => ["{$key}.regex" => __('Use a colour like #1F6F5C (# and 6 hex digits).')])
             ->all();
     }

@@ -16,7 +16,7 @@ beforeEach(function () {
 function appearancePayload(array $overrides = []): array
 {
     return array_merge(collect(AppearanceService::DEFAULTS)
-        ->except(['logo_path', 'logo_dark_path', 'favicon_path', 'login_background_path'])
+        ->except(['logo_path', 'logo_dark_path', 'logo_mobile_path', 'logo_mobile_dark_path', 'favicon_path', 'login_background_path', 'login_logo_path'])
         ->map(fn ($v) => $v ?? '')
         ->all(), $overrides);
 }
@@ -206,4 +206,57 @@ it('offers presets that each set every colour and a theme, and save as valid set
 
     $this->actingAs($this->owner)->get(route('settings.appearance.edit'))
         ->assertSee('Cream &amp; Butter', false)->assertSee('Forest Night')->assertSee('preset-card');
+});
+
+it('hides the app name when a logo exists and shows the mobile logo in the phone top bar', function () {
+    $this->actingAs($this->owner)->get(route('profile.edit'))
+        ->assertSee('<span>'.e(AppearanceService::DEFAULTS['app_name']).'</span>', false);
+
+    $this->actingAs($this->owner)->put(route('settings.appearance.update'), appearancePayload([
+        'app_name' => 'Shree Milk ERP',
+        'logo' => UploadedFile::fake()->image('logo.png', 400, 100),
+        'logo_mobile' => UploadedFile::fake()->image('mobile.png', 100, 100),
+        'logo_mobile_dark' => UploadedFile::fake()->image('mobile-dark.png', 100, 100),
+    ]))->assertSessionDoesntHaveErrors();
+
+    $stored = app(AppearanceService::class)->stored($this->farm->fresh());
+    expect($stored['logo_mobile_path'])->toStartWith("branding/{$this->farm->id}/logo_mobile-");
+
+    $this->actingAs($this->owner)->get(route('profile.edit'))
+        ->assertDontSee('<span>Shree Milk ERP</span>', false)
+        ->assertSee('src="'.Storage::disk('public')->url($stored['logo_mobile_path']).'" alt="Shree Milk ERP" class="app-topbar-logo app-logo-light-theme"', false)
+        ->assertSee('src="'.Storage::disk('public')->url($stored['logo_mobile_dark_path']).'" alt="Shree Milk ERP" class="app-topbar-logo app-logo-dark-theme"', false);
+});
+
+it('fills settings added after the appearance was cached', function () {
+    $cached = app(AppearanceService::class)->get($this->farm);
+    unset($cached['logo_mobile_path']);
+    Cache::forever(AppearanceService::cacheKey($this->farm), $cached);
+
+    expect(app(AppearanceService::class)->get($this->farm))->toHaveKey('logo_mobile_path', null);
+    $this->actingAs($this->owner)->get(route('profile.edit'))->assertOk();
+});
+
+it('gives the login page its own logo, heading and colours', function () {
+    $this->actingAs($this->owner)->put(route('settings.appearance.update'), appearancePayload([
+        'login_logo' => UploadedFile::fake()->image('login.png', 600, 200),
+        'login_title' => 'Yashadhya Organics',
+        'login_panel_color' => '#1b5e20',
+        'login_text_color' => '#ffffff',
+    ]))->assertSessionDoesntHaveErrors();
+
+    $stored = app(AppearanceService::class)->stored($this->farm->fresh());
+    expect($stored['login_panel_color'])->toBe('#1B5E20');
+    auth()->logout();
+
+    $this->get(route('login'))
+        ->assertSee('src="'.Storage::disk('public')->url($stored['login_logo_path']).'"', false)
+        ->assertSee('<p class="auth-panel-name">Yashadhya Organics</p>', false)
+        ->assertSee('--auth-panel-bg: #1B5E20', false)
+        ->assertSee('--auth-panel-text: #FFFFFF', false);
+
+    $this->actingAs($this->owner)->put(route('settings.appearance.update'), appearancePayload(['login_title' => '']));
+    auth()->logout();
+
+    $this->get(route('login'))->assertDontSee('auth-panel-name', false);
 });
