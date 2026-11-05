@@ -50,7 +50,8 @@ _TODO: for each module, list the working features in plain language once its pha
   daily stock sheet (opening, in, delivered, wastage, home use, calf feeding, adjustment, closing); record wastage /
   home use / calf feeding; adjustments (permission) with a reason; outgoing milk beyond the stock is refused unless the
   farm allows negative stock; ledger with running balance.
-- **Customers, delivery & billing** — _TODO_
+- **Customers, delivery & billing** 🟡 — routes, products (default rate), customers (B2C / B2B, auto code, route stop,
+  opening balance, credit limit) with own rates from a date; subscriptions, deliveries and billing still to come.
 - **Loans & overdraft** — _TODO_ (Phase 3A: loans taken with interest, tenure, EMI schedule and due dates, EMIs paid / left, amount paid per loan, outstanding; overdraft limit / utilized / available)
 - **Collection center** — _TODO_
 - **Health, breeding & feed** — _TODO_

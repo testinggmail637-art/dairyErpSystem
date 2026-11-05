@@ -8,11 +8,11 @@
 | Item | Value |
 |---|---|
 | Current phase | Phase 3 — Customers, Delivery, Billing, Payments (🟡 in progress) |
-| Last completed task | 3.2 — Products CRUD + seeder |
-| Next task | 3.3 — Customers CRUD + customer rates (PricingService) |
-| Overall progress | 36 / 95 tasks (38%) |
-| Tests passing | 446 |
-| Last updated (IST) | 2026-10-30 (fix/logo-hide-appname-mobile-logo) |
+| Last completed task | 3.3 — Customers CRUD + customer rates (PricingService) |
+| Next task | 3.4 — Subscriptions + pauses |
+| Overall progress | 37 / 95 tasks (39%) |
+| Tests passing | 463 |
+| Last updated (IST) | 2026-11-05 (task/3.3-customers-pricing) |
 
 ## Phase overview
 
@@ -217,7 +217,7 @@ Status legend: ⬜ Not started · 🟡 In progress · ✅ Done · ⏸ On hold
 ### Checklist
 - [x] 3.1 Routes CRUD
 - [x] 3.2 Products CRUD + seeder
-- [ ] 3.3 Customers CRUD + customer rates (PricingService)
+- [x] 3.3 Customers CRUD + customer rates (PricingService)
 - [ ] 3.4 Subscriptions + pauses
 - [ ] 3.5 Delivery sheet generation (command + button + schedule)
 - [ ] 3.6 Delivery boy mobile screen (deliver/skip/qty/collect payment)
