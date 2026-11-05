@@ -22,6 +22,7 @@ use App\Http\Controllers\Reports\ReportController;
 use App\Http\Controllers\Sales\CustomerController;
 use App\Http\Controllers\Sales\DeliveryRouteController;
 use App\Http\Controllers\Sales\ProductController;
+use App\Http\Controllers\Sales\SubscriptionController;
 use App\Http\Controllers\Settings\AppearanceController;
 use App\Http\Controllers\Settings\AuditLogController;
 use App\Http\Controllers\Settings\FarmSettingsController;
@@ -172,6 +173,7 @@ Route::middleware(['auth', 'active', 'farm'])->group(function () {
     | Sales (spec Phase 3) — customers, routes and products: customers.view to see, customers.manage to add / edit
     */
     Route::get('customers', [CustomerController::class, 'index'])->middleware('can:customers.view')->name('customers.index');
+    Route::get('customers/search', [CustomerController::class, 'search'])->middleware('can:customers.view')->name('customers.search');
     Route::resource('customers', CustomerController::class)
         ->only(['create', 'store', 'edit', 'update', 'destroy'])
         ->middleware('can:customers.manage');
@@ -180,6 +182,13 @@ Route::middleware(['auth', 'active', 'farm'])->group(function () {
     Route::middleware('can:customers.manage')->scopeBindings()->group(function () {
         Route::post('customers/{customer}/rates', [CustomerController::class, 'storeRate'])->name('customers.rates.store');
         Route::delete('customers/{customer}/rates/{rate}', [CustomerController::class, 'destroyRate'])->name('customers.rates.destroy');
+    });
+    Route::middleware('can:subscriptions.manage')->group(function () {
+        Route::resource('subscriptions', SubscriptionController::class)->except('show');
+        Route::scopeBindings()->group(function () {
+            Route::post('subscriptions/{subscription}/pauses', [SubscriptionController::class, 'storePause'])->name('subscriptions.pauses.store');
+            Route::delete('subscriptions/{subscription}/pauses/{pause}', [SubscriptionController::class, 'destroyPause'])->name('subscriptions.pauses.destroy');
+        });
     });
     Route::get('delivery-routes', [DeliveryRouteController::class, 'index'])->middleware('can:customers.view')->name('delivery-routes.index');
     Route::resource('delivery-routes', DeliveryRouteController::class)

@@ -17,6 +17,7 @@ use App\Models\Expense;
 use App\Models\ExpenseCategory;
 use App\Models\Farm;
 use App\Models\MilkProductionRecord;
+use App\Models\Subscription;
 use App\Models\User;
 use App\Models\Vendor;
 use App\Models\VendorPayment;
@@ -148,6 +149,17 @@ it('keeps the customer list at a constant number of queries', function () {
     $many = queriesFor(route('customers.index'), $this->owner);
 
     expect($many)->toBe($few);
+});
+
+it('keeps the subscription list at a constant number of queries', function () {
+    $make = fn (int $n) => Subscription::factory()->count($n)->create([
+        'customer_id' => fn () => Customer::factory()->create(['farm_id' => $this->farm->id, 'route_id' => DeliveryRoute::factory()->create(['farm_id' => $this->farm->id])->id])->id,
+    ]);
+    $make(3);
+    $few = queriesFor(route('subscriptions.index'), $this->owner);
+
+    $make(30);
+    expect(queriesFor(route('subscriptions.index'), $this->owner))->toBe($few);
 });
 
 it('keeps the breeds list at a constant number of queries', function () {

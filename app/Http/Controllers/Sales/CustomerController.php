@@ -14,6 +14,7 @@ use App\Models\DeliveryRoute;
 use App\Models\Product;
 use App\Services\CustomerService;
 use App\Services\PricingService;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
@@ -115,6 +116,26 @@ class CustomerController extends Controller
         $rate->delete();
 
         return redirect()->route('customers.show', $customer)->with('success', __('Rate removed.'));
+    }
+
+    /**
+     * Select2 remote search: active customers by name, code or phone, 20 per page.
+     * Response: {"results": [{"id": 1, "text": "C-0001 · Ramesh Patil · 9876543210"}], "pagination": {"more": false}}
+     */
+    public function search(Request $request): JsonResponse
+    {
+        $customers = Customer::query()->active()
+            ->search($request->query('q'))
+            ->orderBy('name')
+            ->simplePaginate(20, ['id', 'code', 'name', 'phone'], 'page', max(1, $request->integer('page', 1)));
+
+        return response()->json([
+            'results' => $customers->getCollection()->map(fn (Customer $c) => [
+                'id' => $c->id,
+                'text' => collect([$c->code, $c->name, $c->phone])->filter()->implode(' · '),
+            ])->values(),
+            'pagination' => ['more' => $customers->hasMorePages()],
+        ]);
     }
 
     /** @return array<string, mixed> */
