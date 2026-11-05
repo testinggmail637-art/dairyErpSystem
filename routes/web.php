@@ -19,6 +19,7 @@ use App\Http\Controllers\MilkStock\MilkStockController;
 use App\Http\Controllers\Reports\ExpenseReportController;
 use App\Http\Controllers\Reports\MilkReportController;
 use App\Http\Controllers\Reports\ReportController;
+use App\Http\Controllers\Sales\CustomerController;
 use App\Http\Controllers\Sales\DeliveryRouteController;
 use App\Http\Controllers\Sales\ProductController;
 use App\Http\Controllers\Settings\AppearanceController;
@@ -168,8 +169,18 @@ Route::middleware(['auth', 'active', 'farm'])->group(function () {
     });
 
     /*
-    | Sales (spec Phase 3) — routes and products: customers.view to see, customers.manage to add / edit
+    | Sales (spec Phase 3) — customers, routes and products: customers.view to see, customers.manage to add / edit
     */
+    Route::get('customers', [CustomerController::class, 'index'])->middleware('can:customers.view')->name('customers.index');
+    Route::resource('customers', CustomerController::class)
+        ->only(['create', 'store', 'edit', 'update', 'destroy'])
+        ->middleware('can:customers.manage');
+    Route::get('customers/{customer}', [CustomerController::class, 'show'])->whereNumber('customer')
+        ->middleware('can:customers.view')->name('customers.show');
+    Route::middleware('can:customers.manage')->scopeBindings()->group(function () {
+        Route::post('customers/{customer}/rates', [CustomerController::class, 'storeRate'])->name('customers.rates.store');
+        Route::delete('customers/{customer}/rates/{rate}', [CustomerController::class, 'destroyRate'])->name('customers.rates.destroy');
+    });
     Route::get('delivery-routes', [DeliveryRouteController::class, 'index'])->middleware('can:customers.view')->name('delivery-routes.index');
     Route::resource('delivery-routes', DeliveryRouteController::class)
         ->only(['create', 'store', 'edit', 'update'])

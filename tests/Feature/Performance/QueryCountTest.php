@@ -11,6 +11,7 @@ use App\Enums\MilkType;
 use App\Enums\RoleName;
 use App\Models\Animal;
 use App\Models\AnimalBreed;
+use App\Models\Customer;
 use App\Models\DeliveryRoute;
 use App\Models\Expense;
 use App\Models\ExpenseCategory;
@@ -136,6 +137,17 @@ it('loads the user\'s farms once per page', function () {
     $farmQueries = collect(DB::getQueryLog())->filter(fn ($q) => str_contains($q['query'], 'inner join `farm_user`'));
 
     expect($farmQueries)->toHaveCount(1);
+});
+
+it('keeps the customer list at a constant number of queries', function () {
+    $route = DeliveryRoute::factory()->create(['farm_id' => $this->farm->id]);
+    Customer::factory()->count(3)->create(['farm_id' => $this->farm->id, 'route_id' => $route->id]);
+    $few = queriesFor(route('customers.index'), $this->owner);
+
+    Customer::factory()->count(40)->create(['farm_id' => $this->farm->id, 'route_id' => DeliveryRoute::factory()->create(['farm_id' => $this->farm->id])->id]);
+    $many = queriesFor(route('customers.index'), $this->owner);
+
+    expect($many)->toBe($few);
 });
 
 it('keeps the breeds list at a constant number of queries', function () {
