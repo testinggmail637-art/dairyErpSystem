@@ -2,7 +2,7 @@
 
 You are building a Dairy ERP for an Indian dairy business that has (1) its own cow/buffalo herd,
 (2) a milk collection center that buys milk from farmers, (3) milk sales (B2C home delivery + B2B bulk),
-and (4) cow/buffalo buying & selling.
+(4) cow/buffalo buying & selling, and (5) tracking the loans and overdrafts the business has taken (Phase 3A).
 
 **The full specification is in `docs/DAIRY_ERP_SPEC.md`.** It is the single source of truth. Every table,
 column, business rule, permission and phase is defined there. Do **not** read it whole — see "Token budget" below.
@@ -36,7 +36,7 @@ column, business rule, permission and phase is defined there. Do **not** read it
 1. **Do not stop to ask questions.** The spec answers almost everything. If something is genuinely
    unspecified, choose the simplest reasonable option that is consistent with the spec, implement it,
    and record it in `docs/DECISIONS.md` (date, question, decision, reason). Then continue.
-2. Work **phase by phase, in order** (Phase 0 → 1 → 2 → ...). Do not start a phase until the previous
+2. Work **phase by phase, in order** (Phase 0 → 1 → 2 → 3 → **3A Loans** → 4 → ...). Do not start a phase until the previous
    phase's acceptance criteria pass. Within a phase, follow the task order given in the spec.
 3. Keep `docs/PROGRESS.md` updated: a checklist of every task in every phase, ticked when done,
    plus a short "Current status / next task" section at the top. Create it at the start if missing.
@@ -98,7 +98,7 @@ A task or phase is **not complete** until these files are updated in the same co
 3. **`docs/DECISIONS.md`** — every assumption you made (date, question, decision, reason).
 4. **`docs/DEPLOYMENT.md`** and **`docs/BACKUP_RESTORE.md`** — created in Phase 0, updated when infra changes.
 5. **`CHANGELOG.md`** — one entry per phase (Keep a Changelog style: Added / Changed / Fixed), version
-   `0.<phase>.0` (Phase 0 → 0.0.0, Phase 1 → 0.1.0 … Phase 7 → 0.7.0).
+   `0.<phase>.0` (Phase 0 → 0.0.0, Phase 1 → 0.1.0 … Phase 3A → 0.3.1 … Phase 7 → 0.7.0).
 
 Before every commit, quickly check: is PROGRESS ticked, is README still true, is any new decision logged?
 

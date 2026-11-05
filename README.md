@@ -6,7 +6,7 @@
 
 A web-based ERP for an Indian dairy business: own cow/buffalo herd, milk collection center (farmers, Fat/SNF
 rate charts, payments), milk sales (B2C home delivery subscriptions and B2B bulk supply with monthly billing),
-cow/buffalo buying & selling, expenses, staff, and profit reports — with every litre and every rupee traceable.
+cow/buffalo buying & selling, expenses, loans & overdraft, staff, and profit reports — with every litre and every rupee traceable.
 
 ---
 
@@ -17,7 +17,8 @@ cow/buffalo buying & selling, expenses, staff, and profit reports — with every
 | 0 | Foundation (login, roles, settings, appearance, monitoring, audit log, backups) | ✅ Done (v0.0.0) |
 | 1 | Expense Management (no approval) + Excel import | ✅ Done (v0.1.0) |
 | 2 | Animals, Milk Production, Milk Stock | ✅ Done (v0.2.0) |
-| 3 | Customers, Delivery, Billing, Payments | ⬜ Not started |
+| 3 | Customers, Delivery, Billing, Payments | 🟡 In progress |
+| 3A | Loans & Overdraft | ⬜ Not started |
 | 4 | Farmers & Collection Center | ⬜ Not started |
 | 5 | Health, Breeding, Feed | ⬜ Not started |
 | 6 | Animal Trading & Staff | ⬜ Not started |
@@ -50,6 +51,7 @@ _TODO: for each module, list the working features in plain language once its pha
   home use / calf feeding; adjustments (permission) with a reason; outgoing milk beyond the stock is refused unless the
   farm allows negative stock; ledger with running balance.
 - **Customers, delivery & billing** — _TODO_
+- **Loans & overdraft** — _TODO_ (Phase 3A: loans taken with interest, tenure, EMI schedule and due dates, EMIs paid / left, amount paid per loan, outstanding; overdraft limit / utilized / available)
 - **Collection center** — _TODO_
 - **Health, breeding & feed** — _TODO_
 - **Animal trading** — _TODO_
@@ -186,7 +188,7 @@ Current: 414 tests passing (end of Phase 2). `tests/Feature/Phase0AcceptanceTest
 |---|---|
 | Owner | Everything, including roles, farms, monitoring |
 | Admin | Everything except roles, farms, monitoring |
-| Accountant | Expenses, vendors, bills, payments, farmer payments, salary, reports |
+| Accountant | Expenses, vendors, bills, payments, loans, farmer payments, salary, reports |
 | Herd staff | Milk entry, health, breeding, feed, add expenses |
 | Collection operator | Farmer milk collection entry |
 | Delivery boy | Own route deliveries and payment collection |

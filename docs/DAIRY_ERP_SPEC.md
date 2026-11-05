@@ -6,7 +6,7 @@ Version 1.0 · Target: Laravel monolith · Audience: the developer (Claude Code)
 
 ## 1. Business overview
 
-One dairy business with four activities, all in one application:
+One dairy business with four activities (plus loan tracking), all in one application:
 
 | Unit | What happens | Example |
 |---|---|---|
@@ -14,6 +14,7 @@ One dairy business with four activities, all in one application:
 | Collection center | Village farmers bring milk; quantity, Fat%, SNF% recorded; paid every N days by rate chart | Farmer F-001: 25 L × ₹40 = ₹1,000 |
 | Milk sales | B2C homes get daily subscription delivery; B2B (hotels, shops, sweet shops, dairy plants) get bulk supply; monthly bills; payments | Sharma: 2 L/day @ ₹60; ABC Hotel: 100 L/day @ ₹48 |
 | Animal trading | Cows/buffaloes bought (for own herd or for resale) and sold, with payments and profit | Heifer bought ₹35,000, sold ₹65,000 |
+| Loans | Loans and overdrafts the business has taken: interest, tenure, EMI dates, EMIs paid, amount paid, outstanding | SBI OD limit ₹2,00,000 @ 9.5%; personal loan ₹1,00,000 @ 12% × 12 months, EMI ₹8,885 |
 
 Core principle: **every litre and every rupee must be traceable.**
 If 100 L were available, 70 L sold, 5 L wasted, the system must show 25 L remaining, and where each litre went.
@@ -103,7 +104,7 @@ hand-built (see Phase 0) with Bootstrap 5 Blade views.
 - Critical models use `LogsActivity` with `logOnlyDirty()` and all fillable attributes:
   expenses, vendor_payments, animals, milk_production_records, milk_stock_movements, milk_collections,
   rate_charts, farmer_payments, customers, customer_rates, deliveries, bills, customer_payments,
-  customer_adjustments, animal_purchases, animal_sales, animal_payments, salary_slips, users, roles.
+  customer_adjustments, loans, loan_transactions, animal_purchases, animal_sales, animal_payments, salary_slips, users, roles.
 - Edit and delete forms of these models have a required `reason` (min 3 chars) stored in activity properties.
   Exception: creating records needs no reason.
 - Audit log screen (Settings → Audit Log): filter by user, model, date range; shows old → new diff.
@@ -117,7 +118,7 @@ hand-built (see Phase 0) with Bootstrap 5 Blade views.
 - Table `document_sequences(id, farm_id, type, financial_year, last_number)`; unique `(farm_id, type, financial_year)`.
 - `DocumentNumberService::next($type)` uses `lockForUpdate()` inside a transaction.
 - Formats: `BILL/2026-27/0001`, `FPAY/2026-27/0001` (farmer payment cycle), `APUR/2026-27/0001`,
-  `ASAL/2026-27/0001`, `SAL/2026-27/0001`.
+  `ASAL/2026-27/0001`, `SAL/2026-27/0001`, `LOAN/2026-27/0001`.
 
 ### 4.7 Idempotency
 - Tables `milk_production_records`, `milk_collections`, `deliveries`, `customer_payments`, `vendor_payments`
@@ -243,6 +244,7 @@ customers.view, customers.manage, subscriptions.manage
 deliveries.view, deliveries.update, deliveries.view_all_routes
 bills.view, bills.generate, bills.finalize, bills.cancel
 customer_payments.create, customer_payments.edit, customer_adjustments.create
+loans.view, loans.manage, loan_payments.create, loan_payments.edit
 farmers.view, farmers.manage, rate_charts.manage
 collections.view, collections.create, collections.edit
 farmer_payments.view, farmer_payments.manage, farmer_advances.manage
@@ -259,7 +261,7 @@ reports.view, reports.financial
 |---|---|
 | `owner` | All permissions. Cannot be deleted. At least one active owner must always exist |
 | `admin` | All except `farms.manage`, `roles.manage`, `monitoring.view` |
-| `accountant` | dashboard.*, expenses.*, vendors.*, vendor_payments.*, customers.view, bills.*, customer_payments.*, customer_adjustments.create, farmers.view, collections.view, farmer_payments.*, farmer_advances.manage, animal_trading.view, staff.view, salary.manage, reports.* |
+| `accountant` | dashboard.*, expenses.*, vendors.*, vendor_payments.*, customers.view, bills.*, customer_payments.*, customer_adjustments.create, loans.*, loan_payments.*, farmers.view, collections.view, farmer_payments.*, farmer_advances.manage, animal_trading.view, staff.view, salary.manage, reports.* |
 | `herd_staff` | dashboard.view, animals.view, milk_production.view, milk_production.create, milk_stock.view, health.view, health.manage, breeding.manage, feed.view, feed.manage, expenses.create |
 | `collection_operator` | dashboard.view, farmers.view, collections.view, collections.create, milk_stock.view |
 | `delivery_boy` | deliveries.view, deliveries.update, customer_payments.create (sees only customers/deliveries of routes assigned to him) |
@@ -555,6 +557,70 @@ opening_balance + Σ finalized bills.total (bill_date ≤ D) + Σ adjustments (�
 Customer ledger screen: chronological list (opening, bills, payments, adjustments) with running balance;
 export Excel/PDF.
 
+### Phase 3A — Loans & overdraft (money the business has borrowed)
+
+Tracks every loan the owner / business has **taken**: who lent it, how much, at what interest, for how long,
+EMI due dates, how many EMIs are paid / left, how much has been paid on each loan, and the outstanding balance.
+Lending money to others is not part of this module (farmer advances are in Phase 4).
+
+**loans**:
+| Column | Type | Notes |
+|---|---|---|
+| loan_no | string | auto `LOAN/2026-27/0001` (DocumentNumberService), unique per farm |
+| loan_type | enum LoanType | `personal_loan`, `business_loan`, `vehicle_loan`, `gold_loan`, `overdraft`, `other` |
+| lender_name | string | bank / NBFC / person who gave the loan |
+| lender_phone? | string | |
+| account_no? | string | loan / OD account number |
+| principal_amount | money | > 0; loan amount — for `overdraft` this is the **sanctioned limit** |
+| interest_rate | decimal(5,2) | % per year, 0–99.99 (0 allowed for interest-free personal loans) |
+| repayment_method | enum RepaymentMethod | `emi_reducing`, `emi_flat`, `interest_only`; null for `overdraft` |
+| tenure_months? | int | 1–480; required unless `overdraft` (form takes years + months) |
+| start_date | date | disbursement / sanction date, ≤ today |
+| first_due_date? | date | first EMI / interest date; required unless `overdraft`; > start_date |
+| emi_amount? | money | calculated by LoanService (snapshot); null for `overdraft` |
+| processing_fee | money | default 0; on save creates an expense (Finance → Bank Charges) when > 0 |
+| od_renewal_date? | date | overdraft only — limit renewal / expiry date |
+| status | enum LoanStatus | `active`, `closed` |
+| closed_on? | date | set when closed |
+| notes? | text | |
+| deleted_at? | | soft delete, only when no transactions |
+
+Index (farm_id, status), (farm_id, loan_type).
+
+**loan_installments** (schedule; not used for `overdraft`): loan_id, installment_no, due_date, opening_principal,
+emi_amount, principal_part, interest_part, closing_principal. Unique (loan_id, installment_no); index (farm_id, due_date).
+Paid status is computed from loan_transactions (not stored): `paid`, `partially_paid`, `due`, `overdue` (due_date < today
+and not fully paid).
+
+**loan_transactions**:
+| Column | Type | Notes |
+|---|---|---|
+| loan_id | FK loans | |
+| txn_date | date | ≤ today, ≥ loan start_date |
+| type | enum LoanTxnType | `emi_payment`, `interest_payment`, `prepayment`, `od_withdrawal`, `od_repayment`, `od_interest`, `charge` |
+| amount | money | > 0 |
+| principal_part | money | snapshot of the split (0 for `od_interest`, `charge`) |
+| interest_part | money | snapshot of the split |
+| payment_mode_id? | FK payment_modes | required for payments |
+| reference_no? | string | cheque / UTR no. |
+| expense_id? | FK expenses | auto-created expense for the interest / charge part |
+| client_uuid? | string | unique (farm_id, client_uuid) |
+| note? | text | |
+
+Index (farm_id, loan_id, txn_date), (farm_id, txn_date).
+
+**loan_revisions**: loan_id, effective_date, old_rate, new_rate, old_emi, new_emi, reason. Written when the bank
+changes the interest rate (floating rate) or after a prepayment re-calculates the EMI.
+
+Seed expense category **Finance → Loan Interest, Bank Charges**.
+
+Loan summary (computed, as of today):
+- Outstanding principal (EMI / interest-only) = principal_amount − Σ principal_part of payments.
+- EMIs paid = count of installments fully paid; EMIs left = total installments − EMIs paid; next due date + amount.
+- Total paid = Σ amount of payments; of which interest = Σ interest_part, principal = Σ principal_part.
+- Overdraft: utilized = Σ od_withdrawal + Σ od_interest + Σ charge − Σ od_repayment; available = limit − utilized.
+- All totals calculated in SQL (`SUM` grouped by loan_id), never by loading rows into PHP.
+
 ### Phase 4 — Farmers & milk collection
 
 **farmers**: code (unique per farm, auto `F-001`), name, father_name?, phone?, village?, address?,
@@ -763,6 +829,43 @@ See Section 7.
 - "Adjustment" (permission milk_stock.adjust): in/out with mandatory reason.
 - Ledger view with filters and running balance.
 
+### 7.4A Loans & overdraft (Phase 3A)
+- **EMI calculation (LoanService, bcmath only, no float):** monthly rate r = interest_rate ÷ 12 ÷ 100, n = tenure_months.
+  - `emi_reducing`: EMI = P·r·(1+r)ⁿ ÷ ((1+r)ⁿ − 1) (r = 0 → P ÷ n). Each month interest = opening principal × r,
+    principal part = EMI − interest.
+  - `emi_flat`: total interest = P × rate × n ÷ 1200; EMI = (P + total interest) ÷ n; equal interest each month.
+  - `interest_only`: each month interest = P × r; the full principal is due with the last installment.
+  - EMI rounded to the rupee (₹, 0 paise) like banks; the last installment absorbs the rounding difference so that
+    Σ principal_part = P exactly. Due dates = first_due_date + k months (31st → last day of a short month).
+  - Test: ₹1,00,000 at 12% reducing for 12 months → EMI ₹8,885; Σ principal = ₹1,00,000.00; Σ interest = ₹6,618.55 ± rounding.
+- Schedule is generated on create. Editing principal / rate / tenure / dates is allowed only while the loan has no
+  transactions (schedule re-generated). After that, only lender details and notes are editable (with reason).
+- **Record payment** (`emi_payment` / `interest_payment`): applied FIFO to the oldest unpaid installments — interest part
+  of each installment first, then its principal. Paying less than one EMI leaves it partially paid; more than the due
+  amount continues into the next installments. Split is stored on the transaction (snapshot).
+- **Prepayment:** whole amount reduces principal. The owner picks "reduce EMI" (same remaining tenure) or "reduce
+  tenure" (same EMI); future unpaid installments are re-generated and a loan_revision row is written.
+- **Rate change** (floating rate): action "Change interest rate" with effective date + reason → re-generates unpaid
+  installments from that date, writes loan_revision. Paid installments and past transactions never change.
+- **Overdraft:** withdrawal refused if utilized + amount > limit; repayment ≤ utilized; `od_interest` entered monthly
+  from the bank statement (debited interest). No schedule, no EMIs.
+- **Expenses:** the interest part of every payment, every `od_interest` and every `charge` creates an expense
+  (Finance → Loan Interest / Bank Charges, source_type = loan_transaction, paid, same payment mode; `od_interest` uses
+  payment mode "Bank"). Principal is never an expense. Deleting / editing the transaction (with reason, latest
+  transaction of the loan only) updates / removes the linked expense in the same DB transaction.
+- **Close loan:** allowed when outstanding principal = 0 (OD: utilized = 0); closed loans accept no new transactions
+  and cannot be edited. "Re-open" (owner, with reason) undoes it.
+- **Screens:** Loans list (type, lender, amount / limit, rate, tenure, EMI, EMIs paid x / y, total paid, outstanding,
+  next due date; filters type / status / lender; totals row) · Loan detail (summary cards, schedule with status
+  colours, transactions, revisions, buttons: record payment, prepayment, change rate, close) · OD detail (limit,
+  utilized, available, transactions with running balance).
+- **Reminders:** daily scheduled command `loans:reminders` sends an in-app (database) notification to users with
+  `loans.view` 3 days before and on an EMI due date, and for overdue EMIs; OD renewal 15 days before od_renewal_date.
+- **Dashboard (with `dashboard.financial` + `loans.view`):** total loan outstanding, OD utilized / limit, EMIs due in
+  the next 7 days, overdue EMIs.
+- **Reports (Excel + PDF):** loan summary (one row per loan as on a date), EMI due list for a date range,
+  interest & principal paid per loan for a period / financial year (for income-tax), loan statement per loan.
+
 ### 7.5 Dashboard (progressively, complete in Phase 7)
 Cards (each hidden if user lacks permission): today's own production (cow/buffalo), today's collection
 (litres, amount), today's deliveries (litres, amount), wastage, current stock by source & type,
@@ -798,7 +901,7 @@ Financial cards require `dashboard.financial`.
 
 Each phase ends with: all tests passing, Pint clean, seeders updated, `docs/PROGRESS.md` checklist ticked and
 its "Phase log" filled, `README.md` updated (feature status, setup, phase table), `CHANGELOG.md` entry added,
-`docs/DECISIONS.md` updated, commit + git tag `phase-<n>-done`.
+`docs/DECISIONS.md` updated, commit + git tag `phase-<n>-done` (Phase 3A → `phase-3a-done`).
 
 ### Phase 0 — Foundation
 Tasks:
@@ -871,6 +974,22 @@ Acceptance:
 - Payment ₹5,000 against bills 3,000 (older) and 4,000 → allocations 3,000 + 2,000.
 - Delivery boy sees only his route's customers; cannot open other customers by URL.
 
+### Phase 3A — Loans & overdraft
+Tasks: tables + enums + permissions + Finance expense category → loans CRUD + LoanService EMI schedule (reducing /
+flat / interest-only) → loan payments (FIFO split, interest expense, edit/delete latest with reason) → prepayment +
+rate change + close / re-open → overdraft accounts (withdrawal / repayment / interest, limit check) → loan detail
+screens + reminders command + dashboard cards → loan reports.
+Acceptance:
+- ₹1,00,000 at 12% reducing, 12 months → EMI ₹8,885; schedule Σ principal = ₹1,00,000.00 exactly.
+- Flat: ₹1,20,000 at 10% for 24 months → total interest ₹24,000, EMI ₹6,000.
+- Paying 3 EMIs → list shows EMIs paid 3 / 12, next due = 4th installment date, outstanding = closing principal of the 3rd.
+- Interest part of a payment appears as an expense (Finance → Loan Interest); principal does not.
+- Prepayment ₹20,000 after 3 EMIs (reduce EMI) → outstanding drops by ₹20,000, unpaid installments re-calculated,
+  paid installments unchanged, revision row written.
+- OD limit ₹2,00,000, withdrawals ₹1,50,000 → a ₹60,000 withdrawal is refused; available shows ₹50,000.
+- Closed loan accepts no payment (validation); loan with transactions cannot change principal / rate directly.
+- Staff without `loans.view` get 403 on every loan URL; loans of another farm are not visible.
+
 ### Phase 4 — Farmers & collection center
 Tasks: farmers CRUD → rate charts (all 4 methods) + slabs + rate preview calculator → collection entry screen
 → collection list/edit with lock rules → advances → payment cycles (create/draft edit/finalize/mark paid) →
@@ -922,7 +1041,7 @@ thermal printer receipts, customer portal, PWA/offline sync, Hindi UI, ML foreca
   Default look: green/teal primary with dark green sidebar. Sidebar groups:
   Dashboard · Herd (Animals, Milk Entry, Health, Breeding, Feed) · Collection (Farmers, Collection Entry,
   Rate Charts, Farmer Payments) · Sales (Customers, Subscriptions, Deliveries, Bills, Payments) · Milk Stock ·
-  Expenses (Expenses, Vendors, Import) · Trading (Purchases, Sales, Parties) · Staff · Reports ·
+  Expenses (Expenses, Vendors, Import) · Loans (Loans, Overdraft) · Trading (Purchases, Sales, Parties) · Staff · Reports ·
   Settings (Farm, Users, Roles, Appearance, Sections, Payment Modes, Audit Log, System Monitor).
 - Screens used in the field (milk entry, collection entry, delivery boy screen) must work well at 360px width,
   large inputs, numeric keyboard (`inputmode="decimal"`), minimal taps.
@@ -934,7 +1053,7 @@ thermal printer receipts, customer portal, PWA/offline sync, Hindi UI, ML foreca
 ## 10. Testing requirements
 - Pest feature tests for every acceptance criterion in Section 8, plus authorization tests (each role gets 403 on
   at least one forbidden action per module) and farm isolation tests.
-- Unit tests for Money, RateChartService, PricingService, BillingService balance math, FarmerPaymentService,
+- Unit tests for Money, LoanService (EMI / schedule / FIFO split), RateChartService, PricingService, BillingService balance math, FarmerPaymentService,
   cost allocation, salary calculation, MilkStockService.
 - Factories for every model. `DemoSeeder` generating realistic Indian data (names, villages, rates) for one year.
 - Tests run against the MySQL test database `dairy_erp_test` (`.env.testing`, `RefreshDatabase`), never against
@@ -944,9 +1063,9 @@ thermal printer receipts, customer portal, PWA/offline sync, Hindi UI, ML foreca
 
 ## 11. Seeders summary
 `DatabaseSeeder` (production-safe): permissions & roles, default farm ("My Dairy Farm", code MDF), owner user,
-sections, payment modes, expense categories, breeds, vaccine types, products, document sequences.
+sections, payment modes, expense categories (incl. Finance), breeds, vaccine types, products, document sequences.
 `DemoSeeder` (local only, refuses to run in production): animals, 1 year milk records, farmers, collections,
-rate charts, customers, subscriptions, deliveries, bills, payments, expenses, feed, staff.
+rate charts, customers, subscriptions, deliveries, bills, payments, loans (EMI + overdraft), expenses, feed, staff.
 
 ## 12. Out of scope (do NOT build in this version)
 - Expense approval workflow of any kind (pending/approved/rejected, approver, approval inbox, approval toggle).
@@ -958,6 +1077,8 @@ rate charts, customers, subscriptions, deliveries, bills, payments, expenses, fe
 - APIs, SPA frontend, native mobile app, PWA/offline.
 - WhatsApp/SMS/email notifications (only in-app database notifications).
 - Payment gateway, hardware integrations, ML predictions.
+- Loans: money lent **to** others (farmer advances cover farmers), bank statement import, automatic daily OD
+  interest calculation (OD interest is entered from the bank statement), loan against assets / collateral tracking.
 
 ## 13. Defaults for anything not covered
 - Prefer the simplest implementation consistent with this spec and existing code patterns.
