@@ -3,9 +3,11 @@
 namespace App\Services;
 
 use App\Enums\SubscriptionStatus;
+use App\Models\Delivery;
 use App\Models\Subscription;
 use App\Models\SubscriptionPause;
 use App\Support\Money;
+use DomainException;
 use Illuminate\Support\Facades\DB;
 
 /** Subscriptions and pauses (spec Section 6, Phase 3). Changes affect only delivery sheets generated afterwards. */
@@ -25,9 +27,17 @@ class SubscriptionService
         return $subscription;
     }
 
-    /** Deletes the subscription with its pauses. Deliveries (Task 3.5) will block this. */
+    /**
+     * Deletes the subscription with its pauses — only while it has no deliveries (then it is stopped instead).
+     *
+     * @throws DomainException
+     */
     public function delete(Subscription $subscription): void
     {
+        if (Delivery::query()->where('subscription_id', $subscription->id)->exists()) {
+            throw new DomainException(__('This subscription already has deliveries, so it cannot be deleted. Set it to Stopped instead.'));
+        }
+
         DB::transaction(function () use ($subscription) {
             $subscription->pauses()->delete();
             $subscription->delete();

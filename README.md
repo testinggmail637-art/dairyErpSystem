@@ -51,7 +51,7 @@ _TODO: for each module, list the working features in plain language once its pha
   home use / calf feeding; adjustments (permission) with a reason; outgoing milk beyond the stock is refused unless the
   farm allows negative stock; ledger with running balance.
 - **Customers, delivery & billing** 🟡 — routes, products (default rate), customers (B2C / B2B, auto code, route stop,
-  opening balance, credit limit) with own rates from a date; subscriptions with pauses; deliveries and billing still to come.
+  opening balance, credit limit) with own rates from a date; subscriptions with pauses; daily delivery sheet (scheduled + button); delivery marking and billing still to come.
 - **Loans & overdraft** — _TODO_ (Phase 3A: loans taken with interest, tenure, EMI schedule and due dates, EMIs paid / left, amount paid per loan, outstanding; overdraft limit / utilized / available)
 - **Collection center** — _TODO_
 - **Health, breeding & feed** — _TODO_
@@ -156,8 +156,9 @@ Scheduled jobs (IST, defined in `routes/console.php`):
 | 02:30 | `backup:clean` | Delete backups older than 14 days |
 | 03:00 | `backup:monitor` | Health check; owners get a bell notification if a backup failed or is too old |
 | 03:30 | `exports:prune` | Delete queued Excel export files older than 3 days |
+| every 5 min | `deliveries:generate --scheduled` | Today's delivery sheet for each farm, once, after its "Delivery sheet time" (Settings → Farm). Manual: `php artisan deliveries:generate 2026-11-10` |
 
-_More jobs (delivery sheet generation, reminders) are added in later phases._ Restore steps: `docs/BACKUP_RESTORE.md`.
+_More jobs (reminders) are added in later phases._ Restore steps: `docs/BACKUP_RESTORE.md`.
 
 ---
 

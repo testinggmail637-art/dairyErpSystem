@@ -22,6 +22,7 @@ class Activity extends BaseActivity
         MilkProductionRecord::class,
         Customer::class,
         CustomerRate::class,
+        Delivery::class,
     ];
 
     protected static function booted(): void

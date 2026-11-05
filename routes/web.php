@@ -20,6 +20,7 @@ use App\Http\Controllers\Reports\ExpenseReportController;
 use App\Http\Controllers\Reports\MilkReportController;
 use App\Http\Controllers\Reports\ReportController;
 use App\Http\Controllers\Sales\CustomerController;
+use App\Http\Controllers\Sales\DeliveryController;
 use App\Http\Controllers\Sales\DeliveryRouteController;
 use App\Http\Controllers\Sales\ProductController;
 use App\Http\Controllers\Sales\SubscriptionController;
@@ -183,6 +184,8 @@ Route::middleware(['auth', 'active', 'farm'])->group(function () {
         Route::post('customers/{customer}/rates', [CustomerController::class, 'storeRate'])->name('customers.rates.store');
         Route::delete('customers/{customer}/rates/{rate}', [CustomerController::class, 'destroyRate'])->name('customers.rates.destroy');
     });
+    Route::get('deliveries', [DeliveryController::class, 'index'])->middleware('can:deliveries.view')->name('deliveries.index');
+    Route::post('deliveries/generate', [DeliveryController::class, 'generate'])->middleware('can:deliveries.view_all_routes')->name('deliveries.generate');
     Route::middleware('can:subscriptions.manage')->group(function () {
         Route::resource('subscriptions', SubscriptionController::class)->except('show');
         Route::scopeBindings()->group(function () {

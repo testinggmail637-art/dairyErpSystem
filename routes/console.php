@@ -15,6 +15,9 @@ Schedule::command('backup:run')->dailyAt('02:00')->withoutOverlapping()->onOneSe
 Schedule::command('backup:clean')->dailyAt('02:30')->withoutOverlapping()->onOneServer();
 Schedule::command('backup:monitor')->dailyAt('03:00')->onOneServer();
 
+// Delivery sheet for today: each farm once a day, after its own delivery_sheet_generate_time (Settings → Farm).
+Schedule::command('deliveries:generate --scheduled')->everyFiveMinutes()->withoutOverlapping()->onOneServer();
+
 // Queued export files (storage/app/private/exports/{user}/) are kept 3 days.
 Schedule::call(function () {
     $disk = Storage::disk(Exporter::DISK);
