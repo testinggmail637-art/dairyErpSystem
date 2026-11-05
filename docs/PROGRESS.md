@@ -10,7 +10,7 @@
 | Current phase | Phase 3 — Customers, Delivery, Billing, Payments (🟡 in progress) |
 | Last completed task | 3.2 — Products CRUD + seeder |
 | Next task | 3.3 — Customers CRUD + customer rates (PricingService) |
-| Overall progress | 36 / 88 tasks (41%) |
+| Overall progress | 36 / 95 tasks (38%) |
 | Tests passing | 446 |
 | Last updated (IST) | 2026-10-30 (fix/logo-hide-appname-mobile-logo) |
 
@@ -22,6 +22,7 @@
 | 1 | Expense Management (no approval) | ✅ Done | 2026-10-16 | 2026-10-18 | `phase-1-done` |
 | 2 | Animals, Milk Production, Milk Stock | ✅ Done | 2026-10-19 | 2026-10-28 | `phase-2-done` |
 | 3 | Customers, Delivery, Billing, Payments | 🟡 In progress | 2026-10-29 | | |
+| 3A | Loans & Overdraft (added 2026-11-05) | ⬜ Not started | | | |
 | 4 | Farmers & Collection Center | ⬜ Not started | | | |
 | 5 | Health, Breeding, Feed | ⬜ Not started | | | |
 | 6 | Animal Trading & Staff | ⬜ Not started | | | |
@@ -228,6 +229,30 @@ Status legend: ⬜ Not started · 🟡 In progress · ✅ Done · ⏸ On hold
 - [ ] 3.12 Customer ledger (screen + Excel/PDF)
 - [ ] 3.13 Sales reports
 - [ ] 3.14 Phase 3 acceptance tests pass + README/CHANGELOG updated
+
+### Phase log
+- **Completed on:** _TODO_
+- **What was built (plain language):** _TODO_
+- **Screens / URLs added:** _TODO_
+- **Tables / migrations added:** _TODO_
+- **Services / commands / jobs added:** _TODO_
+- **Tests added (count, all passing?):** _TODO_
+- **Decisions taken:** _TODO_
+- **Known issues / pending:** _TODO_
+- **How to check it manually:** _TODO_
+
+---
+
+## Phase 3A — Loans & Overdraft (added 2026-11-05, owner's request; spec §6 Phase 3A, §7.4A, §8 Phase 3A)
+
+### Checklist
+- [ ] 3A.1 Tables (`loans`, `loan_installments`, `loan_transactions`, `loan_revisions`), enums, permissions, Finance expense category seed
+- [ ] 3A.2 Loans CRUD + LoanService EMI schedule (reducing / flat / interest-only)
+- [ ] 3A.3 Loan payments: FIFO interest/principal split, interest → expense, edit/delete latest with reason
+- [ ] 3A.4 Prepayment (reduce EMI / reduce tenure) + interest rate change + close / re-open
+- [ ] 3A.5 Overdraft accounts: withdrawal / repayment / interest, limit check, running balance
+- [ ] 3A.6 Loan detail screens + `loans:reminders` command + dashboard loan cards
+- [ ] 3A.7 Loan reports (summary, EMI due list, interest & principal paid per FY, loan statement) + Phase 3A acceptance tests + README/CHANGELOG updated
 
 ### Phase log
 - **Completed on:** _TODO_
