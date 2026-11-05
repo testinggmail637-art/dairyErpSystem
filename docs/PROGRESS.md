@@ -8,11 +8,11 @@
 | Item | Value |
 |---|---|
 | Current phase | Phase 3 — Customers, Delivery, Billing, Payments (🟡 in progress) |
-| Last completed task | 3.4 — Subscriptions + pauses |
-| Next task | 3.5 — Delivery sheet generation (command + button + schedule) |
-| Overall progress | 38 / 95 tasks (40%) |
-| Tests passing | 476 |
-| Last updated (IST) | 2026-11-05 (task/3.4-subscriptions-pauses) |
+| Last completed task | 3.5 — Delivery sheet generation (command + button + schedule) |
+| Next task | 3.6 — Delivery boy mobile screen (deliver/skip/qty/collect payment) |
+| Overall progress | 39 / 95 tasks (41%) |
+| Tests passing | 483 |
+| Last updated (IST) | 2026-11-05 (task/3.5-delivery-sheet-generation) |
 
 ## Phase overview
 
@@ -219,7 +219,7 @@ Status legend: ⬜ Not started · 🟡 In progress · ✅ Done · ⏸ On hold
 - [x] 3.2 Products CRUD + seeder
 - [x] 3.3 Customers CRUD + customer rates (PricingService)
 - [x] 3.4 Subscriptions + pauses
-- [ ] 3.5 Delivery sheet generation (command + button + schedule)
+- [x] 3.5 Delivery sheet generation (command + button + schedule)
 - [ ] 3.6 Delivery boy mobile screen (deliver/skip/qty/collect payment)
 - [ ] 3.7 Admin delivery grid + bulk mark delivered
 - [ ] 3.8 One-off / B2B dispatch form (with fat/snf and buyer readings)

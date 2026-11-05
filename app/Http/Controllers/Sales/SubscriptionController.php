@@ -14,6 +14,7 @@ use App\Models\Product;
 use App\Models\Subscription;
 use App\Models\SubscriptionPause;
 use App\Services\SubscriptionService;
+use DomainException;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
@@ -91,7 +92,11 @@ class SubscriptionController extends Controller
 
     public function destroy(Subscription $subscription): RedirectResponse
     {
-        $this->subscriptions->delete($subscription);
+        try {
+            $this->subscriptions->delete($subscription);
+        } catch (DomainException $e) {
+            return back()->with('error', $e->getMessage());
+        }
 
         return redirect()->route('subscriptions.index')->with('success', __('Subscription deleted.'));
     }

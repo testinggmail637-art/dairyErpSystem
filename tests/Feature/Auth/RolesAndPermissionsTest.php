@@ -73,8 +73,8 @@ it('sends each user to a page they may open after login', function () {
 
     $this->actingAs($herd)->get(route('home'))->assertRedirect(route('dashboard'));
     $this->flushSession(); // a different person: actingAs() skips the login controller, which clears the session farm
-    // No delivery screens exist yet, so the delivery boy lands on the profile page.
-    $this->actingAs($delivery)->get(route('home'))->assertRedirect(route('profile.edit'));
+    // The delivery boy has no dashboard; he lands on his first menu screen, Deliveries.
+    $this->actingAs($delivery)->get(route('home'))->assertRedirect(route('deliveries.index'));
 });
 
 it('lists unique permission names and rejects unknown ones', function () {
