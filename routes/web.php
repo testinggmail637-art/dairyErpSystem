@@ -185,6 +185,8 @@ Route::middleware(['auth', 'active', 'farm'])->group(function () {
         ->middleware('can:customers.manage');
     Route::get('customers/{customer}', [CustomerController::class, 'show'])->whereNumber('customer')
         ->middleware('can:customers.view')->name('customers.show');
+    Route::get('customers/{customer}/ledger', [CustomerController::class, 'ledger'])
+        ->middleware('can:customers.view')->name('customers.ledger');
     Route::middleware('can:customers.manage')->scopeBindings()->group(function () {
         Route::post('customers/{customer}/rates', [CustomerController::class, 'storeRate'])->name('customers.rates.store');
         Route::delete('customers/{customer}/rates/{rate}', [CustomerController::class, 'destroyRate'])->name('customers.rates.destroy');

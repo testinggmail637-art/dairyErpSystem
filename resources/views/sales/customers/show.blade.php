@@ -4,6 +4,7 @@
 
 @section('page-actions')
     <a href="{{ route('customers.index') }}" class="btn btn-outline-secondary btn-sm"><i class="bi bi-arrow-left me-1"></i>{{ __('Customers') }}</a>
+    <a href="{{ route('customers.ledger', $customer) }}" class="btn btn-outline-primary btn-sm"><i class="bi bi-journal-text me-1"></i>{{ __('Ledger') }}</a>
     @can('subscriptions.manage')
         <a href="{{ route('subscriptions.index', ['customer_id' => $customer->id]) }}" class="btn btn-outline-primary btn-sm"><i class="bi bi-calendar-check me-1"></i>{{ __('Subscriptions') }}</a>
     @endcan

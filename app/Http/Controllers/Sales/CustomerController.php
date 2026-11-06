@@ -4,8 +4,10 @@ namespace App\Http\Controllers\Sales;
 
 use App\Enums\B2bCategory;
 use App\Enums\CustomerType;
+use App\Exports\ReportTableExport;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Sales\CustomerAdjustmentRequest;
+use App\Http\Requests\Sales\CustomerLedgerRequest;
 use App\Http\Requests\Sales\CustomerRateRequest;
 use App\Http\Requests\Sales\CustomerRequest;
 use App\Http\Requests\Sales\DeleteCustomerAdjustmentRequest;
@@ -15,13 +17,17 @@ use App\Models\CustomerAdjustment;
 use App\Models\CustomerRate;
 use App\Models\DeliveryRoute;
 use App\Models\Product;
+use App\Services\CustomerLedgerService;
 use App\Services\CustomerService;
 use App\Services\PricingService;
+use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use Illuminate\View\View;
+use Maatwebsite\Excel\Facades\Excel;
+use Symfony\Component\HttpFoundation\BinaryFileResponse;
 
 /** Sales → Customers (spec Section 6, Phase 3) with their own rates per product. */
 class CustomerController extends Controller
@@ -85,6 +91,27 @@ class CustomerController extends Controller
             'canManage' => $request->user()->can('customers.manage'),
             'adjustments' => $customer->adjustments()->with('creator:id,name')
                 ->orderByDesc('adjustment_date')->orderByDesc('id')->paginate(10, ['*'], 'adj_page'),
+        ]);
+    }
+
+    /** Ledger with running balance for a period (default: this financial year), Excel / PDF with ?format=. */
+    public function ledger(CustomerLedgerRequest $request, Customer $customer, CustomerLedgerService $ledger): View|Response|BinaryFileResponse
+    {
+        $v = $request->validated();
+        $filters = ['from' => $v['from'] ?? null, 'to' => $v['to'] ?? null];
+
+        if (($v['format'] ?? null) !== null) {
+            $table = $ledger->table($customer, $filters['from'], $filters['to']);
+
+            return $v['format'] === 'excel'
+                ? Excel::download(new ReportTableExport($table), $table->fileName().'.xlsx')
+                : Pdf::loadView('pdf.report', ['table' => $table])->download($table->fileName().'.pdf');
+        }
+
+        return view('sales.customers.ledger', [
+            'customer' => $customer,
+            'filters' => $filters,
+            'ledger' => $ledger->ledger($customer, $filters['from'], $filters['to'], (int) ($v['page'] ?? 1), array_filter($filters) ?: ['all' => 1]),
         ]);
     }
 
