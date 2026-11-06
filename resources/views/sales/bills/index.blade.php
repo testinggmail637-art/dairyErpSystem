@@ -60,7 +60,10 @@
                         <td class="text-nowrap">{{ fmt_date($bill->bill_date) }}</td>
                         <td class="text-end"><x-money :value="$bill->total" /></td>
                         <td class="text-end">@if ($bill->status === \App\Enums\BillStatus::Finalized)<x-money :value="$bill->closing_balance" />@else — @endif</td>
-                        <td><span class="badge {{ $bill->status->badge() }}">{{ $bill->status->label() }}</span></td>
+                        <td class="text-nowrap">
+                            <span class="badge {{ $bill->status->badge() }}">{{ $bill->status->label() }}</span>
+                            @if ($paid = $bill->paidStatus())<span class="badge {{ $paid->badge() }}">{{ $paid->label() }}</span>@endif
+                        </td>
                     </tr>
                 @empty
                     <tr><td colspan="7" class="text-center text-body-secondary py-5">

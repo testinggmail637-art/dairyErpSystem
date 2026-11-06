@@ -21,6 +21,7 @@ use App\Http\Controllers\Reports\MilkReportController;
 use App\Http\Controllers\Reports\ReportController;
 use App\Http\Controllers\Sales\BillController;
 use App\Http\Controllers\Sales\CustomerController;
+use App\Http\Controllers\Sales\CustomerPaymentController;
 use App\Http\Controllers\Sales\DeliveryController;
 use App\Http\Controllers\Sales\DeliveryGridController;
 use App\Http\Controllers\Sales\DeliveryRouteController;
@@ -34,6 +35,7 @@ use App\Http\Controllers\Settings\PaymentModeController;
 use App\Http\Controllers\Settings\RoleController;
 use App\Http\Controllers\Settings\SectionController;
 use App\Http\Controllers\Settings\UserController;
+use App\Models\CustomerPayment;
 use App\Models\Expense;
 use App\Models\MilkProductionRecord;
 use App\Models\VendorPayment;
@@ -202,6 +204,20 @@ Route::middleware(['auth', 'active', 'farm'])->group(function () {
     Route::post('deliveries/{delivery}/deliver', [DeliverySheetController::class, 'deliver'])->name('deliveries.deliver');
     Route::post('deliveries/{delivery}/skip', [DeliverySheetController::class, 'skip'])->name('deliveries.skip');
     Route::post('deliveries/{delivery}/payment', [DeliverySheetController::class, 'collect'])->name('deliveries.collect');
+    // Customer payments (policy: customer_payments.edit, or own same-day entry with customer_payments.create)
+    Route::get('customer-payments', [CustomerPaymentController::class, 'index'])
+        ->middleware('can:create,'.CustomerPayment::class)->name('customer-payments.index');
+    Route::get('customer-payments/create', [CustomerPaymentController::class, 'create'])
+        ->middleware(['can:create,'.CustomerPayment::class, 'can:customers.view'])->name('customer-payments.create');
+    Route::post('customer-payments', [CustomerPaymentController::class, 'store'])
+        ->middleware('can:create,'.CustomerPayment::class)->name('customer-payments.store');
+    Route::get('customer-payments/{customer_payment}/edit', [CustomerPaymentController::class, 'edit'])
+        ->middleware('can:update,customer_payment')->name('customer-payments.edit');
+    Route::put('customer-payments/{customer_payment}', [CustomerPaymentController::class, 'update'])
+        ->middleware('can:update,customer_payment')->name('customer-payments.update');
+    Route::delete('customer-payments/{customer_payment}', [CustomerPaymentController::class, 'destroy'])
+        ->middleware('can:delete,customer_payment')->name('customer-payments.destroy');
+
     // Bills: view / generate (+ delete draft) / finalize / cancel (spec 5.1)
     Route::get('bills/create', [BillController::class, 'create'])->middleware('can:bills.generate')->name('bills.create');
     Route::post('bills', [BillController::class, 'store'])->middleware('can:bills.generate')->name('bills.store');

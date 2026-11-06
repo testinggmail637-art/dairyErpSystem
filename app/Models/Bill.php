@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Enums\BillPaidStatus;
 use App\Enums\BillStatus;
 use App\Enums\MilkShift;
 use App\Models\Concerns\Auditable;
@@ -9,6 +10,7 @@ use App\Models\Concerns\BelongsToFarm;
 use App\Models\Concerns\TracksUser;
 use App\Support\Money;
 use Database\Factories\BillFactory;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -104,6 +106,40 @@ class Bill extends Model
     public function cancelledBy(): BelongsTo
     {
         return $this->belongsTo(User::class, 'cancelled_by');
+    }
+
+    /**
+     * @return HasMany<PaymentAllocation, $this>
+     */
+    public function allocations(): HasMany
+    {
+        return $this->hasMany(PaymentAllocation::class);
+    }
+
+    /**
+     * Adds `paid_amount` (Σ allocations) as one SQL sub-select.
+     *
+     * @param  Builder<Bill>  $query
+     */
+    public function scopeWithPaid(Builder $query): void
+    {
+        $query->withSum('allocations as paid_amount', 'amount');
+    }
+
+    /** Finalized bills only (needs withPaid() or loaded allocations). */
+    public function paidStatus(): ?BillPaidStatus
+    {
+        if ($this->status !== BillStatus::Finalized) {
+            return null;
+        }
+
+        $paid = $this->paid_amount ?? ($this->relationLoaded('allocations') ? Money::sum($this->allocations->pluck('amount')) : '0');
+
+        return match (true) {
+            Money::compare($paid, $this->total) >= 0 => BillPaidStatus::Paid,
+            Money::compare($paid, '0') > 0 => BillPaidStatus::PartiallyPaid,
+            default => BillPaidStatus::Unpaid,
+        };
     }
 
     public function isDraft(): bool
