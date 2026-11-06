@@ -24,6 +24,9 @@ class Delivery extends Model implements MovesMilkStock
     /** @use HasFactory<DeliveryFactory> */
     use Auditable, BelongsToFarm, HasFactory, TracksUser;
 
+    /** Optional quality readings: ours (fat / SNF) and the buyer's (dairy plant reconciliation). */
+    public const READINGS = ['fat', 'snf', 'buyer_measured_qty', 'buyer_fat', 'buyer_snf'];
+
     /**
      * @var list<string>
      */

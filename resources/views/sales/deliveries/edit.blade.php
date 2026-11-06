@@ -36,6 +36,7 @@
                     </div>
 
                     <x-form.input name="skip_reason" :label="__('Skip reason')" :value="$delivery->skip_reason" maxlength="255" :help="__('Used when Skipped')" />
+                    @include('sales.deliveries.partials.readings', ['delivery' => $delivery])
                     <x-form.textarea name="notes" :label="__('Notes')" :value="$delivery->notes" rows="2" maxlength="500" />
                     <x-form.reason :placeholder="__('e.g. Customer took 1 L extra')" />
 
