@@ -8,11 +8,11 @@
 | Item | Value |
 |---|---|
 | Current phase | Phase 3 — Customers, Delivery, Billing, Payments (🟡 in progress) |
-| Last completed task | 3.11 — Customer adjustments |
-| Next task | 3.12 — Customer ledger (screen + Excel/PDF) |
-| Overall progress | 45 / 95 tasks (47%) |
-| Tests passing | 521 |
-| Last updated (IST) | 2026-11-06 (task/3.11-customer-adjustments) |
+| Last completed task | 3.12 — Customer ledger (screen + Excel/PDF) |
+| Next task | 3.13 — Sales reports |
+| Overall progress | 46 / 95 tasks (48%) |
+| Tests passing | 525 |
+| Last updated (IST) | 2026-11-06 (task/3.12-customer-ledger) |
 
 ## Phase overview
 
@@ -226,7 +226,7 @@ Status legend: ⬜ Not started · 🟡 In progress · ✅ Done · ⏸ On hold
 - [x] 3.9 Billing: generate (single/bulk), draft review, finalize, PDF, cancel
 - [x] 3.10 Customer payments + FIFO allocation
 - [x] 3.11 Customer adjustments
-- [ ] 3.12 Customer ledger (screen + Excel/PDF)
+- [x] 3.12 Customer ledger (screen + Excel/PDF)
 - [ ] 3.13 Sales reports
 - [ ] 3.14 Phase 3 acceptance tests pass + README/CHANGELOG updated
 
