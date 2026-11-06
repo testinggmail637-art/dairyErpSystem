@@ -3,6 +3,7 @@
 @section('title', __('Delivery grid'))
 
 @section('page-actions')
+    <a href="{{ route('deliveries.dispatch.create') }}" class="btn btn-primary btn-sm"><i class="bi bi-truck me-1"></i>{{ __('One-off / B2B dispatch') }}</a>
     <a href="{{ route('deliveries.index', ['date' => $filters['date']]) }}" class="btn btn-outline-secondary btn-sm"><i class="bi bi-arrow-left me-1"></i>{{ __('Summary') }}</a>
 @endsection
 

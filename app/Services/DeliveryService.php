@@ -3,7 +3,9 @@
 namespace App\Services;
 
 use App\Enums\DeliveryStatus;
+use App\Models\Customer;
 use App\Models\Delivery;
+use App\Models\Product;
 use App\Support\Money;
 use Illuminate\Support\Facades\DB;
 
@@ -13,7 +15,65 @@ use Illuminate\Support\Facades\DB;
  */
 class DeliveryService
 {
-    public function __construct(private readonly MilkStockService $stock) {}
+    public function __construct(private readonly MilkStockService $stock, private readonly PricingService $pricing) {}
+
+    /**
+     * One-off / B2B dispatch (spec Section 6): a delivery created directly as delivered, no subscription, planned 0.
+     * Empty rate → PricingService. Idempotent on client_uuid (spec 4.7).
+     *
+     * @param  array<string, mixed>  $data
+     * @return array{0: Delivery, 1: bool} the delivery and whether it was newly created
+     */
+    public function dispatch(array $data): array
+    {
+        $uuid = $data['client_uuid'] ?? null;
+
+        if ($uuid && ($existing = Delivery::query()->where('client_uuid', $uuid)->first())) {
+            return [$existing, false];
+        }
+
+        return [DB::transaction(function () use ($data, $uuid) {
+            $customer = Customer::query()->findOrFail($data['customer_id']);
+            $product = Product::query()->findOrFail($data['product_id']);
+            $rate = Money::round2($data['rate'] ?? $this->pricing->rateFor($customer, $product, $data['delivery_date']));
+            $qty = Money::round2($data['delivered_qty']);
+
+            $delivery = Delivery::create([
+                'delivery_date' => $data['delivery_date'],
+                'shift' => $data['shift'],
+                'customer_id' => $customer->id,
+                'product_id' => $product->id,
+                'route_id' => $customer->route_id,
+                'stock_source' => $data['stock_source'],
+                'planned_qty' => '0.00',
+                'delivered_qty' => $qty,
+                'rate' => $rate,
+                'amount' => Money::round2(Money::mul($qty, $rate)),
+                'status' => DeliveryStatus::Delivered,
+                'delivered_by' => auth()->id(),
+                'delivered_at' => now(),
+                'client_uuid' => $uuid,
+            ] + $this->readings($data) + ['notes' => $data['notes'] ?? null]);
+
+            $delivery->setRelation('product', $product);
+            $this->stock->syncForReference($delivery);
+
+            return $delivery;
+        }), true];
+    }
+
+    /**
+     * Our fat / SNF and the buyer's measured litres / fat / SNF (dairy plant reconciliation), all optional.
+     *
+     * @param  array<string, mixed>  $data
+     * @return array<string, ?string>
+     */
+    public function readings(array $data): array
+    {
+        return collect(Delivery::READINGS)
+            ->mapWithKeys(fn ($k) => [$k => isset($data[$k]) ? Money::round2($data[$k]) : null])
+            ->all();
+    }
 
     /** Delivered with $qty litres (may be above planned). Throws InsufficientMilkStockException when stock is short. */
     public function markDelivered(Delivery $delivery, string $qty): Delivery
@@ -99,7 +159,7 @@ class DeliveryService
                 'amount' => Money::round2(Money::mul($qty, $data['rate'])),
                 'skip_reason' => $status === DeliveryStatus::Skipped ? $data['skip_reason'] : null,
                 'notes' => $data['notes'] ?? null,
-            ]);
+            ] + $this->readings($data));
 
             if ($status === DeliveryStatus::Pending) {
                 $delivery->fill(['delivered_by' => null, 'delivered_at' => null]);

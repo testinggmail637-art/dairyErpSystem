@@ -24,6 +24,7 @@ class UpdateDeliveryRequest extends FormRequest
         $clean = fn (string $key) => str_replace([',', ' ', '₹'], '', trim((string) $this->input($key)));
 
         $this->merge(['delivered_qty' => $clean('delivered_qty'), 'rate' => $clean('rate')]);
+        $this->merge(DispatchRequest::cleanReadings($this));
     }
 
     /**
@@ -37,6 +38,6 @@ class UpdateDeliveryRequest extends FormRequest
             'rate' => ['required', 'decimal:0,2', 'gt:0', 'max:99999999.99'],
             'skip_reason' => ['exclude_unless:status,'.DeliveryStatus::Skipped->value, 'required', 'string', 'max:255'],
             'notes' => ['nullable', 'string', 'max:500'],
-        ];
+        ] + DispatchRequest::readingRules();
     }
 }

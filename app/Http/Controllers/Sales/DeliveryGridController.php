@@ -6,10 +6,12 @@ use App\Enums\DeliveryStatus;
 use App\Enums\MilkShift;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Sales\BulkDeliverRequest;
+use App\Http\Requests\Sales\DispatchRequest;
 use App\Http\Requests\Sales\UpdateDeliveryRequest;
 use App\Models\Customer;
 use App\Models\Delivery;
 use App\Models\DeliveryRoute;
+use App\Models\Product;
 use App\Services\DeliveryService;
 use Carbon\Carbon;
 use Illuminate\Http\RedirectResponse;
@@ -66,6 +68,27 @@ class DeliveryGridController extends Controller
         $count = $this->deliveries->markManyDelivered(array_map('intval', $request->validated('ids')));
 
         return back()->with('success', trans_choice(':count delivery marked delivered.|:count deliveries marked delivered.', $count, ['count' => $count]));
+    }
+
+    public function createDispatch(): View
+    {
+        $customerId = old('customer_id');
+        $customer = $customerId ? Customer::query()->find($customerId, ['id', 'code', 'name']) : null;
+
+        return view('sales.deliveries.dispatch', [
+            'selectedCustomer' => $customer ? [$customer->id => "{$customer->code} · {$customer->name}"] : [],
+            'products' => Product::query()->active()->orderBy('name')->pluck('name', 'id')->all(),
+        ]);
+    }
+
+    public function storeDispatch(DispatchRequest $request): RedirectResponse
+    {
+        [$delivery, $created] = $this->deliveries->dispatch($request->validated());
+
+        return redirect()->route('deliveries.grid', ['date' => $delivery->delivery_date->toDateString()])
+            ->with('success', $created
+                ? __('Dispatched :qty L to :name (:amount).', ['qty' => fmt_qty($delivery->delivered_qty), 'name' => $delivery->customer->name, 'amount' => inr($delivery->amount)])
+                : __('This dispatch was already saved.'));
     }
 
     public function edit(Delivery $delivery): View

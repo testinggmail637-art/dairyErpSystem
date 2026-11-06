@@ -192,6 +192,8 @@ Route::middleware(['auth', 'active', 'farm'])->group(function () {
     Route::middleware('can:deliveries.view_all_routes')->group(function () {
         Route::get('deliveries/grid', [DeliveryGridController::class, 'index'])->name('deliveries.grid');
         Route::post('deliveries/bulk-deliver', [DeliveryGridController::class, 'bulkDeliver'])->name('deliveries.bulk-deliver');
+        Route::get('deliveries/dispatch', [DeliveryGridController::class, 'createDispatch'])->name('deliveries.dispatch.create');
+        Route::post('deliveries/dispatch', [DeliveryGridController::class, 'storeDispatch'])->name('deliveries.dispatch.store');
         Route::get('deliveries/{delivery}/edit', [DeliveryGridController::class, 'edit'])->name('deliveries.edit');
         Route::put('deliveries/{delivery}', [DeliveryGridController::class, 'update'])->name('deliveries.update');
     });
