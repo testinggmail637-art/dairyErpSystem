@@ -2,7 +2,9 @@
 
 namespace App\Models;
 
+use App\Contracts\MovesMilkStock;
 use App\Enums\DeliveryStatus;
+use App\Enums\MilkMovementType;
 use App\Enums\MilkShift;
 use App\Enums\MilkSource;
 use App\Models\Concerns\Auditable;
@@ -17,7 +19,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  * One customer × product × date × shift delivery (spec Section 6, Phase 3). Rate is a snapshot from
  * PricingService; a row with bill_id is locked.
  */
-class Delivery extends Model
+class Delivery extends Model implements MovesMilkStock
 {
     /** @use HasFactory<DeliveryFactory> */
     use Auditable, BelongsToFarm, HasFactory, TracksUser;
@@ -105,5 +107,32 @@ class Delivery extends Model
     public function subscription(): BelongsTo
     {
         return $this->belongsTo(Subscription::class);
+    }
+
+    /** Included in a bill → locked (spec: billed deliveries cannot be edited). */
+    public function isBilled(): bool
+    {
+        return $this->bill_id !== null;
+    }
+
+    public function milkStockTarget(): array
+    {
+        $product = $this->relationLoaded('product') && $this->product?->id === $this->product_id
+            ? $this->product
+            : $this->load('product')->product;
+
+        return [
+            'source' => $this->stock_source,
+            'milk_type' => $product->milk_type,
+            'date' => $this->delivery_date->toDateString(),
+            'shift' => $this->shift,
+            'type' => MilkMovementType::Delivery,
+        ];
+    }
+
+    /** Only delivered rows take milk out of stock. */
+    public function milkStockQuantity(): string
+    {
+        return $this->status === DeliveryStatus::Delivered ? (string) $this->delivered_qty : '0';
     }
 }

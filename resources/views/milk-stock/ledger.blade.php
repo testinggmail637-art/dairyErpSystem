@@ -72,6 +72,8 @@
                         <td class="d-none d-md-table-cell small">
                             @if ($movement->reference instanceof \App\Models\MilkProductionRecord)
                                 {{ $movement->reference->animal?->label() }}
+                            @elseif ($movement->reference instanceof \App\Models\Delivery)
+                                {{ $movement->reference->customer?->name }}
                             @else
                                 {{ $movement->reason }}
                             @endif

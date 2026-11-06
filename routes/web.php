@@ -22,6 +22,7 @@ use App\Http\Controllers\Reports\ReportController;
 use App\Http\Controllers\Sales\CustomerController;
 use App\Http\Controllers\Sales\DeliveryController;
 use App\Http\Controllers\Sales\DeliveryRouteController;
+use App\Http\Controllers\Sales\DeliverySheetController;
 use App\Http\Controllers\Sales\ProductController;
 use App\Http\Controllers\Sales\SubscriptionController;
 use App\Http\Controllers\Settings\AppearanceController;
@@ -186,6 +187,11 @@ Route::middleware(['auth', 'active', 'farm'])->group(function () {
     });
     Route::get('deliveries', [DeliveryController::class, 'index'])->middleware('can:deliveries.view')->name('deliveries.index');
     Route::post('deliveries/generate', [DeliveryController::class, 'generate'])->middleware('can:deliveries.view_all_routes')->name('deliveries.generate');
+    Route::get('deliveries/sheet', [DeliverySheetController::class, 'show'])->middleware('can:deliveries.view')->name('deliveries.sheet');
+    // route check + billed lock in DeliveryPolicy (via the Form Requests)
+    Route::post('deliveries/{delivery}/deliver', [DeliverySheetController::class, 'deliver'])->name('deliveries.deliver');
+    Route::post('deliveries/{delivery}/skip', [DeliverySheetController::class, 'skip'])->name('deliveries.skip');
+    Route::post('deliveries/{delivery}/payment', [DeliverySheetController::class, 'collect'])->name('deliveries.collect');
     Route::middleware('can:subscriptions.manage')->group(function () {
         Route::resource('subscriptions', SubscriptionController::class)->except('show');
         Route::scopeBindings()->group(function () {

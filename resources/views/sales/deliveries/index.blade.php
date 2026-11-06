@@ -9,6 +9,7 @@
             <x-form.date name="date" :label="__('Date')" :value="$date" group-class="mb-0" />
             <button type="submit" class="btn btn-outline-primary">{{ __('Show') }}</button>
         </form>
+        <a href="{{ route('deliveries.sheet', ['date' => $date]) }}" class="btn btn-success"><i class="bi bi-list-check me-1"></i>{{ __('Open delivery sheet') }}</a>
         @if ($canGenerate)
             <form method="POST" action="{{ route('deliveries.generate') }}" class="ms-md-auto">
                 @csrf
@@ -43,7 +44,11 @@
             <tbody>
                 @forelse ($rows as $row)
                     <tr>
-                        <td>{{ $row->route_id ? ($routes[$row->route_id] ?? '—') : __('No route') }}</td>
+                        <td>
+                            <a href="{{ route('deliveries.sheet', array_filter(['date' => $date, 'shift' => $row->shift->value, 'route_id' => $row->route_id])) }}">
+                                {{ $row->route_id ? ($routes[$row->route_id] ?? '—') : __('No route') }}
+                            </a>
+                        </td>
                         <td>{{ $row->shift->label() }}</td>
                         <td class="text-end">{{ $row->total }}</td>
                         <td class="text-end">{{ fmt_qty($row->planned_qty) }}</td>
