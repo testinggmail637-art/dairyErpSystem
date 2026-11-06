@@ -5,12 +5,13 @@ namespace App\Services;
 use App\Enums\BillStatus;
 use App\Models\Bill;
 use App\Models\Customer;
+use App\Models\CustomerAdjustment;
 use App\Models\CustomerPayment;
 use App\Support\Money;
 
 /**
  * Customer ledger balance (spec Section 6): opening + Σ finalized bills (bill_date ≤ D) + Σ adjustments (≤ D)
- * − Σ payments (≤ D). All sums in SQL. Customer adjustments arrive with Task 3.11; until then they add 0.
+ * − Σ payments (≤ D). All sums in SQL.
  */
 class CustomerBalanceService
 {
@@ -35,6 +36,9 @@ class CustomerBalanceService
 
     public function adjustmentsBetween(Customer $customer, ?string $from, string $to): string
     {
-        return '0.00'; // customer_adjustments table comes with Task 3.11
+        return Money::round2((string) CustomerAdjustment::query()->where('customer_id', $customer->id)
+            ->when($from, fn ($q) => $q->where('adjustment_date', '>=', $from))
+            ->where('adjustment_date', '<=', $to)
+            ->sum('amount'));
     }
 }

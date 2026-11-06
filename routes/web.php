@@ -229,6 +229,13 @@ Route::middleware(['auth', 'active', 'farm'])->group(function () {
         Route::get('bills/{bill}', [BillController::class, 'show'])->whereNumber('bill')->name('bills.show');
         Route::get('bills/{bill}/pdf', [BillController::class, 'pdf'])->name('bills.pdf');
     });
+    // Customer adjustments (customer_adjustments.create; remove own same-day entry — CustomerAdjustmentPolicy)
+    Route::scopeBindings()->group(function () {
+        Route::post('customers/{customer}/adjustments', [CustomerController::class, 'storeAdjustment'])
+            ->middleware('can:customer_adjustments.create')->name('customers.adjustments.store');
+        Route::delete('customers/{customer}/adjustments/{adjustment}', [CustomerController::class, 'destroyAdjustment'])
+            ->name('customers.adjustments.destroy');
+    });
     Route::middleware('can:subscriptions.manage')->group(function () {
         Route::resource('subscriptions', SubscriptionController::class)->except('show');
         Route::scopeBindings()->group(function () {

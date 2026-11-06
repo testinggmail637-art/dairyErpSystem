@@ -5,10 +5,13 @@ namespace App\Http\Controllers\Sales;
 use App\Enums\B2bCategory;
 use App\Enums\CustomerType;
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Sales\CustomerAdjustmentRequest;
 use App\Http\Requests\Sales\CustomerRateRequest;
 use App\Http\Requests\Sales\CustomerRequest;
+use App\Http\Requests\Sales\DeleteCustomerAdjustmentRequest;
 use App\Http\Requests\Sales\DeleteCustomerRequest;
 use App\Models\Customer;
+use App\Models\CustomerAdjustment;
 use App\Models\CustomerRate;
 use App\Models\DeliveryRoute;
 use App\Models\Product;
@@ -80,7 +83,23 @@ class CustomerController extends Controller
             'productOptions' => $products->pluck('name', 'id')->all(),
             'rates' => $customer->rates()->with('product:id,name')->orderByDesc('effective_from')->orderBy('product_id')->paginate(25),
             'canManage' => $request->user()->can('customers.manage'),
+            'adjustments' => $customer->adjustments()->with('creator:id,name')
+                ->orderByDesc('adjustment_date')->orderByDesc('id')->paginate(10, ['*'], 'adj_page'),
         ]);
+    }
+
+    public function storeAdjustment(CustomerAdjustmentRequest $request, Customer $customer): RedirectResponse
+    {
+        $customer->adjustments()->create($request->validated());
+
+        return redirect()->route('customers.show', $customer)->with('success', __('Adjustment saved.'));
+    }
+
+    public function destroyAdjustment(DeleteCustomerAdjustmentRequest $request, Customer $customer, CustomerAdjustment $adjustment): RedirectResponse
+    {
+        $adjustment->delete();
+
+        return redirect()->route('customers.show', $customer)->with('success', __('Adjustment removed.'));
     }
 
     public function edit(Customer $customer): View

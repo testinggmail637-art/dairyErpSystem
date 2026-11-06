@@ -77,6 +77,14 @@ class Customer extends Model
         return $this->hasMany(CustomerRate::class);
     }
 
+    /**
+     * @return HasMany<CustomerAdjustment, $this>
+     */
+    public function adjustments(): HasMany
+    {
+        return $this->hasMany(CustomerAdjustment::class);
+    }
+
     protected function setPhoneAttribute(?string $value): void
     {
         $this->attributes['phone'] = User::normalizePhone($value);
