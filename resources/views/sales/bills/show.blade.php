@@ -85,6 +85,24 @@
                 @if ($bill->finalized_at)<p class="form-text mb-0 mt-2">{{ __('Finalized :date by :user', ['date' => fmt_datetime($bill->finalized_at), 'user' => $bill->finalizedBy?->name]) }}</p>@endif
             </div>
         </div>
+        @if ($paid = $bill->paidStatus())
+            <div class="card mt-3">
+                <div class="card-header d-flex justify-content-between">
+                    <span class="fw-semibold">{{ __('Payments on this bill') }}</span>
+                    <span class="badge {{ $paid->badge() }}">{{ $paid->label() }}</span>
+                </div>
+                <ul class="list-group list-group-flush small">
+                    @forelse ($bill->allocations as $a)
+                        <li class="list-group-item d-flex justify-content-between">
+                            <span>{{ fmt_date($a->payment->payment_date) }} · {{ $a->payment->paymentMode->name }}</span>
+                            <x-money :value="$a->amount" />
+                        </li>
+                    @empty
+                        <li class="list-group-item text-body-secondary">{{ __('Nothing paid yet.') }}</li>
+                    @endforelse
+                </ul>
+            </div>
+        @endif
     </div>
 </div>
 @endsection

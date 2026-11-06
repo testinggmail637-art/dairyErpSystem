@@ -35,7 +35,7 @@ class BillController extends Controller
         ];
 
         $bills = Bill::query()
-            ->with('customer:id,code,name')
+            ->with('customer:id,code,name')->withPaid()
             ->when($filters['search'] !== '', fn ($q) => $q->where(fn ($w) => $w->where('bill_no', $filters['search'])
                 ->orWhereHas('customer', fn ($c) => $c->withTrashed()->search($filters['search']))))
             ->when(BillStatus::tryFrom($filters['status']), fn ($q, $s) => $q->where('status', $s))
@@ -84,7 +84,7 @@ class BillController extends Controller
 
     public function show(Bill $bill): View
     {
-        $bill->load(['customer', 'items.product:id,name', 'finalizedBy:id,name', 'cancelledBy:id,name']);
+        $bill->load(['customer', 'items.product:id,name', 'finalizedBy:id,name', 'cancelledBy:id,name', 'allocations.payment:id,payment_date,payment_mode_id', 'allocations.payment.paymentMode:id,name']);
 
         return view('sales.bills.show', [
             'bill' => $bill,

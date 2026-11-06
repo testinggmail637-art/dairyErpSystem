@@ -7,8 +7,9 @@ use App\Models\Concerns\BelongsToFarm;
 use App\Models\Concerns\TracksUser;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
-/** Money received from a customer (spec Section 6, Phase 3). FIFO allocation to bills comes with the payments task. */
+/** Money received from a customer (spec Section 6, Phase 3); set against bills FIFO by PaymentAllocationService. */
 class CustomerPayment extends Model
 {
     use Auditable, BelongsToFarm, TracksUser;
@@ -53,5 +54,21 @@ class CustomerPayment extends Model
     public function paymentMode(): BelongsTo
     {
         return $this->belongsTo(PaymentMode::class);
+    }
+
+    /**
+     * @return BelongsTo<User, $this>
+     */
+    public function collector(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'collected_by');
+    }
+
+    /**
+     * @return HasMany<PaymentAllocation, $this>
+     */
+    public function allocations(): HasMany
+    {
+        return $this->hasMany(PaymentAllocation::class);
     }
 }

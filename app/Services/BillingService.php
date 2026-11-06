@@ -29,6 +29,7 @@ class BillingService
         private readonly CurrentFarm $currentFarm,
         private readonly CustomerBalanceService $balances,
         private readonly DocumentNumberService $numbers,
+        private readonly PaymentAllocationService $allocations,
     ) {}
 
     /** @throws DomainException when the period overlaps another bill or there is nothing to bill */
@@ -137,6 +138,8 @@ class BillingService
                 'finalized_at' => now(),
                 'finalized_by' => auth()->id(),
             ])->save();
+
+            $this->allocations->allocate($bill->customer_id); // advance payments go to the new bill
         });
 
         $bill->refresh();
@@ -183,6 +186,7 @@ class BillingService
                 'cancelled_by' => auth()->id(),
                 'cancel_reason' => $reason,
             ]);
+            $this->allocations->allocate($bill->customer_id); // its payments go to other bills or back to advance
         });
     }
 
