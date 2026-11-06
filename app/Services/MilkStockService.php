@@ -8,6 +8,7 @@ use App\Enums\MilkShift;
 use App\Enums\MilkSource;
 use App\Enums\MilkType;
 use App\Exceptions\InsufficientMilkStockException;
+use App\Models\Delivery;
 use App\Models\Farm;
 use App\Models\MilkProductionRecord;
 use App\Models\MilkStockMovement;
@@ -176,7 +177,7 @@ class MilkStockService
             ->get();
 
         $models = MilkStockMovement::query()
-            ->with(['creator:id,name', 'reference' => fn (MorphTo $m) => $m->morphWith([MilkProductionRecord::class => ['animal:id,tag_no,name']])])
+            ->with(['creator:id,name', 'reference' => fn (MorphTo $m) => $m->morphWith([MilkProductionRecord::class => ['animal:id,tag_no,name'], Delivery::class => ['customer:id,name']])])
             ->findMany($rows->pluck('id'))
             ->keyBy('id');
         $items = $rows->map(fn ($row) => $models->get($row->id)->setAttribute('balance', Money::round2((string) $row->balance)));
