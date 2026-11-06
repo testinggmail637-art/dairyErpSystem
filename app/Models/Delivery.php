@@ -109,6 +109,14 @@ class Delivery extends Model implements MovesMilkStock
         return $this->belongsTo(Subscription::class);
     }
 
+    /**
+     * @return BelongsTo<User, $this>
+     */
+    public function deliveredBy(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'delivered_by');
+    }
+
     /** Included in a bill → locked (spec: billed deliveries cannot be edited). */
     public function isBilled(): bool
     {
