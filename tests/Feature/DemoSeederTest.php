@@ -3,13 +3,18 @@
 use App\Enums\MilkSource;
 use App\Models\Animal;
 use App\Models\AnimalStatusHistory;
+use App\Models\Bill;
+use App\Models\Customer;
+use App\Models\Delivery;
 use App\Models\Expense;
 use App\Models\Farm;
 use App\Models\MilkProductionRecord;
 use App\Models\MilkStockMovement;
+use App\Models\PaymentAllocation;
 use App\Models\User;
 use App\Models\Vendor;
 use App\Models\VendorPayment;
+use App\Services\CustomerBalanceService;
 use App\Services\MilkStockService;
 use App\Support\Money;
 use Database\Seeders\DatabaseSeeder;
@@ -21,6 +26,7 @@ it('seeds a year of demo expenses, vendors, payments and users, once', function 
 
     $farm = Farm::where('code', 'MDF')->firstOrFail();
     $expenses = Expense::allFarms()->where('farm_id', $farm->id);
+    $delivered = Delivery::allFarms()->where('farm_id', $farm->id)->where('status', 'delivered')->where('delivered_qty', '>', 0);
 
     expect(Vendor::allFarms()->where('notes', DemoSeeder::MARK)->count())->toBe(25)
         ->and($expenses->count())->toBeGreaterThan(2000)
@@ -35,14 +41,32 @@ it('seeds a year of demo expenses, vendors, payments and users, once', function 
         ->and(AnimalStatusHistory::allFarms()->count())->toBe(90) // 3 starting rows per animal
         ->and(MilkProductionRecord::allFarms()->count())->toBeGreaterThan(14000) // a year, 2 shifts, ~20 animals
         ->and(MilkProductionRecord::allFarms()->max('quantity_litre'))->toBeLessThanOrEqual('60.00')
-        // every entry has its production movement, so the own-farm stock equals the milk produced
-        ->and(MilkStockMovement::allFarms()->count())->toBe(MilkProductionRecord::allFarms()->count())
-        ->and(app(MilkStockService::class)->balance(MilkSource::OwnFarm))->toBe(Money::round2((string) MilkProductionRecord::allFarms()->sum('quantity_litre')));
+        // every entry and every delivered row has its movement: own-farm stock = milk produced − milk delivered
+        ->and(MilkStockMovement::allFarms()->count())->toBe(MilkProductionRecord::allFarms()->count() + $delivered->count())
+        ->and(app(MilkStockService::class)->balance(MilkSource::OwnFarm))->toBe(Money::sub(
+            (string) MilkProductionRecord::allFarms()->sum('quantity_litre'), (string) $delivered->sum('delivered_qty')))
+        ->and(Money::isNegative(app(MilkStockService::class)->balance(MilkSource::OwnFarm)))->toBeFalse();
+
+    // Phase 3: customers, a year of deliveries, finalized monthly bills (current month unbilled), payments allocated
+    $bills = Bill::allFarms()->where('farm_id', $farm->id);
+    expect(Customer::allFarms()->where('notes', DemoSeeder::MARK)->count())->toBe(88)
+        ->and($delivered->count())->toBeGreaterThan(25000)
+        ->and((clone $bills)->where('status', 'finalized')->count())->toBe($bills->count())
+        ->and((clone $bills)->min('bill_no'))->toStartWith('BILL/')
+        ->and(Delivery::allFarms()->where('status', 'delivered')->whereNull('bill_id')->where('delivery_date', '<', now()->startOfMonth()->toDateString())->count())->toBe(0)
+        ->and(PaymentAllocation::allFarms()->count())->toBeGreaterThan(500)
+        // bill sum = billed deliveries; latest closing = the customer ledger balance on the bill date
+        ->and(Money::round2((string) (clone $bills)->sum('total')))->toBe(Money::round2((string) Delivery::allFarms()->whereNotNull('bill_id')->sum('amount')));
+
+    $last = (clone $bills)->latest('bill_date')->first();
+    expect(app(CustomerBalanceService::class)->balanceAsOf($last->customer, $last->bill_date->toDateString()))->toBe($last->closing_balance);
 
     $count = $expenses->count();
+    $deliveries = Delivery::allFarms()->count();
     $this->seed(DemoSeeder::class); // second run is skipped
     expect(Expense::allFarms()->count())->toBe($count)
-        ->and(MilkStockMovement::allFarms()->count())->toBe(MilkProductionRecord::allFarms()->count());
+        ->and(Delivery::allFarms()->count())->toBe($deliveries)
+        ->and(MilkStockMovement::allFarms()->count())->toBe(MilkProductionRecord::allFarms()->count() + $delivered->count());
 });
 
 it('refuses to run in production', function () {

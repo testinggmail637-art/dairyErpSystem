@@ -17,7 +17,7 @@ cow/buffalo buying & selling, expenses, loans & overdraft, staff, and profit rep
 | 0 | Foundation (login, roles, settings, appearance, monitoring, audit log, backups) | ✅ Done (v0.0.0) |
 | 1 | Expense Management (no approval) + Excel import | ✅ Done (v0.1.0) |
 | 2 | Animals, Milk Production, Milk Stock | ✅ Done (v0.2.0) |
-| 3 | Customers, Delivery, Billing, Payments | 🟡 In progress |
+| 3 | Customers, Delivery, Billing, Payments | ✅ Done (v0.3.0) |
 | 3A | Loans & Overdraft | ⬜ Not started |
 | 4 | Farmers & Collection Center | ⬜ Not started |
 | 5 | Health, Breeding, Feed | ⬜ Not started |
@@ -50,8 +50,14 @@ _TODO: for each module, list the working features in plain language once its pha
   daily stock sheet (opening, in, delivered, wastage, home use, calf feeding, adjustment, closing); record wastage /
   home use / calf feeding; adjustments (permission) with a reason; outgoing milk beyond the stock is refused unless the
   farm allows negative stock; ledger with running balance.
-- **Customers, delivery & billing** 🟡 — routes, products (default rate), customers (B2C / B2B, auto code, route stop,
-  opening balance, credit limit) with own rates from a date; subscriptions with pauses; daily delivery sheet (scheduled + button); delivery person's mobile sheet (delivered / skip / litres / collect payment, stock out); admin delivery grid with bulk mark delivered and row edit; one-off / B2B dispatch with fat / SNF and buyer readings; billing (single / bulk drafts, finalize with number and balances, PDF, cancel); customer payments set against bills oldest first (paid / part paid); customer adjustments (discounts / extra charges); customer ledger with running balance (Excel / PDF); sales reports still to come.
+- **Customers, delivery & billing** ✅ — routes with a delivery person; products (cow / buffalo milk, default rate);
+  customers (home / business, auto code, route stop, opening balance, credit limit) with own rates from a date;
+  subscriptions with pauses; daily delivery sheet (scheduled + Generate button); delivery person's mobile sheet
+  (delivered / skip / litres / collect payment — milk leaves stock); admin delivery grid (bulk mark delivered, row edit
+  with reason); one-off / B2B dispatch with fat / SNF and the dairy plant's readings; bills (single / bulk drafts,
+  finalize with number, balance snapshots and PDF, cancel); payments set against bills oldest first (paid / part paid,
+  advance); adjustments (discounts / extra charges); customer ledger with running balance (Excel / PDF); sales
+  reports (customer-, route-, product-wise, dairy plant reconciliation).
 - **Loans & overdraft** — _TODO_ (Phase 3A: loans taken with interest, tenure, EMI schedule and due dates, EMIs paid / left, amount paid per loan, outstanding; overdraft limit / utilized / available)
 - **Collection center** — _TODO_
 - **Health, breeding & feed** — _TODO_
@@ -115,7 +121,9 @@ http://localhost/<folder>/public (set `APP_URL` to the same). Tests: keep `APP_U
 
 Demo users and a year of demo data come from `php artisan db:seed --class=DemoSeeder` (local only — it refuses to run
 in production and skips itself if the demo data already exists). Phase 1 data: 25 vendors, ~2,700 expenses over the
-last 12 months, month-end vendor payments; later phases add their own demo data.
+last 12 months, month-end vendor payments. Phase 2: 30 animals and a year of milk. Phase 3: 4 routes, 88 customers
+(85 home, 2 hotels, 1 dairy plant), subscriptions, ~41,000 deliveries, finalized monthly bills and payments. Later
+phases add their own demo data.
 
 ---
 

@@ -6,6 +6,9 @@ use App\Enums\RoleName;
 use App\Models\Animal;
 use App\Models\AnimalBreed;
 use App\Models\AnimalStatusHistory;
+use App\Models\Bill;
+use App\Models\Customer;
+use App\Models\Delivery;
 use App\Models\Expense;
 use App\Models\ExpenseCategory;
 use App\Models\Farm;
@@ -26,6 +29,7 @@ use RuntimeException;
  * Realistic demo data for one year (spec Sections 10–11) — local only, refuses to run in production.
  * Grows phase by phase. Phase 1: demo users, vendors, ~2,700 expenses (paid and credit), vendor payments.
  * Phase 2: 30 animals (milking cows and buffaloes, dry, heifers, calves with mothers, a bull) and a year of milk.
+ * Phase 3: routes, customers, subscriptions, a year of deliveries, monthly bills and payments (DemoSalesSeeder).
  * Rows are bulk-inserted so the seeder finishes in seconds; amounts are built as strings (never floats).
  *
  *   php artisan db:seed --class=DemoSeeder
@@ -90,9 +94,16 @@ class DemoSeeder extends Seeder
 
         $this->productionStock($farm);
 
-        $this->command?->info(sprintf('Demo data: %d expenses, %d vendor payments, %d animals, %d milk entries, %d stock movements.',
+        if (Customer::query()->where('notes', self::MARK)->exists()) {
+            $this->command?->warn('Phase 3 demo data (customers, deliveries, bills) already exists — skipped.');
+        } else {
+            $deliveryUser = User::query()->where('email', 'delivery@dairy.test')->value('id');
+            (new DemoSalesSeeder)->run($farm, $deliveryUser, $users[0]);
+        }
+
+        $this->command?->info(sprintf('Demo data: %d expenses, %d vendor payments, %d animals, %d milk entries, %d stock movements, %d customers, %d deliveries, %d bills.',
             Expense::query()->count(), VendorPayment::query()->count(), Animal::query()->count(), MilkProductionRecord::query()->count(),
-            MilkStockMovement::query()->count()));
+            MilkStockMovement::query()->count(), Customer::query()->count(), Delivery::query()->count(), Bill::query()->count()));
     }
 
     /**
