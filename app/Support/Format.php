@@ -67,6 +67,15 @@ final class Format
         return self::carbon($value)?->timezone(config('app.timezone'))->format(self::DATE_TIME) ?? '';
     }
 
+    /** Loan period: 27 → "2 yr 3 mo", 12 → "1 yr", 6 → "6 mo". */
+    public static function tenure(int $months): string
+    {
+        $years = intdiv($months, 12);
+        $rest = $months % 12;
+
+        return trim(($years ? __(':n yr', ['n' => $years]).' ' : '').($rest ? __(':n mo', ['n' => $rest]) : ''));
+    }
+
     private static function carbon(mixed $value): ?CarbonInterface
     {
         if ($value === null || $value === '') {

@@ -58,7 +58,7 @@ _TODO: for each module, list the working features in plain language once its pha
   finalize with number, balance snapshots and PDF, cancel); payments set against bills oldest first (paid / part paid,
   advance); adjustments (discounts / extra charges); customer ledger with running balance (Excel / PDF); sales
   reports (customer-, route-, product-wise, dairy plant reconciliation).
-- **Loans & overdraft** — _TODO_ (Phase 3A: loans taken with interest, tenure, EMI schedule and due dates, EMIs paid / left, amount paid per loan, outstanding; overdraft limit / utilized / available)
+- **Loans & overdraft** 🟡 — loans and overdrafts with EMI schedule (reducing / flat / interest-only), processing fee as expense; still to come (Phase 3A): loans taken with interest, tenure, EMI schedule and due dates, EMIs paid / left, amount paid per loan, outstanding; overdraft limit / utilized / available)
 - **Collection center** — _TODO_
 - **Health, breeding & feed** — _TODO_
 - **Animal trading** — _TODO_

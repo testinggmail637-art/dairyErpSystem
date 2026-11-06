@@ -8,11 +8,11 @@
 | Item | Value |
 |---|---|
 | Current phase | Phase 3A — Loans & Overdraft (🟡 in progress) |
-| Last completed task | 3A.1 — Loans tables, enums, permissions, Finance expense category |
-| Next task | 3A.2 — Loans CRUD + LoanService EMI schedule (reducing / flat / interest-only) |
-| Overall progress | 49 / 95 tasks (52%) |
-| Tests passing | 539 |
-| Last updated (IST) | 2026-11-06 (task/3A.1-loans-tables) |
+| Last completed task | 3A.2 — Loans CRUD + LoanService EMI schedule (reducing / flat / interest-only) |
+| Next task | 3A.3 — Loan payments: FIFO interest/principal split, interest → expense, edit/delete latest with reason |
+| Overall progress | 50 / 95 tasks (53%) |
+| Tests passing | 552 |
+| Last updated (IST) | 2026-11-06 (task/3A.2-loans-crud-emi) |
 
 ## Phase overview
 
@@ -288,7 +288,7 @@ Status legend: ⬜ Not started · 🟡 In progress · ✅ Done · ⏸ On hold
 
 ### Checklist
 - [x] 3A.1 Tables (`loans`, `loan_installments`, `loan_transactions`, `loan_revisions`), enums, permissions, Finance expense category seed
-- [ ] 3A.2 Loans CRUD + LoanService EMI schedule (reducing / flat / interest-only)
+- [x] 3A.2 Loans CRUD + LoanService EMI schedule (reducing / flat / interest-only)
 - [ ] 3A.3 Loan payments: FIFO interest/principal split, interest → expense, edit/delete latest with reason
 - [ ] 3A.4 Prepayment (reduce EMI / reduce tenure) + interest rate change + close / re-open
 - [ ] 3A.5 Overdraft accounts: withdrawal / repayment / interest, limit check, running balance
