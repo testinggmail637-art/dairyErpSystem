@@ -18,7 +18,7 @@ cow/buffalo buying & selling, expenses, loans & overdraft, staff, and profit rep
 | 1 | Expense Management (no approval) + Excel import | ✅ Done (v0.1.0) |
 | 2 | Animals, Milk Production, Milk Stock | ✅ Done (v0.2.0) |
 | 3 | Customers, Delivery, Billing, Payments | ✅ Done (v0.3.0) |
-| 3A | Loans & Overdraft | ⬜ Not started |
+| 3A | Loans & Overdraft | 🟡 In progress |
 | 4 | Farmers & Collection Center | ⬜ Not started |
 | 5 | Health, Breeding, Feed | ⬜ Not started |
 | 6 | Animal Trading & Staff | ⬜ Not started |

@@ -5,6 +5,9 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+### Added
+- Phase 3A · Task 1: loans foundation — tables `loans` (LOAN/2026-27/0001, type, lender, principal / OD limit, rate, repayment method, tenure, first due date, EMI, processing fee, OD renewal date, status), `loan_installments`, `loan_transactions` (interest / principal split, payment mode, linked expense, client_uuid), `loan_revisions`; enums LoanType, RepaymentMethod, LoanStatus, LoanTxnType; permissions `loans.view`, `loans.manage`, `loan_payments.create`, `loan_payments.edit` (owner, admin, accountant — also granted on existing installs by a one-time migration); expense category **Finance → Loan Interest, Bank Charges** for every farm. The Loans menu item appears with the loan screens (3A.2).
+
 ## [0.3.0] - 2026-11-06 — Phase 3: Customers, Delivery, Billing, Payments
 
 ### Security

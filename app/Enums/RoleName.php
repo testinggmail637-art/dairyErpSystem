@@ -41,7 +41,7 @@ enum RoleName: string
             self::Admin => array_values(array_diff(Permissions::all(), ['farms.manage', 'roles.manage', 'monitoring.view'])),
             self::Accountant => Permissions::expand([
                 'dashboard.*', 'expenses.*', 'vendors.*', 'vendor_payments.*', 'customers.view', 'bills.*',
-                'customer_payments.*', 'customer_adjustments.create', 'farmers.view', 'collections.view',
+                'customer_payments.*', 'customer_adjustments.create', 'loans.*', 'loan_payments.*', 'farmers.view', 'collections.view',
                 'farmer_payments.*', 'farmer_advances.manage', 'animal_trading.view', 'staff.view', 'salary.manage',
                 'reports.*',
             ]),

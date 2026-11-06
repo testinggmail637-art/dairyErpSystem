@@ -24,6 +24,7 @@ final class Permissions
         'Deliveries' => ['deliveries.view', 'deliveries.update', 'deliveries.view_all_routes'],
         'Bills' => ['bills.view', 'bills.generate', 'bills.finalize', 'bills.cancel'],
         'Customer payments' => ['customer_payments.create', 'customer_payments.edit', 'customer_adjustments.create'],
+        'Loans' => ['loans.view', 'loans.manage', 'loan_payments.create', 'loan_payments.edit'],
         'Farmers' => ['farmers.view', 'farmers.manage', 'rate_charts.manage'],
         'Collections' => ['collections.view', 'collections.create', 'collections.edit'],
         'Farmer payments' => ['farmer_payments.view', 'farmer_payments.manage', 'farmer_advances.manage'],

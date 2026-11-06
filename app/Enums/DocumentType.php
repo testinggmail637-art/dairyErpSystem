@@ -4,7 +4,7 @@ namespace App\Enums;
 
 use App\Enums\Concerns\HasOptions;
 
-/** Numbered documents (spec Section 4.6): BILL/2026-27/0001 … */
+/** Numbered documents (spec Section 4.6): BILL/2026-27/0001, LOAN/2026-27/0001 … */
 enum DocumentType: string
 {
     use HasOptions;
@@ -14,6 +14,7 @@ enum DocumentType: string
     case AnimalPurchase = 'animal_purchase';
     case AnimalSale = 'animal_sale';
     case Salary = 'salary';
+    case Loan = 'loan';
 
     public function label(): string
     {
@@ -23,6 +24,7 @@ enum DocumentType: string
             self::AnimalPurchase => __('Animal Purchase'),
             self::AnimalSale => __('Animal Sale'),
             self::Salary => __('Salary Slip'),
+            self::Loan => __('Loan'),
         };
     }
 
@@ -35,6 +37,7 @@ enum DocumentType: string
             self::AnimalPurchase => 'APUR',
             self::AnimalSale => 'ASAL',
             self::Salary => 'SAL',
+            self::Loan => 'LOAN',
         };
     }
 }
