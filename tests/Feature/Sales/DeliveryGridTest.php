@@ -7,6 +7,7 @@ use App\Enums\MilkSource;
 use App\Enums\MilkType;
 use App\Enums\RoleName;
 use App\Models\Activity;
+use App\Models\Bill;
 use App\Models\Customer;
 use App\Models\Delivery;
 use App\Models\DeliveryRoute;
@@ -54,7 +55,7 @@ it('bulk marks only pending, unbilled, not-future rows delivered with planned li
     $a = gridRow();
     $b = gridRow(['planned_qty' => '3.00']);
     $skipped = gridRow(['status' => 'skipped']);
-    $billed = gridRow(['bill_id' => 7]);
+    $billed = gridRow(['bill_id' => Bill::factory()->create(['customer_id' => Customer::factory()->create(['farm_id' => $this->farm->id])->id])->id]);
     $future = gridRow(['delivery_date' => today()->addDay()->toDateString()]);
 
     $this->actingAs($this->owner)->post(route('deliveries.bulk-deliver'), ['ids' => [$a->id, $b->id, $skipped->id, $billed->id, $future->id]])
@@ -96,7 +97,7 @@ it('edits a row with a reason: rate and litres recalculate the amount and the st
 });
 
 it('locks billed rows and keeps the grid for managers only', function () {
-    $billed = gridRow(['bill_id' => 7]);
+    $billed = gridRow(['bill_id' => Bill::factory()->create(['customer_id' => Customer::factory()->create(['farm_id' => $this->farm->id])->id])->id]);
 
     $this->actingAs($this->owner)->get(route('deliveries.edit', $billed))->assertForbidden();
     $this->put(route('deliveries.update', $billed), ['status' => 'delivered', 'delivered_qty' => '2', 'rate' => '60', 'reason' => 'x x'])->assertForbidden();

@@ -6,6 +6,7 @@ use App\Enums\MilkShift;
 use App\Enums\MilkSource;
 use App\Enums\MilkType;
 use App\Enums\RoleName;
+use App\Models\Bill;
 use App\Models\Customer;
 use App\Models\CustomerPayment;
 use App\Models\Delivery;
@@ -83,7 +84,7 @@ it('refuses delivery beyond the stock and keeps the row pending', function () {
 
 it('blocks other routes (404), billed rows and future rows', function () {
     $other = sheetRow($this->otherRoute);
-    $billed = sheetRow($this->myRoute, ['bill_id' => 99]);
+    $billed = sheetRow($this->myRoute, ['bill_id' => Bill::factory()->create(['customer_id' => Customer::factory()->create(['farm_id' => $this->farm->id])->id])->id]);
     $future = sheetRow($this->myRoute, ['delivery_date' => today()->addDay()->toDateString()]);
     $this->actingAs($this->boy);
 

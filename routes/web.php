@@ -19,6 +19,7 @@ use App\Http\Controllers\MilkStock\MilkStockController;
 use App\Http\Controllers\Reports\ExpenseReportController;
 use App\Http\Controllers\Reports\MilkReportController;
 use App\Http\Controllers\Reports\ReportController;
+use App\Http\Controllers\Sales\BillController;
 use App\Http\Controllers\Sales\CustomerController;
 use App\Http\Controllers\Sales\DeliveryController;
 use App\Http\Controllers\Sales\DeliveryGridController;
@@ -201,6 +202,17 @@ Route::middleware(['auth', 'active', 'farm'])->group(function () {
     Route::post('deliveries/{delivery}/deliver', [DeliverySheetController::class, 'deliver'])->name('deliveries.deliver');
     Route::post('deliveries/{delivery}/skip', [DeliverySheetController::class, 'skip'])->name('deliveries.skip');
     Route::post('deliveries/{delivery}/payment', [DeliverySheetController::class, 'collect'])->name('deliveries.collect');
+    // Bills: view / generate (+ delete draft) / finalize / cancel (spec 5.1)
+    Route::get('bills/create', [BillController::class, 'create'])->middleware('can:bills.generate')->name('bills.create');
+    Route::post('bills', [BillController::class, 'store'])->middleware('can:bills.generate')->name('bills.store');
+    Route::delete('bills/{bill}', [BillController::class, 'destroy'])->middleware('can:bills.generate')->name('bills.destroy');
+    Route::post('bills/{bill}/finalize', [BillController::class, 'finalize'])->middleware('can:bills.finalize')->name('bills.finalize');
+    Route::post('bills/{bill}/cancel', [BillController::class, 'cancel'])->middleware('can:bills.cancel')->name('bills.cancel');
+    Route::middleware('can:bills.view')->group(function () {
+        Route::get('bills', [BillController::class, 'index'])->name('bills.index');
+        Route::get('bills/{bill}', [BillController::class, 'show'])->whereNumber('bill')->name('bills.show');
+        Route::get('bills/{bill}/pdf', [BillController::class, 'pdf'])->name('bills.pdf');
+    });
     Route::middleware('can:subscriptions.manage')->group(function () {
         Route::resource('subscriptions', SubscriptionController::class)->except('show');
         Route::scopeBindings()->group(function () {
