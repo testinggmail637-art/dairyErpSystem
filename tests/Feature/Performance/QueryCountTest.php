@@ -11,6 +11,7 @@ use App\Enums\MilkType;
 use App\Enums\RoleName;
 use App\Models\Animal;
 use App\Models\AnimalBreed;
+use App\Models\Bill;
 use App\Models\Customer;
 use App\Models\DeliveryRoute;
 use App\Models\Expense;
@@ -160,6 +161,17 @@ it('keeps the subscription list at a constant number of queries', function () {
 
     $make(30);
     expect(queriesFor(route('subscriptions.index'), $this->owner))->toBe($few);
+});
+
+it('keeps the bills list at a constant number of queries', function () {
+    $make = fn (int $n) => Bill::factory()->count($n)->create([
+        'customer_id' => fn () => Customer::factory()->create(['farm_id' => $this->farm->id])->id,
+    ]);
+    $make(3);
+    $few = queriesFor(route('bills.index'), $this->owner);
+
+    $make(30);
+    expect(queriesFor(route('bills.index'), $this->owner))->toBe($few);
 });
 
 it('keeps the breeds list at a constant number of queries', function () {

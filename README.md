@@ -51,7 +51,7 @@ _TODO: for each module, list the working features in plain language once its pha
   home use / calf feeding; adjustments (permission) with a reason; outgoing milk beyond the stock is refused unless the
   farm allows negative stock; ledger with running balance.
 - **Customers, delivery & billing** 🟡 — routes, products (default rate), customers (B2C / B2B, auto code, route stop,
-  opening balance, credit limit) with own rates from a date; subscriptions with pauses; daily delivery sheet (scheduled + button); delivery person's mobile sheet (delivered / skip / litres / collect payment, stock out); admin delivery grid with bulk mark delivered and row edit; one-off / B2B dispatch with fat / SNF and buyer readings; billing still to come.
+  opening balance, credit limit) with own rates from a date; subscriptions with pauses; daily delivery sheet (scheduled + button); delivery person's mobile sheet (delivered / skip / litres / collect payment, stock out); admin delivery grid with bulk mark delivered and row edit; one-off / B2B dispatch with fat / SNF and buyer readings; billing (single / bulk drafts, finalize with number and balances, PDF, cancel); payments allocation, adjustments and ledger still to come.
 - **Loans & overdraft** — _TODO_ (Phase 3A: loans taken with interest, tenure, EMI schedule and due dates, EMIs paid / left, amount paid per loan, outstanding; overdraft limit / utilized / available)
 - **Collection center** — _TODO_
 - **Health, breeding & feed** — _TODO_
