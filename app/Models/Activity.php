@@ -26,6 +26,8 @@ class Activity extends BaseActivity
         CustomerPayment::class,
         Bill::class,
         CustomerAdjustment::class,
+        Loan::class,
+        LoanTransaction::class,
     ];
 
     protected static function booted(): void

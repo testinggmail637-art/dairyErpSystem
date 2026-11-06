@@ -74,6 +74,7 @@ return [
             ['label' => 'Vendors', 'route' => 'vendors.index', 'active' => 'vendors.*', 'permission' => 'vendors.view'],
             ['label' => 'Categories', 'route' => 'expense-categories.index', 'active' => 'expense-categories.*', 'permission' => 'expenses.view'],
             ['label' => 'Import', 'route' => 'expense-imports.index', 'active' => 'expense-imports.*', 'permission' => 'expenses.import'],
+            ['label' => 'Loans', 'route' => 'loans.index', 'active' => 'loans.*', 'permission' => 'loans.view'],
         ],
     ],
 

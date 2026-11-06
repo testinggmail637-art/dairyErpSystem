@@ -7,12 +7,12 @@
 
 | Item | Value |
 |---|---|
-| Current phase | Phase 3A — Loans & Overdraft (⬜ next; Phase 3 ✅ done 2026-11-06) |
-| Last completed task | 3.13 — Sales reports (+ 3.14 Phase 3 acceptance, docs) — Phase 3 done |
-| Next task | 3A.1 — Loans tables, enums, permissions, Finance expense category seed |
-| Overall progress | 48 / 95 tasks (51%) |
-| Tests passing | 533 |
-| Last updated (IST) | 2026-11-06 (task/3.13-sales-reports) |
+| Current phase | Phase 3A — Loans & Overdraft (🟡 in progress) |
+| Last completed task | 3A.1 — Loans tables, enums, permissions, Finance expense category |
+| Next task | 3A.2 — Loans CRUD + LoanService EMI schedule (reducing / flat / interest-only) |
+| Overall progress | 49 / 95 tasks (52%) |
+| Tests passing | 539 |
+| Last updated (IST) | 2026-11-06 (task/3A.1-loans-tables) |
 
 ## Phase overview
 
@@ -22,7 +22,7 @@
 | 1 | Expense Management (no approval) | ✅ Done | 2026-10-16 | 2026-10-18 | `phase-1-done` |
 | 2 | Animals, Milk Production, Milk Stock | ✅ Done | 2026-10-19 | 2026-10-28 | `phase-2-done` |
 | 3 | Customers, Delivery, Billing, Payments | ✅ Done | 2026-10-29 | 2026-11-06 | `phase-3-done` |
-| 3A | Loans & Overdraft (added 2026-11-05) | ⬜ Not started | | | |
+| 3A | Loans & Overdraft (added 2026-11-05) | 🟡 In progress | 2026-11-06 | | |
 | 4 | Farmers & Collection Center | ⬜ Not started | | | |
 | 5 | Health, Breeding, Feed | ⬜ Not started | | | |
 | 6 | Animal Trading & Staff | ⬜ Not started | | | |
@@ -287,7 +287,7 @@ Status legend: ⬜ Not started · 🟡 In progress · ✅ Done · ⏸ On hold
 ## Phase 3A — Loans & Overdraft (added 2026-11-05, owner's request; spec §6 Phase 3A, §7.4A, §8 Phase 3A)
 
 ### Checklist
-- [ ] 3A.1 Tables (`loans`, `loan_installments`, `loan_transactions`, `loan_revisions`), enums, permissions, Finance expense category seed
+- [x] 3A.1 Tables (`loans`, `loan_installments`, `loan_transactions`, `loan_revisions`), enums, permissions, Finance expense category seed
 - [ ] 3A.2 Loans CRUD + LoanService EMI schedule (reducing / flat / interest-only)
 - [ ] 3A.3 Loan payments: FIFO interest/principal split, interest → expense, edit/delete latest with reason
 - [ ] 3A.4 Prepayment (reduce EMI / reduce tenure) + interest rate change + close / re-open

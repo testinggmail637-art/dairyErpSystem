@@ -17,14 +17,14 @@ function category(Farm $farm, string $name, ?ExpenseCategory $parent = null): Ex
     return ExpenseCategory::factory()->create(['farm_id' => $farm->id, 'parent_id' => $parent?->id, 'name' => $name]);
 }
 
-it('seeds the 9 default categories with their 25 subcategories, once per farm', function () {
+it('seeds the 10 default categories with their 27 subcategories, once per farm', function () {
     $this->seed(FarmMasterDataSeeder::class);
     $this->seed(FarmMasterDataSeeder::class);
 
     app(CurrentFarm::class)->set($this->farm);
 
     expect(ExpenseCategory::topLevel()->ordered()->pluck('name')->all())->toBe(array_keys(ExpenseCategory::DEFAULTS))
-        ->and(ExpenseCategory::whereNotNull('parent_id')->count())->toBe(25)
+        ->and(ExpenseCategory::whereNotNull('parent_id')->count())->toBe(27)
         ->and(ExpenseCategory::where('name', 'Dry Fodder (Bhusa)')->first()->parent->name)->toBe('Feed');
 });
 

@@ -26,7 +26,7 @@ it('uses the right prefix for every document type', function () {
     $date = Carbon::parse('2026-10-15');
 
     expect(array_map(fn (DocumentType $type) => $this->numbers->next($type, $date), DocumentType::cases()))
-        ->toBe(['BILL/2026-27/0001', 'FPAY/2026-27/0001', 'APUR/2026-27/0001', 'ASAL/2026-27/0001', 'SAL/2026-27/0001']);
+        ->toBe(['BILL/2026-27/0001', 'FPAY/2026-27/0001', 'APUR/2026-27/0001', 'ASAL/2026-27/0001', 'SAL/2026-27/0001', 'LOAN/2026-27/0001']);
 });
 
 it('starts again from 0001 in a new financial year, by document date', function () {

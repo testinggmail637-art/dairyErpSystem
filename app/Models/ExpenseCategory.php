@@ -30,6 +30,7 @@ class ExpenseCategory extends Model
         'Collection Center' => ['Testing Chemicals', 'Cans & Equipment'],
         'Office' => ['Stationery', 'Phone/Internet', 'Rent'],
         'Miscellaneous' => ['Other'],
+        'Finance' => ['Loan Interest', 'Bank Charges'], // loan interest / charges are auto-expenses (spec Phase 3A)
     ];
 
     /**
