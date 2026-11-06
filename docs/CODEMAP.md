@@ -32,6 +32,11 @@ Keep this file short. Update it in the same commit when you add a new **shared**
 - **Financial year** `app/Support/FinancialYear.php`. **Permissions list** `app/Support/Permissions.php`. **Menu** `app/Support/Menu.php`.
 - **Exports** `app/Support/Exporter.php::download()` (queues big ones), `app/Reports/ReportTable.php` (report table + PDF/Excel).
 - **Milk stock** models moving milk implement `app/Contracts/MovesMilkStock.php`; ledger in `Services/MilkStockService.php`.
+- **Sales money** `Services/PricingService` (customer rate on a date, batch `ownRatesFor`), `CustomerBalanceService`
+  (ledger balance as of a date, payments / adjustments between dates), `PaymentAllocationService::allocate($customerId)`
+  (rebuild FIFO after any money change), `CustomerLedgerService` (running-balance ledger — copy for farmer / party ledgers).
+- **Bulk job + bell notification** pattern: `app/Jobs/GenerateBills.php` + `Notifications/BillsGeneratedNotification.php`.
+- **Customer remote search** `route('customers.search')` for Select2 boxes.
 - **AJAX lists** `Controller::listView($request, $view, $data)` + `@fragment('results')` + `data-ajax-list` (see CLAUDE.md).
 - **Blade components** `resources/views/components/`: `data-table`, `confirm-form`, `money`,
   `form/{input,select,date,money,quantity,textarea,switch,reason,group}`.
@@ -40,4 +45,6 @@ Keep this file short. Update it in the same commit when you add a new **shared**
 
 ## Modules done so far
 Phase 0 foundation (auth, farms, roles, settings, appearance, audit) · Phase 1 expenses, vendors, vendor payments, import ·
-Phase 2 animals, breeds, milk production, milk stock, milk reports, milk-drop alerts.
+Phase 2 animals, breeds, milk production, milk stock, milk reports, milk-drop alerts ·
+Phase 3 routes, products, customers (+ rates, adjustments, ledger), subscriptions, deliveries (sheet, grid, dispatch),
+bills, customer payments, sales reports (`Controllers/Sales/*`, `Controllers/Reports/SalesReportController`).

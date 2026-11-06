@@ -7,12 +7,12 @@
 
 | Item | Value |
 |---|---|
-| Current phase | Phase 3 — Customers, Delivery, Billing, Payments (🟡 in progress) |
-| Last completed task | 3.12 — Customer ledger (screen + Excel/PDF) |
-| Next task | 3.13 — Sales reports |
-| Overall progress | 46 / 95 tasks (48%) |
-| Tests passing | 525 |
-| Last updated (IST) | 2026-11-06 (task/3.12-customer-ledger) |
+| Current phase | Phase 3A — Loans & Overdraft (⬜ next; Phase 3 ✅ done 2026-11-06) |
+| Last completed task | 3.13 — Sales reports (+ 3.14 Phase 3 acceptance, docs) — Phase 3 done |
+| Next task | 3A.1 — Loans tables, enums, permissions, Finance expense category seed |
+| Overall progress | 48 / 95 tasks (51%) |
+| Tests passing | 533 |
+| Last updated (IST) | 2026-11-06 (task/3.13-sales-reports) |
 
 ## Phase overview
 
@@ -21,7 +21,7 @@
 | 0 | Foundation | ✅ Done | 2026-10-15 | 2026-10-15 | `phase-0-done` |
 | 1 | Expense Management (no approval) | ✅ Done | 2026-10-16 | 2026-10-18 | `phase-1-done` |
 | 2 | Animals, Milk Production, Milk Stock | ✅ Done | 2026-10-19 | 2026-10-28 | `phase-2-done` |
-| 3 | Customers, Delivery, Billing, Payments | 🟡 In progress | 2026-10-29 | | |
+| 3 | Customers, Delivery, Billing, Payments | ✅ Done | 2026-10-29 | 2026-11-06 | `phase-3-done` |
 | 3A | Loans & Overdraft (added 2026-11-05) | ⬜ Not started | | | |
 | 4 | Farmers & Collection Center | ⬜ Not started | | | |
 | 5 | Health, Breeding, Feed | ⬜ Not started | | | |
@@ -227,19 +227,60 @@ Status legend: ⬜ Not started · 🟡 In progress · ✅ Done · ⏸ On hold
 - [x] 3.10 Customer payments + FIFO allocation
 - [x] 3.11 Customer adjustments
 - [x] 3.12 Customer ledger (screen + Excel/PDF)
-- [ ] 3.13 Sales reports
-- [ ] 3.14 Phase 3 acceptance tests pass + README/CHANGELOG updated
+- [x] 3.13 Sales reports
+- [x] 3.14 Phase 3 acceptance tests pass + README/CHANGELOG updated
 
 ### Phase log
-- **Completed on:** _TODO_
-- **What was built (plain language):** _TODO_
-- **Screens / URLs added:** _TODO_
-- **Tables / migrations added:** _TODO_
-- **Services / commands / jobs added:** _TODO_
-- **Tests added (count, all passing?):** _TODO_
-- **Decisions taken:** _TODO_
-- **Known issues / pending:** _TODO_
-- **How to check it manually:** _TODO_
+- **Completed on:** 2026-11-06 (v0.3.0, tag `phase-3-done` after the last PR is merged)
+- **What was built (plain language):** The milk sales side. **Routes** with a delivery person, **products** (cow / buffalo
+  milk with a default rate) and **customers** (home or business — hotel, shop, sweet shop, dairy plant …, auto code
+  C-0001, route stop, opening balance, credit limit) with their **own rates** from a date. **Subscriptions** say who gets
+  how many litres in which shift; **pauses** stop them for a few days. Every morning (farm setting, default 04:00) the
+  **delivery sheet** is made from the subscriptions (or with the *Generate sheet* button for any date). The delivery
+  person opens **his sheet on the phone**: customers in stop order, *Delivered* (litres can change), *Skip* (reason)
+  and *Collect payment*. Managers use the **delivery grid** (all routes, bulk mark delivered, edit a row with a reason)
+  and the **one-off / B2B dispatch** form (with our and the dairy plant's fat / SNF readings). Every delivered litre
+  leaves the milk stock. **Bills**: drafts for one or all customers for a period (bulk on the queue), review, finalize
+  (number BILL/2026-27/0001, balances previous + bill − payments + adjustments = closing, PDF), cancel with a reason.
+  **Payments** go against the oldest bills first (paid / part paid), the rest is an advance for the next bill.
+  **Adjustments** (discounts / extra charges) and a **customer ledger** with running balance, Excel and PDF. **Sales
+  reports**: customer-wise, route-wise, product-wise and dairy plant reconciliation.
+- **Screens / URLs added:** `/delivery-routes` · `/products` · `/customers` (list, create, edit, `/{id}` page with rates
+  and adjustments, `/{id}/ledger` + `?format=excel|pdf`) · `/subscriptions` (list, create, edit with pauses) ·
+  `/deliveries` (summary + Generate sheet), `/deliveries/sheet` (delivery person), `/deliveries/grid`,
+  `/deliveries/{id}/edit`, `/deliveries/dispatch` · `/bills` (list, `/create`, `/{id}`, `/{id}/pdf`) ·
+  `/customer-payments` (list, create, edit) · `/reports/sales/{customers|routes|products|dairy-plants}` (+ export).
+- **Tables / migrations added:** `routes`, `products`, `customers`, `customer_rates`, `subscriptions`,
+  `subscription_pauses`, `deliveries`, `customer_payments`, `bills`, `bill_items` (+ FK `deliveries.bill_id`),
+  `payment_allocations`, `customer_adjustments`.
+- **Services / commands / jobs added:** CustomerService, PricingService, SubscriptionService, DeliverySheetService,
+  DeliveryService, CustomerPaymentService, PaymentAllocationService, CustomerBalanceService, BillingService,
+  CustomerLedgerService, SalesReportService; DeliveryPolicy, CustomerPaymentPolicy, CustomerAdjustmentPolicy; command
+  `deliveries:generate {date?} {--farm=} {--scheduled}` (scheduled every 5 min, once per farm per day after its time);
+  job `GenerateBills` + `BillsGeneratedNotification`; DemoSalesSeeder (part of DemoSeeder).
+- **Tests added (count, all passing?):** 119 new (414 → 533), all passing; `tests/Feature/Phase3AcceptanceTest.php` covers
+  the seven acceptance criteria end to end; `QueryCountTest` + per-feature tests keep customer, subscription, grid,
+  sheet, bill, payment and ledger pages at a flat query count.
+- **Decisions taken:** [DECISIONS](DECISIONS.md) #130–#149 (routes, security review, products, customer code and rates, subscription
+  overlaps, sheet schedule, delivery sheet / grid / dispatch rules, billing dates and snapshots, FIFO rebuild,
+  adjustments, ledger, sales reports and demo data).
+- **Known issues / pending:** no bulk *finalize* of drafts (one by one); bill PDFs are not e-mailed / sent (out of scope);
+  demo sales use only own-farm milk (collection milk arrives in Phase 4); receivables aging and dashboard sales cards
+  are Phase 7; customer balance on the customers list is not shown (open the ledger).
+- **Performance (demo year: 88 customers, 41,058 deliveries, 1,054 bills, ~1,000 payments):** customers ~130 ms,
+  subscriptions ~60 ms, delivery grid ~120 ms, delivery sheet ~110 ms, bills ~80 ms, bill page ~50 ms, payments ~110 ms,
+  customer ledger (all time) ~90 ms, sales reports for a full year 45–280 ms, milk stock ~90 ms, dashboard ~200 ms.
+- **How to check it manually:**
+  1. `php artisan migrate` then `php artisan db:seed --class=DemoSeeder`; log in as the owner.
+  2. Sales → Deliveries → **Generate sheet** for today → **Open delivery sheet**; mark one customer delivered with extra
+     litres, skip another; Milk Stock → Ledger shows the delivery.
+  3. Log in as `delivery@dairy.test` / `password` → he sees only his routes' customers; *Collect payment* ₹500.
+  4. Sales → Bills → **Generate bills** → one customer, last month → check the draft → **Finalize** → PDF; then
+     **Cancel bill** with a reason and generate again.
+  5. Sales → Payments → record a payment bigger than the oldest unpaid bill → the bills show Paid / Part paid.
+  6. Open the customer → add an adjustment −₹200 → **Ledger** shows bills, payments and the adjustment with the
+     running balance; download Excel and PDF.
+  7. Reports → Sales → Customer-wise / Route-wise / Product-wise / Dairy plant reconciliation for the last year.
 
 ---
 
