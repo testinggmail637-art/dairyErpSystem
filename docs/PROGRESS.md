@@ -8,11 +8,11 @@
 | Item | Value |
 |---|---|
 | Current phase | Phase 3 — Customers, Delivery, Billing, Payments (🟡 in progress) |
-| Last completed task | 3.6 — Delivery boy mobile screen (deliver/skip/qty/collect payment) |
-| Next task | 3.7 — Admin delivery grid + bulk mark delivered |
-| Overall progress | 40 / 95 tasks (42%) |
-| Tests passing | 489 |
-| Last updated (IST) | 2026-11-06 (task/3.6-delivery-boy-screen) |
+| Last completed task | 3.7 — Admin delivery grid + bulk mark delivered |
+| Next task | 3.8 — One-off / B2B dispatch form (with fat/snf and buyer readings) |
+| Overall progress | 41 / 95 tasks (43%) |
+| Tests passing | 495 |
+| Last updated (IST) | 2026-11-06 (task/3.7-admin-delivery-grid) |
 
 ## Phase overview
 
@@ -221,7 +221,7 @@ Status legend: ⬜ Not started · 🟡 In progress · ✅ Done · ⏸ On hold
 - [x] 3.4 Subscriptions + pauses
 - [x] 3.5 Delivery sheet generation (command + button + schedule)
 - [x] 3.6 Delivery boy mobile screen (deliver/skip/qty/collect payment)
-- [ ] 3.7 Admin delivery grid + bulk mark delivered
+- [x] 3.7 Admin delivery grid + bulk mark delivered
 - [ ] 3.8 One-off / B2B dispatch form (with fat/snf and buyer readings)
 - [ ] 3.9 Billing: generate (single/bulk), draft review, finalize, PDF, cancel
 - [ ] 3.10 Customer payments + FIFO allocation

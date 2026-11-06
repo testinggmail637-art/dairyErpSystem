@@ -21,6 +21,7 @@ use App\Http\Controllers\Reports\MilkReportController;
 use App\Http\Controllers\Reports\ReportController;
 use App\Http\Controllers\Sales\CustomerController;
 use App\Http\Controllers\Sales\DeliveryController;
+use App\Http\Controllers\Sales\DeliveryGridController;
 use App\Http\Controllers\Sales\DeliveryRouteController;
 use App\Http\Controllers\Sales\DeliverySheetController;
 use App\Http\Controllers\Sales\ProductController;
@@ -188,6 +189,12 @@ Route::middleware(['auth', 'active', 'farm'])->group(function () {
     Route::get('deliveries', [DeliveryController::class, 'index'])->middleware('can:deliveries.view')->name('deliveries.index');
     Route::post('deliveries/generate', [DeliveryController::class, 'generate'])->middleware('can:deliveries.view_all_routes')->name('deliveries.generate');
     Route::get('deliveries/sheet', [DeliverySheetController::class, 'show'])->middleware('can:deliveries.view')->name('deliveries.sheet');
+    Route::middleware('can:deliveries.view_all_routes')->group(function () {
+        Route::get('deliveries/grid', [DeliveryGridController::class, 'index'])->name('deliveries.grid');
+        Route::post('deliveries/bulk-deliver', [DeliveryGridController::class, 'bulkDeliver'])->name('deliveries.bulk-deliver');
+        Route::get('deliveries/{delivery}/edit', [DeliveryGridController::class, 'edit'])->name('deliveries.edit');
+        Route::put('deliveries/{delivery}', [DeliveryGridController::class, 'update'])->name('deliveries.update');
+    });
     // route check + billed lock in DeliveryPolicy (via the Form Requests)
     Route::post('deliveries/{delivery}/deliver', [DeliverySheetController::class, 'deliver'])->name('deliveries.deliver');
     Route::post('deliveries/{delivery}/skip', [DeliverySheetController::class, 'skip'])->name('deliveries.skip');

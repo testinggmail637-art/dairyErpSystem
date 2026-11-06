@@ -11,6 +11,7 @@
         </form>
         <a href="{{ route('deliveries.sheet', ['date' => $date]) }}" class="btn btn-success"><i class="bi bi-list-check me-1"></i>{{ __('Open delivery sheet') }}</a>
         @if ($canGenerate)
+            <a href="{{ route('deliveries.grid', ['date' => $date]) }}" class="btn btn-outline-primary"><i class="bi bi-table me-1"></i>{{ __('Grid') }}</a>
             <form method="POST" action="{{ route('deliveries.generate') }}" class="ms-md-auto">
                 @csrf
                 <input type="hidden" name="date" value="{{ $date }}">
