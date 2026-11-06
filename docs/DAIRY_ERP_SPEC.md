@@ -14,7 +14,7 @@ One dairy business with four activities (plus loan tracking), all in one applica
 | Collection center | Village farmers bring milk; quantity, Fat%, SNF% recorded; paid every N days by rate chart | Farmer F-001: 25 L × ₹40 = ₹1,000 |
 | Milk sales | B2C homes get daily subscription delivery; B2B (hotels, shops, sweet shops, dairy plants) get bulk supply; monthly bills; payments | Sharma: 2 L/day @ ₹60; ABC Hotel: 100 L/day @ ₹48 |
 | Animal trading | Cows/buffaloes bought (for own herd or for resale) and sold, with payments and profit | Heifer bought ₹35,000, sold ₹65,000 |
-| Loans | Loans and overdrafts the business has taken: interest, tenure, EMI dates, EMIs paid, amount paid, outstanding | SBI OD limit ₹2,00,000 @ 9.5%; personal loan ₹1,00,000 @ 12% × 12 months, EMI ₹8,885 |
+| Loans | Loans, overdraft / cash credit / KCC and credit cards the business has taken: interest, how repaid, due dates, instalments paid, interest vs principal paid, outstanding / used | SBI OD limit ₹2,00,000 @ 9.5%; personal loan ₹1,00,000 @ 12% × 12 months, EMI ₹8,885; HDFC credit card limit ₹1,00,000 |
 
 Core principle: **every litre and every rupee must be traceable.**
 If 100 L were available, 70 L sold, 5 L wasted, the system must show 25 L remaining, and where each litre went.
@@ -557,29 +557,50 @@ opening_balance + Σ finalized bills.total (bill_date ≤ D) + Σ adjustments (�
 Customer ledger screen: chronological list (opening, bills, payments, adjustments) with running balance;
 export Excel/PDF.
 
-### Phase 3A — Loans & overdraft (money the business has borrowed)
+### Phase 3A — Loans, overdraft & credit cards (money the business has borrowed)
 
-Tracks every loan the owner / business has **taken**: who lent it, how much, at what interest, for how long,
-EMI due dates, how many EMIs are paid / left, how much has been paid on each loan, and the outstanding balance.
-Lending money to others is not part of this module (farmer advances are in Phase 4).
+Tracks every loan / credit line the owner / business has **taken**: who lent it, how much, at what interest, how it is
+repaid, due dates, how many instalments are paid / left, how much has been paid (interest vs principal) and what is
+still owed. Lending money to others is not part of this module (farmer advances are in Phase 4).
+Researched and agreed with the owner on 2026-11-06 (DECISIONS #152–#154).
+
+**Loan families** (each `loan_type` belongs to one family; the family decides the screens and the maths):
+
+| Family | loan_type values | How it is repaid | Interest |
+|---|---|---|---|
+| **Instalment loan** | `personal_loan`, `business_loan`, `dairy_agri_loan` (NABARD / dairy / Mudra term loan), `vehicle_loan` (vehicle, tractor), `gold_loan`, `card_emi` (purchase / balance converted to EMI on a credit card), `private_loan` (moneylender / known person / family), `other` | Schedule from `repayment_method` (below) | From the schedule; the bank's actual split can be typed on each payment |
+| **Revolving limit** | `overdraft`, `cash_credit`, `kcc` (Kisan Credit Card) | Draw / repay any time within the limit | The bank charges interest on the **daily used balance** (balance × rate × days ÷ 365) and debits it every `interest_debit_cycle`; we record the bank's debit and show an **estimate** to check it |
+| **Credit card** | `credit_card` | Monthly bill: full amount (no interest) or part (interest from purchase date) | Interest + 18 % GST, late fee, annual fee entered from the card statement |
+
+**Repayment methods** (instalment loans only):
+- `emi_reducing` — equal instalments, interest on the remaining principal (bank / NBFC loans).
+- `emi_flat` — equal instalments, interest on the original amount for the whole period (some NBFC vehicle / tractor loans, microfinance).
+- `interest_only` — only interest every period, the whole principal with the last instalment (private lender "₹2 per ₹100 per month", some gold loans).
+- `bullet` — nothing until maturity, then principal + simple interest together (gold loan, usually max 12 months).
 
 **loans**:
 | Column | Type | Notes |
 |---|---|---|
 | loan_no | string | auto `LOAN/2026-27/0001` (DocumentNumberService), unique per farm |
-| loan_type | enum LoanType | `personal_loan`, `business_loan`, `vehicle_loan`, `gold_loan`, `overdraft`, `other` |
-| lender_name | string | bank / NBFC / person who gave the loan |
+| loan_type | enum LoanType | see the families above (`dairy_agri_loan`, `cash_credit`, `kcc`, `credit_card`, `card_emi`, `private_loan` added in Task 3A.3) |
+| lender_name | string | bank / NBFC / card issuer / person who gave the loan |
 | lender_phone? | string | |
-| account_no? | string | loan / OD account number |
-| principal_amount | money | > 0; loan amount — for `overdraft` this is the **sanctioned limit** |
-| interest_rate | decimal(5,2) | % per year, 0–99.99 (0 allowed for interest-free personal loans) |
-| repayment_method | enum RepaymentMethod | `emi_reducing`, `emi_flat`, `interest_only`; null for `overdraft` |
-| tenure_months? | int | 1–480; required unless `overdraft` (form takes years + months) |
-| start_date | date | disbursement / sanction date, ≤ today |
-| first_due_date? | date | first EMI / interest date; required unless `overdraft`; > start_date |
-| emi_amount? | money | calculated by LoanService (snapshot); null for `overdraft` |
-| processing_fee | money | default 0; on save creates an expense (Finance → Bank Charges) when > 0 |
-| od_renewal_date? | date | overdraft only — limit renewal / expiry date |
+| account_no? | string | loan / OD / card number (last 4 digits are enough for cards) |
+| principal_amount | money | > 0; loan amount — for revolving and cards the **sanctioned / credit limit** (no interest on it) |
+| interest_rate | decimal(5,2) | % **per year**, 0–99.99. The form also accepts "% per month" (× 12 on save) for private loans and cards |
+| repayment_method | enum RepaymentMethod | `emi_reducing`, `emi_flat`, `interest_only`, `bullet` (added 3A.3); null for revolving / card |
+| installment_frequency | enum | `monthly` (default), `quarterly`, `half_yearly`, `yearly` — instalment loans (added 3A.3) |
+| tenure_months? | int | 1–480; instalment loans; a multiple of the frequency (form takes years + months) |
+| moratorium_months | int | default 0 — months before principal repayment starts (dairy / NABARD loans; added 3A.3) |
+| moratorium_interest? | enum | `paid` (interest paid every period during the moratorium) or `capitalised` (added to the loan); required when moratorium_months > 0 (added 3A.3) |
+| start_date | date | disbursement / sanction / card issue date, ≤ today |
+| first_due_date? | date | first instalment date; instalment loans; > start_date |
+| broken_period_interest | money | default 0 — interest for the extra days before the first instalment period: calculated (principal × rate × days ÷ 365), editable to match the sanction letter; becomes instalment 0 (added 3A.3) |
+| emi_amount? | money | calculated by LoanService (snapshot); null for revolving / card |
+| processing_fee | money | default 0 (incl. GST); on save creates an expense (Finance → Bank Charges) when > 0 |
+| od_renewal_date? | date | revolving only — limit renewal / expiry date |
+| interest_debit_cycle? | enum | revolving only — `monthly`, `quarterly`, `half_yearly`, `yearly`; used for reminders and the estimate (added 3A.3) |
+| statement_day? / due_day? | int 1–31 | credit card only — bill (statement) day and payment due day (added 3A.3) |
 | status | enum LoanStatus | `active`, `closed` |
 | closed_on? | date | set when closed |
 | notes? | text | |
@@ -587,21 +608,21 @@ Lending money to others is not part of this module (farmer advances are in Phase
 
 Index (farm_id, status), (farm_id, loan_type).
 
-**loan_installments** (schedule; not used for `overdraft`): loan_id, installment_no, due_date, opening_principal,
-emi_amount, principal_part, interest_part, closing_principal. Unique (loan_id, installment_no); index (farm_id, due_date).
-Paid status is computed from loan_transactions (not stored): `paid`, `partially_paid`, `due`, `overdue` (due_date < today
-and not fully paid).
+**loan_installments** (schedule; instalment loans only): loan_id, installment_no (0 = broken-period interest),
+due_date, opening_principal, emi_amount, principal_part, interest_part, closing_principal. Unique (loan_id, installment_no);
+index (farm_id, due_date). Paid status is computed from loan_transactions (not stored): `paid`, `partially_paid`, `due`,
+`overdue` (due_date < today and not fully paid).
 
 **loan_transactions**:
 | Column | Type | Notes |
 |---|---|---|
 | loan_id | FK loans | |
 | txn_date | date | ≤ today, ≥ loan start_date |
-| type | enum LoanTxnType | `emi_payment`, `interest_payment`, `prepayment`, `od_withdrawal`, `od_repayment`, `od_interest`, `charge` |
+| type | enum LoanTxnType | instalment loans: `emi_payment`, `interest_payment`, `prepayment`; revolving / card: `od_withdrawal` (draw / card cash withdrawal), `od_repayment` (repayment / **card bill payment**), `od_interest` (interest debited; card interest incl. GST); all: `charge` (fee, penal / late charge, renewal, commitment, annual fee, foreclosure), `subvention_credit` (KCC / scheme interest refund credited by the bank; added 3A.3) |
 | amount | money | > 0 |
-| principal_part | money | snapshot of the split (0 for `od_interest`, `charge`) |
-| interest_part | money | snapshot of the split |
-| payment_mode_id? | FK payment_modes | required for payments |
+| principal_part | money | snapshot of the split (0 for `od_interest`, `charge`, `subvention_credit`) |
+| interest_part | money | snapshot of the split; editable on the payment form to match the bank statement |
+| payment_mode_id? | FK payment_modes | required for money we pay out |
 | reference_no? | string | cheque / UTR no. |
 | expense_id? | FK expenses | auto-created expense for the interest / charge part |
 | client_uuid? | string | unique (farm_id, client_uuid) |
@@ -610,15 +631,23 @@ and not fully paid).
 Index (farm_id, loan_id, txn_date), (farm_id, txn_date).
 
 **loan_revisions**: loan_id, effective_date, old_rate, new_rate, old_emi, new_emi, reason. Written when the bank
-changes the interest rate (floating rate) or after a prepayment re-calculates the EMI.
+changes the interest rate (floating rate) or after a prepayment re-calculates the schedule.
+
+**expenses** (two columns added in Task 3A.3, new migration):
+- `loan_id?` FK loans — set automatically on every loan cost expense (interest, processing fee, charges, card interest);
+  drives the Expenses list filter **Loan / loan type** (owner's choice) and the loan reports.
+- `paid_by_card_id?` FK loans (`credit_card`) — chosen in the expense form when the payment mode is a credit card. The
+  expense counts once, on its own date, like any paid expense, and raises that card's outstanding. Paying the card bill
+  later is an `od_repayment` on the card, **not** a new expense (no double counting).
 
 Seed expense category **Finance → Loan Interest, Bank Charges**.
 
 Loan summary (computed, as of today):
-- Outstanding principal (EMI / interest-only) = principal_amount − Σ principal_part of payments.
-- EMIs paid = count of installments fully paid; EMIs left = total installments − EMIs paid; next due date + amount.
+- Outstanding principal (instalment loans) = principal_amount (+ capitalised moratorium interest) − Σ principal_part of payments.
+- Instalments paid = count fully paid; left = total − paid; next due date + amount.
 - Total paid = Σ amount of payments; of which interest = Σ interest_part, principal = Σ principal_part.
-- Overdraft: utilized = Σ od_withdrawal + Σ od_interest + Σ charge − Σ od_repayment; available = limit − utilized.
+- Revolving / card: utilized = Σ od_withdrawal + Σ od_interest + Σ charge (+ card purchases = Σ expenses with
+  paid_by_card_id) − Σ od_repayment − Σ subvention_credit; available = limit − utilized.
 - All totals calculated in SQL (`SUM` grouped by loan_id), never by loading rows into PHP.
 
 ### Phase 4 — Farmers & milk collection
@@ -829,42 +858,74 @@ See Section 7.
 - "Adjustment" (permission milk_stock.adjust): in/out with mandatory reason.
 - Ledger view with filters and running balance.
 
-### 7.4A Loans & overdraft (Phase 3A)
-- **EMI calculation (LoanService, bcmath only, no float):** monthly rate r = interest_rate ÷ 12 ÷ 100, n = tenure_months.
-  - `emi_reducing`: EMI = P·r·(1+r)ⁿ ÷ ((1+r)ⁿ − 1) (r = 0 → P ÷ n). Each month interest = opening principal × r,
+### 7.4A Loans, overdraft & credit cards (Phase 3A)
+- **Schedule calculation (LoanScheduleCalculator, bcmath only, no float):** period rate r = interest_rate ÷ 100 ÷
+  periods per year (12 / 4 / 2 / 1 by `installment_frequency`), n = number of instalments after the moratorium.
+  - `emi_reducing`: EMI = P·r·(1+r)ⁿ ÷ ((1+r)ⁿ − 1) (r = 0 → P ÷ n). Each period interest = opening principal × r,
     principal part = EMI − interest.
-  - `emi_flat`: total interest = P × rate × n ÷ 1200; EMI = (P + total interest) ÷ n; equal interest each month.
-  - `interest_only`: each month interest = P × r; the full principal is due with the last installment.
-  - EMI rounded to the rupee (₹, 0 paise) like banks; the last installment absorbs the rounding difference so that
-    Σ principal_part = P exactly. Due dates = first_due_date + k months (31st → last day of a short month).
-  - Test: ₹1,00,000 at 12% reducing for 12 months → EMI ₹8,885; Σ principal = ₹1,00,000.00; Σ interest = ₹6,618.55 ± rounding.
-- Schedule is generated on create. Editing principal / rate / tenure / dates is allowed only while the loan has no
-  transactions (schedule re-generated). After that, only lender details and notes are editable (with reason).
-- **Record payment** (`emi_payment` / `interest_payment`): applied FIFO to the oldest unpaid installments — interest part
-  of each installment first, then its principal. Paying less than one EMI leaves it partially paid; more than the due
-  amount continues into the next installments. Split is stored on the transaction (snapshot).
+  - `emi_flat`: total interest = P × rate × months ÷ 1200; EMI = (P + total interest) ÷ n; equal interest each period.
+  - `interest_only`: each period interest = P × r; the full principal is due with the last instalment.
+  - `bullet`: one instalment at maturity = P + P × rate × months ÷ 1200 (simple interest).
+  - EMI rounded to the rupee (₹, 0 paise) like banks; the last instalment absorbs the rounding difference so that
+    Σ principal_part = P exactly. Due dates = first_due_date + k periods (31st → last day of a short month).
+  - **Moratorium** (`moratorium_months` > 0): the first moratorium periods have no principal. `paid` → each is an
+    interest-only instalment; `capitalised` → no instalment, the interest is added to the principal and the EMI is
+    calculated on the bigger amount. `first_due_date` is the first instalment after the start (interest instalment when
+    `paid`, first EMI when `capitalised`).
+  - **Broken-period interest:** when the gap from start_date to (first_due_date − one period) is more than 0 days,
+    BPI = P × rate × days ÷ 36500, shown on the form, editable (copy the sanction letter), saved as instalment 0
+    (interest only, due on first_due_date).
+  - Tests: ₹1,00,000 at 12 % reducing, 12 monthly → EMI ₹8,885; Σ principal = ₹1,00,000.00; Σ interest ₹6,618.55 ±
+    rounding. Flat ₹1,20,000 at 10 % for 24 months → EMI ₹6,000, interest ₹24,000. Quarterly ₹2,00,000 at 9 % for 2 years →
+    8 instalments, Σ principal ₹2,00,000.00. Bullet ₹50,000 at 12 % for 12 months → one instalment ₹56,000.
+- Schedule is generated on create. Editing amount / rate / period / dates / moratorium is allowed only while the loan has
+  no transactions (schedule re-generated). After that, only lender details and notes are editable (with reason).
+- **Record payment** (`emi_payment` / `interest_payment`): applied FIFO to the oldest unpaid instalments — interest part
+  of each instalment first, then its principal. Paying less than one instalment leaves it partially paid; more than the
+  due amount continues into the next instalments. The calculated split is shown and **can be overwritten** with the
+  bank statement's figures (interest + principal must equal the amount); the split is stored on the transaction.
+  Penal / late charges are never interest: they are entered as a separate `charge` (RBI 2023 "penal charges").
 - **Prepayment:** whole amount reduces principal. The owner picks "reduce EMI" (same remaining tenure) or "reduce
-  tenure" (same EMI); future unpaid installments are re-generated and a loan_revision row is written.
-- **Rate change** (floating rate): action "Change interest rate" with effective date + reason → re-generates unpaid
-  installments from that date, writes loan_revision. Paid installments and past transactions never change.
-- **Overdraft:** withdrawal refused if utilized + amount > limit; repayment ≤ utilized; `od_interest` entered monthly
-  from the bank statement (debited interest). No schedule, no EMIs.
-- **Expenses:** the interest part of every payment, every `od_interest` and every `charge` creates an expense
-  (Finance → Loan Interest / Bank Charges, source_type = loan_transaction, paid, same payment mode; `od_interest` uses
-  payment mode "Bank"). Principal is never an expense. Deleting / editing the transaction (with reason, latest
+  tenure" (same EMI); future unpaid instalments are re-generated and a loan_revision row is written. A foreclosure /
+  part-payment fee is a separate `charge`.
+- **Rate change** (floating rate): action "Change interest rate" with effective date + reason; the owner picks "change
+  EMI" or "keep EMI, change the period" (RBI 2023 reset rules) → re-generates unpaid instalments from that date, writes
+  loan_revision. Paid instalments and past transactions never change.
+- **Revolving (overdraft / cash credit / KCC):** withdrawal refused if utilized + amount > limit; repayment ≤ utilized;
+  `od_interest` = the interest the bank debited (from the statement) every `interest_debit_cycle`; `subvention_credit` =
+  KCC / scheme interest refund credited by the bank (reduces utilized). No schedule, no EMIs.
+  **Estimated interest** (read-only, for checking the bank): Σ over the days of a chosen period of (closing used balance
+  of the day × rate ÷ 36500), shown on the account page next to the bank's debit for that period.
+- **Credit card:** card purchases are entered as ordinary expenses with the card chosen (`paid_by_card_id`); cash
+  withdrawals as `od_withdrawal`; the card bill payment as `od_repayment` (not an expense); interest + GST and fees from
+  the statement as `od_interest` / `charge`. Card page: limit, used, available, last statement amount (used balance on
+  the statement day), next due date, and a warning **"Part paid — interest is running"** when the repayments between the
+  last statement day and its due day are less than that statement amount. Card EMI conversions are their own
+  `card_emi` instalment loan.
+- **Expenses:** the interest part of every payment, every `od_interest` and every `charge` creates a paid expense
+  (Finance → Loan Interest / Bank Charges, source = the loan transaction, `loan_id` set, same payment mode;
+  `od_interest` uses payment mode "Bank Transfer"). **Principal is never an expense.** `subvention_credit` is not an
+  expense (reports show net interest = interest − subvention). Deleting / editing the transaction (with reason, latest
   transaction of the loan only) updates / removes the linked expense in the same DB transaction.
-- **Close loan:** allowed when outstanding principal = 0 (OD: utilized = 0); closed loans accept no new transactions
-  and cannot be edited. "Re-open" (owner, with reason) undoes it.
-- **Screens:** Loans list (type, lender, amount / limit, rate, tenure, EMI, EMIs paid x / y, total paid, outstanding,
-  next due date; filters type / status / lender; totals row) · Loan detail (summary cards, schedule with status
-  colours, transactions, revisions, buttons: record payment, prepayment, change rate, close) · OD detail (limit,
-  utilized, available, transactions with running balance).
+- **Expenses screen (owner's choice):** filter **Loan** (any loan cost, a loan type, or one loan). The summary shows
+  "Total expenses" (incl. loan interest & charges) and below it, separately, **"Loan principal repaid"** (Σ principal_part
+  of instalment-loan payments in the period) and **"Total cash paid out"** = both. Principal is never in profit,
+  cost per litre or P&L.
+- **Close loan:** allowed when outstanding principal = 0 (revolving / card: utilized = 0); closed loans accept no new
+  transactions and cannot be edited. "Re-open" (owner, with reason) undoes it.
+- **Screens:** Loans list (type, lender, amount / limit, rate, period, EMI, instalments paid x / y, total paid,
+  outstanding / used, next due date; filters type / family / status / lender; totals row) · Loan detail (summary cards,
+  schedule with status colours, transactions, revisions, buttons: record payment, prepayment, change rate, close) ·
+  Revolving / card detail (limit, used, available, transactions with running balance, estimated interest, card warning).
 - **Reminders:** daily scheduled command `loans:reminders` sends an in-app (database) notification to users with
-  `loans.view` 3 days before and on an EMI due date, and for overdue EMIs; OD renewal 15 days before od_renewal_date.
-- **Dashboard (with `dashboard.financial` + `loans.view`):** total loan outstanding, OD utilized / limit, EMIs due in
-  the next 7 days, overdue EMIs.
-- **Reports (Excel + PDF):** loan summary (one row per loan as on a date), EMI due list for a date range,
-  interest & principal paid per loan for a period / financial year (for income-tax), loan statement per loan.
+  `loans.view` 3 days before and on an instalment due date, and for overdue instalments; credit card 3 days before the
+  due day; revolving: when an interest debit is expected (end of each `interest_debit_cycle`) and 15 days before
+  od_renewal_date.
+- **Dashboard (with `dashboard.financial` + `loans.view`):** total loan outstanding, revolving / card used vs limit,
+  instalments due in the next 7 days, overdue instalments, cards with a part-paid bill.
+- **Reports (Excel + PDF):** loan summary (one row per loan as on a date), instalments due for a date range, interest &
+  principal paid per loan and per loan type for a period / financial year (for income-tax), loan statement per loan,
+  monthly loan payments by type (interest / charges / principal / total).
 
 ### 7.5 Dashboard (progressively, complete in Phase 7)
 Cards (each hidden if user lacks permission): today's own production (cow/buffalo), today's collection
@@ -974,19 +1035,30 @@ Acceptance:
 - Payment ₹5,000 against bills 3,000 (older) and 4,000 → allocations 3,000 + 2,000.
 - Delivery boy sees only his route's customers; cannot open other customers by URL.
 
-### Phase 3A — Loans & overdraft
-Tasks: tables + enums + permissions + Finance expense category → loans CRUD + LoanService EMI schedule (reducing /
-flat / interest-only) → loan payments (FIFO split, interest expense, edit/delete latest with reason) → prepayment +
-rate change + close / re-open → overdraft accounts (withdrawal / repayment / interest, limit check) → loan detail
-screens + reminders command + dashboard cards → loan reports.
+### Phase 3A — Loans, overdraft & credit cards
+Tasks: tables + enums + permissions + Finance expense category → loans CRUD + EMI schedule (reducing / flat /
+interest-only) → **loan types & terms extension** (new loan types, bullet, instalment frequency, moratorium,
+broken-period interest, rate per month, revolving / card fields, `expenses.loan_id` / `paid_by_card_id`) → loan payments
+(FIFO split, editable to the bank's split, interest → expense, edit/delete latest with reason) → prepayment + rate change
+(EMI or period) + close / re-open → revolving accounts (OD / CC / KCC: withdrawal / repayment / interest / subvention,
+limit check, running balance, estimated interest) → credit cards (card on expenses, bill payment, interest + GST / fees,
+part-paid warning; card EMI) → loan detail screens + reminders command + dashboard cards + Expenses screen loan filter
+and "principal repaid / cash paid out" lines → loan reports.
 Acceptance:
 - ₹1,00,000 at 12% reducing, 12 months → EMI ₹8,885; schedule Σ principal = ₹1,00,000.00 exactly.
 - Flat: ₹1,20,000 at 10% for 24 months → total interest ₹24,000, EMI ₹6,000.
-- Paying 3 EMIs → list shows EMIs paid 3 / 12, next due = 4th installment date, outstanding = closing principal of the 3rd.
-- Interest part of a payment appears as an expense (Finance → Loan Interest); principal does not.
-- Prepayment ₹20,000 after 3 EMIs (reduce EMI) → outstanding drops by ₹20,000, unpaid installments re-calculated,
-  paid installments unchanged, revision row written.
+- Quarterly ₹2,00,000 at 9% for 2 years → 8 instalments 3 months apart, Σ principal ₹2,00,000.00.
+- Moratorium 6 months "interest paid" → 6 interest-only instalments, then EMIs; "capitalised" → EMI on principal + interest.
+- Bullet ₹50,000 at 12% for 12 months → one instalment of ₹56,000 at maturity.
+- Paying 3 EMIs → list shows EMIs paid 3 / 12, next due = 4th instalment date, outstanding = closing principal of the 3rd.
+- A payment's split typed from the bank statement is stored as typed (interest + principal = amount).
+- Interest part of a payment appears as an expense (Finance → Loan Interest, loan_id set); principal does not; the Expenses
+  screen shows it under "Loan principal repaid" and in "Total cash paid out", never in total expenses / profit.
+- Prepayment ₹20,000 after 3 EMIs (reduce EMI) → outstanding drops by ₹20,000, unpaid instalments re-calculated,
+  paid instalments unchanged, revision row written; "reduce tenure" keeps the EMI and ends earlier.
 - OD limit ₹2,00,000, withdrawals ₹1,50,000 → a ₹60,000 withdrawal is refused; available shows ₹50,000.
+- OD estimated interest: ₹4,00,000 used for 10 days + ₹7,00,000 for 20 days at 12 % → ₹5,918.
+- Feed bought with a credit card is one expense; paying the card bill is not an expense; card used = purchases − bill payments.
 - Closed loan accepts no payment (validation); loan with transactions cannot change principal / rate directly.
 - Staff without `loans.view` get 403 on every loan URL; loans of another farm are not visible.
 
@@ -1077,8 +1149,9 @@ rate charts, customers, subscriptions, deliveries, bills, payments, loans (EMI +
 - APIs, SPA frontend, native mobile app, PWA/offline.
 - WhatsApp/SMS/email notifications (only in-app database notifications).
 - Payment gateway, hardware integrations, ML predictions.
-- Loans: money lent **to** others (farmer advances cover farmers), bank statement import, automatic daily OD
-  interest calculation (OD interest is entered from the bank statement), loan against assets / collateral tracking.
+- Loans: money lent **to** others (farmer advances cover farmers), bank / card statement import, automatic daily posting
+  of OD / CC / KCC interest (the bank's debit is entered; the daily-balance figure is only a read-only estimate), loan
+  against assets / collateral (gold / property) tracking, credit card reward points, GST input credit on loan charges.
 
 ## 13. Defaults for anything not covered
 - Prefer the simplest implementation consistent with this spec and existing code patterns.

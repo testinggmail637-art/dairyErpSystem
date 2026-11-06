@@ -7,12 +7,12 @@
 
 | Item | Value |
 |---|---|
-| Current phase | Phase 3A — Loans & Overdraft (🟡 in progress) |
+| Current phase | Phase 3A — Loans, Overdraft & Credit Cards (🟡 in progress) |
 | Last completed task | 3A.2 — Loans CRUD + LoanService EMI schedule (reducing / flat / interest-only) |
-| Next task | 3A.3 — Loan payments: FIFO interest/principal split, interest → expense, edit/delete latest with reason |
-| Overall progress | 50 / 95 tasks (53%) |
+| Next task | 3A.3 — Loan types & terms extension (redesign approved 2026-11-06) |
+| Overall progress | 50 / 97 tasks (52%) |
 | Tests passing | 552 |
-| Last updated (IST) | 2026-11-06 (task/3A.2-loans-crud-emi) |
+| Last updated (IST) | 2026-11-06 (docs/loans-redesign) |
 
 ## Phase overview
 
@@ -22,7 +22,7 @@
 | 1 | Expense Management (no approval) | ✅ Done | 2026-10-16 | 2026-10-18 | `phase-1-done` |
 | 2 | Animals, Milk Production, Milk Stock | ✅ Done | 2026-10-19 | 2026-10-28 | `phase-2-done` |
 | 3 | Customers, Delivery, Billing, Payments | ✅ Done | 2026-10-29 | 2026-11-06 | `phase-3-done` |
-| 3A | Loans & Overdraft (added 2026-11-05) | 🟡 In progress | 2026-11-06 | | |
+| 3A | Loans, Overdraft & Credit Cards (added 2026-11-05) | 🟡 In progress | 2026-11-06 | | |
 | 4 | Farmers & Collection Center | ⬜ Not started | | | |
 | 5 | Health, Breeding, Feed | ⬜ Not started | | | |
 | 6 | Animal Trading & Staff | ⬜ Not started | | | |
@@ -284,16 +284,18 @@ Status legend: ⬜ Not started · 🟡 In progress · ✅ Done · ⏸ On hold
 
 ---
 
-## Phase 3A — Loans & Overdraft (added 2026-11-05, owner's request; spec §6 Phase 3A, §7.4A, §8 Phase 3A)
+## Phase 3A — Loans, Overdraft & Credit Cards (added 2026-11-05, redesigned 2026-11-06 after research; spec §6 Phase 3A, §7.4A, §8 Phase 3A)
 
 ### Checklist
 - [x] 3A.1 Tables (`loans`, `loan_installments`, `loan_transactions`, `loan_revisions`), enums, permissions, Finance expense category seed
 - [x] 3A.2 Loans CRUD + LoanService EMI schedule (reducing / flat / interest-only)
-- [ ] 3A.3 Loan payments: FIFO interest/principal split, interest → expense, edit/delete latest with reason
-- [ ] 3A.4 Prepayment (reduce EMI / reduce tenure) + interest rate change + close / re-open
-- [ ] 3A.5 Overdraft accounts: withdrawal / repayment / interest, limit check, running balance
-- [ ] 3A.6 Loan detail screens + `loans:reminders` command + dashboard loan cards
-- [ ] 3A.7 Loan reports (summary, EMI due list, interest & principal paid per FY, loan statement) + Phase 3A acceptance tests + README/CHANGELOG updated
+- [ ] 3A.3 Loan types & terms extension (new migration): types dairy/agri, cash credit, KCC, credit card, card EMI, private loan; bullet method; instalment frequency; moratorium; broken-period interest; rate per month; revolving / card fields; `expenses.loan_id` + `paid_by_card_id` (owner's redesign 2026-11-06)
+- [ ] 3A.4 Loan payments: FIFO interest/principal split (editable to the bank's split), interest → expense, edit/delete latest with reason
+- [ ] 3A.5 Prepayment (reduce EMI / reduce tenure) + interest rate change (EMI or period) + close / re-open
+- [ ] 3A.6 Revolving accounts (OD / cash credit / KCC): withdrawal / repayment / interest debit / subvention, limit check, running balance, estimated interest
+- [ ] 3A.7 Credit cards: card on expenses, bill payment, interest + GST / fees, part-paid warning; card EMI
+- [ ] 3A.8 Loan detail screens + `loans:reminders` command + dashboard loan cards + Expenses loan filter and "principal repaid / cash paid out" lines
+- [ ] 3A.9 Loan reports (summary, instalments due, interest & principal paid per loan / type / FY, loan statement, monthly payments by type) + Phase 3A acceptance tests + README/CHANGELOG updated
 
 ### Phase log
 - **Completed on:** _TODO_
