@@ -167,6 +167,7 @@ class ExpenseService
             'quantity' => $hasQuantity ? Money::round2($data['quantity']) : null,
             'unit' => $hasQuantity ? ($data['unit'] ?? null) : null,
             'note' => $data['note'] ?? null,
+            'paid_by_card_id' => $isCredit ? null : ($data['paid_by_card_id'] ?? null),
         ];
     }
 }

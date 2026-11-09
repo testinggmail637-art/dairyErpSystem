@@ -59,10 +59,10 @@ class LoanController extends Controller
         ]);
     }
 
-    public function create(): View
+    public function create(Request $request): View
     {
         return view('loans.form', ['loan' => new Loan([
-            'loan_type' => LoanType::BusinessLoan, 'start_date' => today(), 'first_due_date' => today()->addMonthNoOverflow(),
+            'loan_type' => LoanType::tryFrom((string) $request->query('loan_type')) ?? LoanType::BusinessLoan, 'start_date' => today(), 'first_due_date' => today()->addMonthNoOverflow(),
             'processing_fee' => '0.00', 'interest_rate' => null,
         ]), 'locked' => false]);
     }
@@ -77,7 +77,7 @@ class LoanController extends Controller
     public function show(Request $request, Loan $loan, LoanPaymentService $payments, RevolvingAccountService $accounts): View
     {
         $revolving = null;
-        if ($loan->isRevolving()) {
+        if (! $loan->hasSchedule()) {
             [$from, $to] = $accounts->lastCycle($loan);
             $valid = fn (string $key, string $default) => Carbon::canBeCreatedFromFormat((string) $request->query($key), 'Y-m-d') ? (string) $request->query($key) : $default;
             $period = ['from' => $valid('from', $from), 'to' => $valid('to', $to)];
@@ -90,7 +90,8 @@ class LoanController extends Controller
                 'available' => Money::sub($loan->principal_amount, $used),
                 'ledger' => $accounts->ledger($loan),
                 'period' => $period,
-                'estimate' => $accounts->estimate($loan, $period['from'], $period['to']),
+                'estimate' => $loan->isRevolving() ? $accounts->estimate($loan, $period['from'], $period['to']) : null,
+                'card' => $accounts->card($loan),
                 'latest' => $loan->transactions()->latest('txn_date')->latest('id')->first()?->setRelation('loan', $loan),
             ];
         }

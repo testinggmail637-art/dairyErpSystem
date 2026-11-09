@@ -21,6 +21,8 @@ use Illuminate\Support\Facades\DB;
  * or credit may not be more than what is used. Interest debited → Finance → Loan Interest expense, charges → Bank
  * Charges; withdrawals, repayments and subvention are not expenses. The bank's interest is entered from the statement;
  * estimate() shows what the daily balance gives (balance × rate × days ÷ 36500) to check it.
+ * Credit cards use the same entries (no subvention): purchases are ordinary expenses with paid_by_card_id, the bill
+ * payment is a repayment; card() gives the last statement, its due date and the part-paid warning.
  */
 class RevolvingAccountService
 {
@@ -36,8 +38,31 @@ class RevolvingAccountService
             LoanTxnType::OdRepayment->value, LoanTxnType::SubventionCredit->value, $column);
     }
 
-    /** Used balance, optionally up to and including a date and without one entry (when it is being edited). */
-    public function utilized(Loan $loan, ?string $upTo = null, ?int $exceptId = null): string
+    /** @return list<LoanTxnType> entry types this account accepts (a card gets no subvention) */
+    public static function typesFor(Loan $loan): array
+    {
+        return $loan->isCard() ? array_values(array_filter(self::TYPES, fn ($t) => $t !== LoanTxnType::SubventionCredit)) : self::TYPES;
+    }
+
+    /** Entry name in the words of the account: a card has purchases, cash withdrawals and bill payments. */
+    public static function label(Loan $loan, LoanTxnType|string $type): string
+    {
+        if ($type === 'card_purchase') {
+            return __('Card purchase (expense)');
+        }
+        $type = $type instanceof LoanTxnType ? $type : LoanTxnType::from($type);
+
+        return ! $loan->isCard() ? $type->label() : match ($type) {
+            LoanTxnType::OdWithdrawal => __('Cash withdrawal'),
+            LoanTxnType::OdRepayment => __('Bill payment'),
+            LoanTxnType::OdInterest => __('Interest + GST (statement)'),
+            LoanTxnType::Charge => __('Fee / late fee + GST'),
+            default => $type->label(),
+        };
+    }
+
+    /** Used balance, optionally up to and including a date and without one entry / card purchase (when it is being edited). */
+    public function utilized(Loan $loan, ?string $upTo = null, ?int $exceptId = null, ?int $exceptExpenseId = null): string
     {
         $used = (string) $loan->transactions()
             ->when($upTo, fn ($q) => $q->where('txn_date', '<=', $upTo))
@@ -46,7 +71,8 @@ class RevolvingAccountService
 
         if ($loan->isCard()) {
             $used = Money::add($used, (string) DB::table('expenses')->where('paid_by_card_id', $loan->id)->whereNull('deleted_at')
-                ->when($upTo, fn ($q) => $q->where('expense_date', '<=', $upTo))->sum('amount'));
+                ->when($upTo, fn ($q) => $q->where('expense_date', '<=', $upTo))
+                ->when($exceptExpenseId, fn ($q) => $q->where('id', '<>', $exceptExpenseId))->sum('amount'));
         }
 
         return Money::round2($used);
@@ -73,17 +99,69 @@ class RevolvingAccountService
         return collect($ids)->mapWithKeys(fn ($id) => [$id => Money::add((string) ($used[$id] ?? '0'), (string) ($cards[$id] ?? '0'))])->all();
     }
 
-    /** Entries newest first with the running balance after each (window function over date, id). */
+    /**
+     * Entries newest first with the running balance after each (window function over date, source, id). A card also
+     * lists its purchases (expenses paid with it) as src 'e', type 'card_purchase'.
+     */
     public function ledger(Loan $loan, int $perPage = 50): LengthAwarePaginator
     {
-        return DB::query()->fromSub(
-            LoanTransaction::query()->where('loan_id', $loan->id)->toBase()
-                ->leftJoin('payment_modes as m', 'm.id', '=', 'loan_transactions.payment_mode_id')
-                ->select(['loan_transactions.id', 'txn_date', 'type', 'amount', 'reference_no', 'note', 'm.name as mode'])
-                ->selectRaw('SUM('.self::signedSql('amount').') OVER (ORDER BY txn_date, loan_transactions.id ROWS UNBOUNDED PRECEDING) AS balance'),
-            'l')
-            ->orderByDesc('txn_date')->orderByDesc('id')
+        $rows = LoanTransaction::query()->where('loan_id', $loan->id)->toBase()
+            ->leftJoin('payment_modes as m', 'm.id', '=', 'loan_transactions.payment_mode_id')
+            ->select(['loan_transactions.id', 'txn_date', 'type', 'amount', 'reference_no', 'note', 'm.name as mode'])
+            ->selectRaw("'t' AS src, ".self::signedSql().' AS delta');
+
+        if ($loan->isCard()) {
+            $rows->unionAll(DB::table('expenses')->where('paid_by_card_id', $loan->id)->whereNull('expenses.deleted_at')
+                ->leftJoin('vendors as v', 'v.id', '=', 'expenses.vendor_id')
+                ->select(['expenses.id', 'expense_date as txn_date'])
+                ->selectRaw("'card_purchase' AS type, amount, NULL AS reference_no, COALESCE(v.name, paid_to_text, note) AS note, NULL AS mode, 'e' AS src, amount AS delta"));
+        }
+
+        return DB::query()->fromSub(DB::query()->fromSub($rows, 'r')->select('r.*')
+            ->selectRaw('SUM(delta) OVER (ORDER BY txn_date, src, id ROWS UNBOUNDED PRECEDING) AS balance'), 'l')
+            ->orderByDesc('txn_date')->orderByDesc('src')->orderByDesc('id')
             ->paginate($perPage, ['*'], 'txn_page');
+    }
+
+    /**
+     * Credit card bill: the last statement (used on the statement day), its due date, what was paid towards it and
+     * whether interest is running (due date passed with less paid than the statement amount — spec 7.4A).
+     *
+     * @return array{statement_date: Carbon, statement_amount: string, due_date: Carbon, paid: string, to_pay: string, part_paid: bool, next_due: Carbon}|null
+     */
+    public function card(Loan $loan): ?array
+    {
+        if (! $loan->isCard() || ! $loan->statement_day || ! $loan->due_day) {
+            return null;
+        }
+        $dayIn = fn (Carbon $month, int $day) => $month->copy()->day(min($day, $month->daysInMonth));
+
+        $statement = $dayIn(today(), $loan->statement_day);
+        if ($statement->gt(today())) {
+            $statement = $dayIn(today()->startOfMonth()->subMonth(), $loan->statement_day);
+        }
+        $dueOf = function (Carbon $statement) use ($dayIn, $loan) {
+            $due = $dayIn($statement->copy()->startOfMonth(), $loan->due_day);
+
+            return $due->gt($statement) ? $due : $dayIn($statement->copy()->startOfMonth()->addMonth(), $loan->due_day);
+        };
+        $due = $dueOf($statement);
+
+        $positive = fn (string $v) => Money::compare($v, '0') > 0 ? $v : '0.00';
+        $amount = $positive($this->utilized($loan, $statement->toDateString()));
+        $paid = Money::round2((string) $loan->transactions()->where('type', LoanTxnType::OdRepayment)
+            ->where('txn_date', '>', $statement->toDateString())->where('txn_date', '<=', $due->toDateString())->sum('amount'));
+        $toPay = $positive(Money::round2(Money::sub($amount, $paid)));
+
+        return [
+            'statement_date' => $statement,
+            'statement_amount' => $amount,
+            'due_date' => $due,
+            'paid' => $paid,
+            'to_pay' => $toPay,
+            'part_paid' => today()->gt($due) && Money::compare($toPay, '0') > 0,
+            'next_due' => today()->lte($due) ? $due : $dueOf($dayIn($statement->copy()->startOfMonth()->addMonth(), $loan->statement_day)),
+        ];
     }
 
     /**
@@ -175,11 +253,10 @@ class RevolvingAccountService
         if ($loan->status === LoanStatus::Closed) {
             throw new DomainException(__('This account is closed. Re-open it to add or change entries.'));
         }
-        if (! $loan->isRevolving()) {
-            throw new DomainException(__('Withdrawals and repayments are for overdraft, cash credit and KCC accounts.'));
-        }
-
         $type = LoanTxnType::from($data['type']);
+        if ($loan->hasSchedule() || ! in_array($type, self::typesFor($loan), true)) {
+            throw new DomainException(__('Withdrawals and repayments are for overdraft, cash credit, KCC and credit card accounts.'));
+        }
         $amount = Money::round2($data['amount']);
         $used = $this->utilized($loan, null, $txn->exists ? $txn->id : null);
 

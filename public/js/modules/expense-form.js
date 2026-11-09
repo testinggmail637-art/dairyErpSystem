@@ -16,9 +16,15 @@
         $form.find('[data-show-when="paid-or-no-vendor"]').toggleClass('d-none', credit || hasVendor);
         $form.find('#payment_mode_id').prop('required', !credit);
         $form.find('#vendor_id').prop('required', credit);
+
+        // credit card select (spec 7.4A): only when paid with the "Card" payment mode
+        const $card = $form.find('[data-show-when="card"]');
+        const byCard = !credit && String($form.find('#payment_mode_id').val()) === String($card.data('card-mode'));
+        $card.toggleClass('d-none', !byCard);
+        if (!byCard) $card.find('select').val('');
     }
 
-    $form.on('change', 'input[name="is_credit"], #vendor_id', toggle);
+    $form.on('change', 'input[name="is_credit"], #vendor_id, #payment_mode_id', toggle);
     toggle();
 
     // Add new vendor (modal) → create via AJAX, then select it in the vendor box.
