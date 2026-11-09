@@ -21,7 +21,11 @@ class ReportController extends Controller
                 __('Sales') => collect(SalesReportController::catalogue())
                     ->map(fn ($r, $key) => $r + ['url' => route('reports.sales', $key)])
                     ->all(),
-            ],
+            ] + (auth()->user()->can('loans.view') ? [
+                __('Loans') => collect(LoanReportController::catalogue())
+                    ->map(fn ($r, $key) => $r + ['url' => route('reports.loans', $key)])
+                    ->all(),
+            ] : []),
         ]);
     }
 }

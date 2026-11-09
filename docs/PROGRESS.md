@@ -7,12 +7,12 @@
 
 | Item | Value |
 |---|---|
-| Current phase | Phase 3A — Loans, Overdraft & Credit Cards (🟡 in progress) |
-| Last completed task | 3A.8 — Loan screens, `loans:reminders`, dashboard loan cards, Expenses loan filter + "principal repaid / cash paid out" |
-| Next task | 3A.9 — Loan reports + Phase 3A acceptance tests + README / CHANGELOG (v0.3.1) |
-| Overall progress | 56 / 97 tasks (58%) |
-| Tests passing | 588 |
-| Last updated (IST) | 2026-11-09 (task/3A.8-loan-screens-reminders-dashboard) |
+| Current phase | Phase 3A — Loans, Overdraft & Credit Cards (✅ done, tag `phase-3a-done` after merge) → next Phase 4 |
+| Last completed task | 3A.9 — Loan reports + Phase 3A acceptance test (Phase 3A complete) |
+| Next task | 4.1 — Farmers CRUD |
+| Overall progress | 57 / 97 tasks (59%) |
+| Tests passing | 596 |
+| Last updated (IST) | 2026-11-09 (task/3A.9-loan-reports) |
 
 ## Phase overview
 
@@ -22,7 +22,7 @@
 | 1 | Expense Management (no approval) | ✅ Done | 2026-10-16 | 2026-10-18 | `phase-1-done` |
 | 2 | Animals, Milk Production, Milk Stock | ✅ Done | 2026-10-19 | 2026-10-28 | `phase-2-done` |
 | 3 | Customers, Delivery, Billing, Payments | ✅ Done | 2026-10-29 | 2026-11-06 | `phase-3-done` |
-| 3A | Loans, Overdraft & Credit Cards (added 2026-11-05) | 🟡 In progress | 2026-11-06 | | |
+| 3A | Loans, Overdraft & Credit Cards (added 2026-11-05) | ✅ Done | 2026-11-06 | 2026-11-09 | `phase-3a-done` |
 | 4 | Farmers & Collection Center | ⬜ Not started | | | |
 | 5 | Health, Breeding, Feed | ⬜ Not started | | | |
 | 6 | Animal Trading & Staff | ⬜ Not started | | | |
@@ -295,18 +295,24 @@ Status legend: ⬜ Not started · 🟡 In progress · ✅ Done · ⏸ On hold
 - [x] 3A.6 Revolving accounts (OD / cash credit / KCC): withdrawal / repayment / interest debit / subvention, limit check, running balance, estimated interest
 - [x] 3A.7 Credit cards: card on expenses, bill payment, interest + GST / fees, part-paid warning; card EMI
 - [x] 3A.8 Loan detail screens + `loans:reminders` command + dashboard loan cards + Expenses loan filter and "principal repaid / cash paid out" lines
-- [ ] 3A.9 Loan reports (summary, instalments due, interest & principal paid per loan / type / FY, loan statement, monthly payments by type) + Phase 3A acceptance tests + README/CHANGELOG updated
+- [x] 3A.9 Loan reports (summary, instalments due, interest & principal paid per loan / type / FY, loan statement, monthly payments by type) + Phase 3A acceptance tests + README/CHANGELOG updated
 
 ### Phase log
-- **Completed on:** _TODO_
-- **What was built (plain language):** _TODO_
-- **Screens / URLs added:** _TODO_
-- **Tables / migrations added:** _TODO_
-- **Services / commands / jobs added:** _TODO_
-- **Tests added (count, all passing?):** _TODO_
-- **Decisions taken:** _TODO_
-- **Known issues / pending:** _TODO_
-- **How to check it manually:** _TODO_
+- **Completed on:** 2026-11-09
+- **What was built (plain language):** Everything the business has borrowed, in one place. **Instalment loans** (personal, business, dairy / NABARD, vehicle, gold, card EMI, private / family) get a full schedule — reducing EMI, flat, interest-only or bullet; monthly / quarterly / half-yearly / yearly; moratorium; broken-period interest; rate per year or per month. Payments are split oldest instalment first (interest, then principal) and can be typed as the bank shows them; only the interest goes to expenses. Prepayment (lower EMI or finish earlier), rate change, close / re-open. **Overdraft / cash credit / KCC**: withdrawals within the limit, repayments, interest debited, charges, subvention, running balance and a daily-balance interest estimate to check the bank. **Credit cards**: card chosen on the expense, bill payment (not an expense), interest + GST and fees, statement / due date and a "part paid — interest is running" warning. Daily reminders, dashboard loan cards, an Expenses "Loan" filter with "Loan principal repaid" and "Total cash paid out" shown beside the expenses, and 5 loan reports.
+- **Screens / URLs added:** `/loans` (list, filters by type / kind / status / search), `/loans/create`, `/loans/{id}` (schedule or account page), `/loans/{id}/payments/create`, `/loans/{id}/prepayment`, `/loans/{id}/rate`, `/loans/{id}/entries/create` (OD / CC / KCC / card entries), `/reports/loans/{summary|due|interest|statement|monthly}`; dashboard loan cards; Expenses list "Loan" filter.
+- **Tables / migrations added:** `loans`, `loan_installments`, `loan_transactions`, `loan_revisions` (2026_11_06_200000), loan permissions + Finance → Loan Interest / Bank Charges (2026_11_06_200100), loan types & terms + `expenses.loan_id` / `paid_by_card_id` (2026_11_09_100000), revision schedule snapshot (2026_11_09_120000).
+- **Services / commands / jobs added:** `LoanScheduleCalculator`, `LoanService`, `LoanPaymentService`, `LoanRescheduleService`, `RevolvingAccountService`, `FinanceExpenseService`, `LoanOverviewService`, `LoanReportService`; command `loans:reminders` (daily 08:00); `LoanReminderNotification`.
+- **Tests added (count, all passing?):** 10 loan test files (Loans/* + Phase3AAcceptanceTest, about 55 tests incl. datasets); full suite 596 passing.
+- **Decisions taken:** DECISIONS #139–#161 (loan families, split order, prepayment modes, OD estimate formula, card statement rules, reminders timing, principal shown beside expenses).
+- **Known issues / pending:** Loans are entered by hand from the bank statement (no bank feed). Interest on card purchases is entered from the statement, not calculated. Out of scope (spec §12): collateral tracking, reward points, GST input credit on loan charges.
+- **How to check it manually:**
+  1. Expenses → Loans → New loan: personal loan ₹1,00,000, 12 %, 12 months → EMI ₹8,885 and the schedule.
+  2. Record payment of ₹8,885 → instalment 1 paid; Expenses shows the interest part only; the Expenses list shows "Loan principal repaid".
+  3. Add an overdraft (limit ₹2,00,000) → Withdrawal ₹1,50,000, then ₹60,000 is refused; available ₹50,000.
+  4. Add a credit card (bill day 5, due day 25) → add an expense with payment mode Card and choose the card → used goes up; Bill payment brings it down.
+  5. Dashboard → loan cards; run `php artisan loans:reminders` → bell notifications.
+  6. Reports → Loans → Interest & principal paid for 01-04-2026 – 31-03-2027 → Excel / PDF.
 
 ---
 
