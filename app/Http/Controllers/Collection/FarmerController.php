@@ -7,7 +7,9 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\Collection\DeleteFarmerRequest;
 use App\Http\Requests\Collection\FarmerRequest;
 use App\Models\Farmer;
+use App\Models\PaymentMode;
 use App\Models\RateChart;
+use App\Services\FarmerAdvanceService;
 use App\Services\FarmerService;
 use DomainException;
 use Illuminate\Http\JsonResponse;
@@ -56,9 +58,17 @@ class FarmerController extends Controller
             ->with('success', __('Farmer :name added as :code.', ['name' => $farmer->name, 'code' => $farmer->code]));
     }
 
-    public function show(Farmer $farmer): View
+    public function show(Request $request, Farmer $farmer, FarmerAdvanceService $advances): View
     {
-        return view('collection.farmers.show', ['farmer' => $farmer->load('rateChart:id,name')]);
+        $canAdvance = $request->user()->can('farmer_advances.manage');
+
+        return view('collection.farmers.show', [
+            'farmer' => $farmer->load('rateChart:id,name'),
+            'canAdvance' => $canAdvance,
+            'outstandingAdvance' => $canAdvance ? $advances->outstanding($farmer->id) : null,
+            'advances' => $canAdvance ? $farmer->advances()->with('paymentMode:id,name')->latest('advance_date')->latest('id')->limit(10)->get() : collect(),
+            'paymentModes' => $canAdvance ? PaymentMode::query()->where('is_active', true)->orderBy('name')->pluck('name', 'id') : collect(),
+        ]);
     }
 
     public function edit(Farmer $farmer): View

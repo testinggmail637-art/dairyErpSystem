@@ -50,5 +50,38 @@
             </div>
         </div>
     </div>
+    @if ($canAdvance)
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header fw-semibold d-flex justify-content-between">
+                    <span><i class="bi bi-cash-coin me-1"></i>{{ __('Advances') }}</span>
+                    <span>{{ __('Outstanding') }}: <x-money :value="$outstandingAdvance" /></span>
+                </div>
+                <div class="card-body row g-3">
+                    <div class="col-12 col-lg-5">
+                        @include('collection.advances._form', ['farmerOptions' => [], 'farmerId' => $farmer->id])
+                    </div>
+                    <div class="col-12 col-lg-7">
+                        <table class="table table-sm mb-0">
+                            <thead><tr><th>{{ __('Date') }}</th><th class="text-end">{{ __('Amount') }}</th><th>{{ __('Paid by') }}</th><th>{{ __('Note') }}</th></tr></thead>
+                            <tbody>
+                                @forelse ($advances as $advance)
+                                    <tr>
+                                        <td>{{ fmt_date($advance->advance_date) }}</td>
+                                        <td class="text-end">{{ inr($advance->amount) }}</td>
+                                        <td class="small">{{ $advance->paymentMode?->name }}</td>
+                                        <td class="small">{{ $advance->note }}</td>
+                                    </tr>
+                                @empty
+                                    <tr><td colspan="4" class="text-body-secondary">{{ __('No advances yet.') }}</td></tr>
+                                @endforelse
+                            </tbody>
+                        </table>
+                        <a href="{{ route('farmer-advances.index', ['farmer_id' => $farmer->id, 'from' => '2000-01-01']) }}" class="small">{{ __('All advances of this farmer') }}</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    @endif
 </div>
 @endsection

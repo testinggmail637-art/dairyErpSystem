@@ -11,6 +11,7 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
 /** A farmer who sells milk to our collection center (spec Phase 4). Opening balance + = we owe the farmer. */
@@ -59,6 +60,14 @@ class Farmer extends Model
     public function rateChart(): BelongsTo
     {
         return $this->belongsTo(RateChart::class)->withTrashed();
+    }
+
+    /**
+     * @return HasMany<FarmerAdvance, $this>
+     */
+    public function advances(): HasMany
+    {
+        return $this->hasMany(FarmerAdvance::class);
     }
 
     protected function setPhoneAttribute(?string $value): void
