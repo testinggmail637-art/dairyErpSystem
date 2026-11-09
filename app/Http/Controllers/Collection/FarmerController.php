@@ -9,6 +9,7 @@ use App\Http\Requests\Collection\FarmerRequest;
 use App\Models\Farmer;
 use App\Models\RateChart;
 use App\Services\FarmerService;
+use DomainException;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -74,7 +75,11 @@ class FarmerController extends Controller
 
     public function destroy(DeleteFarmerRequest $request, Farmer $farmer): RedirectResponse
     {
-        $this->farmers->delete($farmer);
+        try {
+            $this->farmers->delete($farmer);
+        } catch (DomainException $e) {
+            return back()->with('error', $e->getMessage());
+        }
 
         return redirect()->route('farmers.index')->with('success', __('Farmer :name deleted.', ['name' => $farmer->name]));
     }

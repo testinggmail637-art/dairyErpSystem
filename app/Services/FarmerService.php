@@ -4,8 +4,10 @@ namespace App\Services;
 
 use App\Models\Farm;
 use App\Models\Farmer;
+use App\Models\MilkCollection;
 use App\Support\CurrentFarm;
 use App\Support\Money;
+use DomainException;
 use Illuminate\Support\Facades\DB;
 
 /** Farmers of the collection center (spec Phase 4). */
@@ -27,9 +29,12 @@ class FarmerService
         return $farmer;
     }
 
-    /** Soft delete (master data); the code stays used. Collections and payments will block this in later tasks. */
+    /** Soft delete (master data); the code stays used. A farmer with milk collections stays (mark inactive instead). */
     public function delete(Farmer $farmer): void
     {
+        if (MilkCollection::query()->where('farmer_id', $farmer->id)->exists()) {
+            throw new DomainException(__('This farmer has milk collections. Mark the farmer inactive instead.'));
+        }
         $farmer->delete();
     }
 
