@@ -69,7 +69,7 @@ it('stores loans per farm with enum and money casts and soft delete', function (
     expect($loan->fresh())->loan_type->toBe(LoanType::BusinessLoan)->repayment_method->toBe(RepaymentMethod::EmiReducing)
         ->status->toBe(LoanStatus::Active)->principal_amount->toBe('100000.00')->interest_rate->toBe('12.00')
         ->and(Loan::pluck('id')->all())->toBe([$loan->id]) // other farm's overdraft not visible
-        ->and(Loan::allFarms()->find($od->id)->isOverdraft())->toBeTrue();
+        ->and(Loan::allFarms()->find($od->id)->isRevolving())->toBeTrue();
 
     $loan->delete();
     expect(Loan::count())->toBe(0)->and(Loan::withTrashed()->count())->toBe(1);

@@ -16,6 +16,7 @@ enum LoanTxnType: string
     case OdRepayment = 'od_repayment';
     case OdInterest = 'od_interest';
     case Charge = 'charge';
+    case SubventionCredit = 'subvention_credit';
 
     public function label(): string
     {
@@ -23,10 +24,11 @@ enum LoanTxnType: string
             self::EmiPayment => __('EMI payment'),
             self::InterestPayment => __('Interest payment'),
             self::Prepayment => __('Prepayment'),
-            self::OdWithdrawal => __('OD withdrawal'),
-            self::OdRepayment => __('OD repayment'),
-            self::OdInterest => __('OD interest'),
-            self::Charge => __('Bank charge'),
+            self::OdWithdrawal => __('Withdrawal'),
+            self::OdRepayment => __('Repayment / bill payment'),
+            self::OdInterest => __('Interest debited'),
+            self::Charge => __('Bank charge / fee'),
+            self::SubventionCredit => __('Interest subvention / refund'),
         };
     }
 

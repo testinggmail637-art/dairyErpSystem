@@ -21,7 +21,7 @@ class FinanceExpenseService
     public const CHARGES = 'Bank Charges';
 
     /** Create, update or (amount 0 / null) remove the expense of $source. Call inside the caller's transaction. */
-    public function sync(Model $source, ?string $amount, string $date, string $subcategory, ?int $paymentModeId, string $payee, string $note): ?Expense
+    public function sync(Model $source, ?string $amount, string $date, string $subcategory, ?int $paymentModeId, string $payee, string $note, ?int $loanId = null): ?Expense
     {
         $expense = Expense::query()->where('source_type', $source->getMorphClass())->where('source_id', $source->getKey())->first();
 
@@ -44,6 +44,7 @@ class FinanceExpenseService
             'payment_mode_id' => $paymentModeId ?? $this->bankMode(),
             'paid_to_text' => $payee,
             'note' => $note,
+            'loan_id' => $loanId, // Expenses list "Loan" filter and loan reports (DECISIONS #153)
         ])->save();
 
         return $expense;

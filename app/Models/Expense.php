@@ -42,6 +42,8 @@ class Expense extends Model
         'receipt_path',
         'note',
         'import_batch_id',
+        'loan_id',
+        'paid_by_card_id',
     ];
 
     /**
