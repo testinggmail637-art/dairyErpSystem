@@ -49,6 +49,12 @@
                 <x-form.select name="payment_mode_id" :label="__('Payment mode')" :options="$paymentModes" :selected="$filters['payment_mode_id']"
                                :placeholder="__('All')" group-class="mb-0" class="form-select-sm" />
             </div>
+            @if ($loanOptions)
+                <div class="col-6 col-md-3 col-xl-2">
+                    <x-form.select name="loan" :label="__('Loan')" :options="$loanOptions" :selected="$filters['loan']"
+                                   :placeholder="__('All')" group-class="mb-0" class="form-select-sm" />
+                </div>
+            @endif
             <div class="col-6 col-md-3 col-xl-2">
                 <x-form.select name="type" :label="__('Paid / credit')" :options="['paid' => __('Paid'), 'credit' => __('Credit (unpaid)')]"
                                :selected="$filters['type']" :placeholder="__('All')" group-class="mb-0" class="form-select-sm" />
@@ -87,6 +93,12 @@
         <div><span class="small text-body-secondary">{{ __('Total') }}</span> <strong><x-money :value="$totals['total']" /></strong></div>
         <div><span class="small text-body-secondary">{{ __('Paid') }}</span> <x-money :value="$totals['paid']" /></div>
         <div><span class="small text-body-secondary">{{ __('Credit') }}</span> <x-money :value="$totals['credit']" /></div>
+        @if ($principal !== null)
+            <div class="border-start ps-3" title="{{ __('Principal is paying back the loan, not an expense: it is not in the total, profit or cost per litre.') }}">
+                <span class="small text-body-secondary">{{ __('Loan principal repaid') }}</span> <x-money :value="$principal" />
+            </div>
+            <div><span class="small text-body-secondary">{{ __('Total cash paid out') }}</span> <strong><x-money :value="\App\Support\Money::add($totals['total'], $principal)" /></strong></div>
+        @endif
         @unless ($ownOnly)
             <a href="{{ route('expenses.export', array_filter($filters, fn ($v) => $v !== null && $v !== '')) }}" class="btn btn-outline-success btn-sm ms-auto">
                 <i class="bi bi-file-earmark-excel me-1"></i>{{ __('Excel') }}

@@ -18,6 +18,9 @@ Schedule::command('backup:monitor')->dailyAt('03:00')->onOneServer();
 // Delivery sheet for today: each farm once a day, after its own delivery_sheet_generate_time (Settings → Farm).
 Schedule::command('deliveries:generate --scheduled')->everyFiveMinutes()->withoutOverlapping()->onOneServer();
 
+// Loan instalments / card bills / interest debits / renewals (spec 7.4A): bell notifications to users with loans.view.
+Schedule::command('loans:reminders')->dailyAt('08:00')->withoutOverlapping()->onOneServer();
+
 // Queued export files (storage/app/private/exports/{user}/) are kept 3 days.
 Schedule::call(function () {
     $disk = Storage::disk(Exporter::DISK);

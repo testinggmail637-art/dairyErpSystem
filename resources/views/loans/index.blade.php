@@ -20,9 +20,16 @@
                 <label for="type" class="form-label small mb-1">{{ __('Type') }}</label>
                 <select id="type" name="type" class="form-select form-select-sm">
                     <option value="">{{ __('All') }}</option>
-                    @foreach (\App\Enums\LoanType::options() as $value => $label)
-                        <option value="{{ $value }}" @selected($filters['type'] === $value)>{{ $label }}</option>
-                    @endforeach
+                    <optgroup label="{{ __('Kind') }}">
+                        @foreach (\App\Enums\LoanFamily::cases() as $family)
+                            <option value="family:{{ $family->value }}" @selected($filters['type'] === 'family:'.$family->value)>{{ $family->label() }}</option>
+                        @endforeach
+                    </optgroup>
+                    <optgroup label="{{ __('Type') }}">
+                        @foreach (\App\Enums\LoanType::options() as $value => $label)
+                            <option value="{{ $value }}" @selected($filters['type'] === $value)>{{ $label }}</option>
+                        @endforeach
+                    </optgroup>
                 </select>
             </div>
             <div class="col-6 col-md-2">

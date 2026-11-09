@@ -51,6 +51,7 @@ class ExpenseController extends Controller
             $ownOnly ? array_merge($filters, ['from' => null, 'to' => null]) : $filters,
         );
         $totals = $this->expenses->totals($query);
+        $loans = ! $ownOnly && $request->user()->can('loans.view');
 
         $expenses = (clone $query)
             ->with(['category:id,name', 'subcategory:id,name', 'section:id,name', 'vendor:id,name', 'paymentMode:id,name', 'creator:id,name', 'animal:id,tag_no,name'])
@@ -64,6 +65,9 @@ class ExpenseController extends Controller
             'totals' => $totals,
             'filters' => $filters,
             'ownOnly' => $ownOnly,
+            // principal is beside the expenses, never in them (owner's choice, spec 7.4A)
+            'principal' => $loans ? $this->expenses->principalRepaid($filters) : null,
+            'loanOptions' => $loans ? $this->loanOptions() : [],
         ] + $this->filterOptions($filters));
     }
 
@@ -160,6 +164,16 @@ class ExpenseController extends Controller
      * @param  array<string, mixed>  $filters
      * @return array<string, mixed>
      */
+    /** @return array<string, string> Loan filter: any loan cost, each loan type in use, each loan */
+    private function loanOptions(): array
+    {
+        $loans = Loan::withTrashed()->orderBy('lender_name')->get(['id', 'loan_type', 'lender_name', 'loan_no']);
+
+        return ['any' => __('Any loan cost')]
+            + $loans->pluck('loan_type')->unique(fn ($t) => $t->value)->mapWithKeys(fn ($t) => ['t:'.$t->value => __('Type').': '.$t->label()])->all()
+            + $loans->mapWithKeys(fn ($l) => ['l:'.$l->id => $l->lender_name.' · '.$l->loan_no])->all();
+    }
+
     private function filterOptions(array $filters): array
     {
         return [

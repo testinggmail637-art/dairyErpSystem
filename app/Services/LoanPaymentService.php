@@ -92,7 +92,7 @@ class LoanPaymentService
      * List view: paid x / y, outstanding, total paid and next due date for a page of loans — two queries in all.
      *
      * @param  Collection<int, Loan>  $loans
-     * @return array<int, array{paid_count: int, total: int, outstanding: string, total_paid: string, next_due: ?string}>
+     * @return array<int, array{paid_count: int, total: int, outstanding: string, total_paid: string, next_due: ?string, open: list<array{no: int, due_date: string, due: string}>}>
      */
     public function summaries(Collection $loans): array
     {
@@ -115,6 +115,8 @@ class LoanPaymentService
                 $left = Money::round2((string) ($paid[$loanId]->paid ?? '0'));
                 $count = 0;
                 $next = null;
+                $open = [];
+                $soon = today()->addDays(7);
 
                 foreach ($rows as $row) {
                     if (Money::compare($left, $row->emi_amount) >= 0) {
@@ -122,6 +124,10 @@ class LoanPaymentService
                         $count += $row->installment_no > 0 ? 1 : 0;
                     } else {
                         $next ??= $row->due_date->toDateString();
+                        // unpaid instalments due up to a week ahead (overdue included) — dashboard and reminders
+                        if ($row->due_date->lte($soon)) {
+                            $open[] = ['no' => $row->installment_no, 'due_date' => $row->due_date->toDateString(), 'due' => Money::sub($row->emi_amount, $left)];
+                        }
                         $left = '0.00';
                     }
                 }
@@ -132,6 +138,7 @@ class LoanPaymentService
                     'outstanding' => Money::sub(Money::sum($rows->pluck('principal_part')), (string) ($paid[$loanId]->principal ?? '0')),
                     'total_paid' => Money::round2((string) ($paid[$loanId]->paid ?? '0')),
                     'next_due' => $next,
+                    'open' => $open,
                 ];
             });
 

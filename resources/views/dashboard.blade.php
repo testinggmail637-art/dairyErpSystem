@@ -131,6 +131,54 @@
         @endif
     </div>
 
+    {{-- Loan cards (spec 7.4A): dashboard.financial + loans.view --}}
+    @if ($loans && $loans['loans']->isNotEmpty())
+        <div class="row g-3 mb-3">
+            <div class="col-sm-6 col-xl-3">
+                <a href="{{ route('loans.index') }}" class="card stat-card h-100 text-decoration-none">
+                    <div class="card-body">
+                        <div class="stat-icon"><i class="bi bi-bank"></i></div>
+                        <div class="stat-label">{{ __('Loan outstanding') }}</div>
+                        <div class="stat-value">{{ inr($loans['outstanding']) }}</div>
+                        <div class="stat-meta">{{ trans_choice(':count instalment loan|:count instalment loans', $loans['instalment_count']) }}</div>
+                    </div>
+                </a>
+            </div>
+            @if (\App\Support\Money::compare($loans['limit'], '0') > 0)
+                <div class="col-sm-6 col-xl-3">
+                    <a href="{{ route('loans.index') }}" class="card stat-card h-100 text-decoration-none">
+                        <div class="card-body">
+                            <div class="stat-icon {{ $loans['part_paid'] ? 'is-warning' : '' }}"><i class="bi bi-credit-card"></i></div>
+                            <div class="stat-label">{{ __('OD / card used') }}</div>
+                            <div class="stat-value">{{ inr($loans['used']) }}</div>
+                            <div class="stat-meta">{{ __('of :limit limit', ['limit' => inr($loans['limit'])]) }}@if ($loans['part_paid']) · <span class="text-danger">{{ trans_choice(':count card bill part paid|:count card bills part paid', $loans['part_paid']) }}</span>@endif</div>
+                        </div>
+                    </a>
+                </div>
+            @endif
+            <div class="col-sm-6 col-xl-3">
+                <a href="{{ route('loans.index') }}" class="card stat-card h-100 text-decoration-none">
+                    <div class="card-body">
+                        <div class="stat-icon"><i class="bi bi-calendar-event"></i></div>
+                        <div class="stat-label">{{ __('Instalments due in 7 days') }}</div>
+                        <div class="stat-value">{{ inr($loans['due_soon_amount']) }}</div>
+                        <div class="stat-meta">{{ trans_choice(':count instalment|:count instalments', count($loans['due_soon'])) }}@if ($first = $loans['due_soon'][0] ?? null) · {{ __('next :date', ['date' => fmt_date($first['due_date'])]) }}@endif</div>
+                    </div>
+                </a>
+            </div>
+            <div class="col-sm-6 col-xl-3">
+                <a href="{{ route('loans.index') }}" class="card stat-card h-100 text-decoration-none">
+                    <div class="card-body">
+                        <div class="stat-icon {{ $loans['overdue'] ? 'is-warning' : '' }}"><i class="bi bi-exclamation-octagon"></i></div>
+                        <div class="stat-label">{{ __('Overdue instalments') }}</div>
+                        <div class="stat-value">{{ inr($loans['overdue_amount']) }}</div>
+                        <div class="stat-meta">{{ trans_choice(':count instalment|:count instalments', count($loans['overdue'])) }}</div>
+                    </div>
+                </a>
+            </div>
+        </div>
+    @endif
+
     {{-- Milk charts --}}
     @if ($canMilk || $canHerd)
         <div class="row g-3 mb-3">
