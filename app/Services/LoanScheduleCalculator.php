@@ -83,6 +83,32 @@ class LoanScheduleCalculator
         return ['emi' => $repayment['emi'], 'principal' => $principal, 'rows' => $rows];
     }
 
+    /**
+     * Reducing-balance rows with a fixed EMI until the principal is paid (prepayment / rate change "keep EMI"):
+     * the last instalment is whatever is left. Null when the EMI does not even cover the first period's interest.
+     *
+     * @return list<array{installment_no: int, due_date: string, opening_principal: string, emi_amount: string, principal_part: string, interest_part: string, closing_principal: string}>|null
+     */
+    public function reducingWithEmi(string $principal, string $annualRate, string $emi, CarbonInterface $firstDue, InstallmentFrequency $frequency, int $maxPeriods = 480): ?array
+    {
+        $r = bcdiv(bcmul($annualRate, (string) $frequency->months(), self::SCALE), '1200', self::SCALE);
+        $opening = Money::round2($principal);
+
+        if (Money::compare($emi, Money::round2(bcmul($opening, $r, self::SCALE))) <= 0) {
+            return null;
+        }
+
+        $rows = [];
+        for ($k = 0; Money::compare($opening, '0') > 0 && $k < $maxPeriods; $k++) {
+            $interest = Money::round2(bcmul($opening, $r, self::SCALE));
+            $part = $this->min(Money::sub($emi, $interest), $opening);
+            $rows[] = $this->row($k + 1, $firstDue, $k, $frequency->months(), $opening, $part, $interest);
+            $opening = Money::sub($opening, $part);
+        }
+
+        return $rows;
+    }
+
     /** Interest for the days between the start date and the start of the first instalment period (P × rate × days ÷ 36500). */
     public function brokenPeriodInterest(string $principal, string $annualRate, CarbonInterface $start, CarbonInterface $firstPeriodStart): string
     {

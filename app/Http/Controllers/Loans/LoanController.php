@@ -76,6 +76,7 @@ class LoanController extends Controller
             'loan' => $loan,
             'state' => $loan->hasSchedule() ? $payments->state($loan) : null,
             'transactions' => $loan->transactions()->with('paymentMode:id,name')->latest('txn_date')->latest('id')->paginate(20, ['*'], 'txn_page'),
+            'revisions' => $loan->revisions()->latest('id')->get(['id', 'kind', 'effective_date', 'old_rate', 'new_rate', 'old_emi', 'new_emi', 'reason']),
             'feeExpenseId' => Expense::query()->where('source_type', $loan->getMorphClass())->where('source_id', $loan->id)->value('id'),
             'locked' => $this->loans->hasTransactions($loan),
         ]);
