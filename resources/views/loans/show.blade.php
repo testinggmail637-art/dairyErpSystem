@@ -18,6 +18,13 @@
                 <a href="{{ route('loans.prepayment.create', $loan) }}" class="btn btn-outline-primary btn-sm"><i class="bi bi-skip-forward me-1"></i>{{ __('Prepayment') }}</a>
             @endif
         @endcan
+    @elseif ($loan->isRevolving() && $open)
+        @can('loan_payments.create')
+            <a href="{{ route('loans.entries.create', [$loan, 'type' => 'od_withdrawal']) }}" class="btn btn-primary btn-sm"><i class="bi bi-box-arrow-up me-1"></i>{{ __('Withdrawal') }}</a>
+            <a href="{{ route('loans.entries.create', [$loan, 'type' => 'od_repayment']) }}" class="btn btn-outline-primary btn-sm"><i class="bi bi-box-arrow-in-down me-1"></i>{{ __('Repayment') }}</a>
+            <a href="{{ route('loans.entries.create', [$loan, 'type' => 'od_interest']) }}" class="btn btn-outline-primary btn-sm"><i class="bi bi-percent me-1"></i>{{ __('Interest debited') }}</a>
+            <a href="{{ route('loans.entries.create', [$loan, 'type' => 'charge']) }}" class="btn btn-outline-primary btn-sm"><i class="bi bi-receipt me-1"></i>{{ __('Charge / refund') }}</a>
+        @endcan
     @endif
     @can('loans.manage')
         @if ($open)
@@ -66,7 +73,18 @@
             <div class="fs-5 fw-semibold"><x-money :value="$state['outstanding']" /></div>
             <div class="small text-body-secondary">{{ __('Paid :total (interest :i · principal :p)', ['total' => inr($state['total_paid']), 'i' => inr($state['interest_paid']), 'p' => inr($state['principal_paid'])]) }}</div>
         </div></div></div>
-    @elseif ($loan->isRevolving())
+    @elseif ($revolving)
+        <div class="col-6 col-lg-3"><div class="card h-100 border-primary"><div class="card-body">
+            <div class="small text-body-secondary">{{ __('Used') }}</div>
+            <div class="fs-5 fw-semibold"><x-money :value="$revolving['used']" /></div>
+            <div class="progress mt-1" style="height: 6px" role="progressbar" aria-label="{{ __('Used') }}">
+                <div class="progress-bar" style="width: {{ \App\Support\Money::isZero($loan->principal_amount) ? 0 : min(100, (int) \App\Support\Money::div(\App\Support\Money::mul($revolving['used'], '100'), $loan->principal_amount)) }}%"></div>
+            </div>
+        </div></div></div>
+        <div class="col-6 col-lg-3"><div class="card h-100"><div class="card-body">
+            <div class="small text-body-secondary">{{ __('Available') }}</div>
+            <div class="fs-5 fw-semibold"><x-money :value="$revolving['available']" /></div>
+        </div></div></div>
         <div class="col-6 col-lg-3"><div class="card h-100"><div class="card-body">
             <div class="small text-body-secondary">{{ __('Bank debits interest') }}</div>
             <div class="fs-5">{{ $loan->interest_debit_cycle?->label() }}</div>
@@ -154,10 +172,68 @@
     </div>
 
     <div class="col-12 col-xl-8">
-        @unless ($state)
-            <div class="card"><div class="card-body text-body-secondary">{{ $loan->isCard()
-                ? __('A credit card has no schedule. Purchases, bill payments, interest and fees are recorded here once card entries are added (Task 3A.7).')
-                : __('This account has no EMI schedule. Withdrawals, repayments and bank interest are recorded here once account entries are added (Task 3A.6).') }}</div></div>
+        @if ($revolving)
+            @php($e = $revolving['estimate'])
+            <div class="card mb-3">
+                <div class="card-header fw-semibold">{{ __('Check the bank\'s interest') }}</div>
+                <div class="card-body">
+                    <form method="GET" action="{{ route('loans.show', $loan) }}" class="row g-2 align-items-end mb-3">
+                        <div class="col-5 col-md-4"><x-form.date name="from" :label="__('From')" :value="$revolving['period']['from']" group-class="mb-0" /></div>
+                        <div class="col-5 col-md-4"><x-form.date name="to" :label="__('To')" :value="$revolving['period']['to']" group-class="mb-0" /></div>
+                        <div class="col-2 col-md-4"><button type="submit" class="btn btn-outline-primary btn-sm">{{ __('Show') }}</button></div>
+                    </form>
+                    <div class="row text-center g-2">
+                        <div class="col-4"><div class="small text-body-secondary">{{ __('Estimate (daily balance)') }}</div><div class="fs-5 fw-semibold">{{ inr($e['estimate']) }}</div></div>
+                        <div class="col-4"><div class="small text-body-secondary">{{ __('Bank debited (entries in period)') }}</div><div class="fs-5 fw-semibold">{{ inr($e['bank']) }}</div></div>
+                        <div class="col-4"><div class="small text-body-secondary">{{ __('Average used') }}</div><div class="fs-5">{{ inr($e['average']) }}</div><div class="small text-body-secondary">{{ __(':d days', ['d' => $e['days']]) }}</div></div>
+                    </div>
+                    <p class="form-text mb-0 mt-2">{{ __('Estimate = Σ (used at the end of each day × :rate % ÷ 365). Banks round and may debit a few days later, so small differences are normal; a big one is worth asking the bank about.', ['rate' => $loan->interest_rate]) }}</p>
+                </div>
+            </div>
+            <div class="card">
+                <div class="card-header fw-semibold">{{ __('Entries') }}</div>
+                <div class="table-responsive">
+                    <table class="table table-sm table-hover align-middle mb-0">
+                        <thead>
+                            <tr>
+                                <th>{{ __('Date') }}</th>
+                                <th>{{ __('Entry') }}</th>
+                                <th>{{ __('Details') }}</th>
+                                <th class="text-end">{{ __('Taken / charged (+)') }}</th>
+                                <th class="text-end">{{ __('Repaid / credited (−)') }}</th>
+                                <th class="text-end">{{ __('Used after') }}</th>
+                                <th></th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @forelse ($revolving['ledger'] as $row)
+                                @php($type = \App\Enums\LoanTxnType::from($row->type))
+                                @php($plus = in_array($type, [\App\Enums\LoanTxnType::OdWithdrawal, \App\Enums\LoanTxnType::OdInterest, \App\Enums\LoanTxnType::Charge], true))
+                                <tr>
+                                    <td class="text-nowrap">{{ fmt_date($row->txn_date) }}</td>
+                                    <td>{{ $type->label() }}</td>
+                                    <td class="small">{{ collect([$row->mode, $row->reference_no, $row->note])->filter()->implode(' · ') }}</td>
+                                    <td class="text-end">{{ $plus ? inr($row->amount) : '' }}</td>
+                                    <td class="text-end">{{ $plus ? '' : inr($row->amount) }}</td>
+                                    <td class="text-end fw-semibold">{{ inr($row->balance) }}</td>
+                                    <td class="text-end">
+                                        @if ($loop->first && $revolving['ledger']->onFirstPage() && $open && $revolving['latest']?->id === $row->id)
+                                            @can('update', $revolving['latest'])
+                                                <a href="{{ route('loan-transactions.entry.edit', $row->id) }}" title="{{ __('Edit') }}"><i class="bi bi-pencil"></i></a>
+                                            @endcan
+                                        @endif
+                                    </td>
+                                </tr>
+                            @empty
+                                <tr><td colspan="7" class="text-center text-body-secondary py-4">{{ __('No entries yet. Record withdrawals, repayments and the interest the bank debits.') }}</td></tr>
+                            @endforelse
+                        </tbody>
+                    </table>
+                </div>
+                @if ($revolving['ledger']->hasPages())<div class="card-footer">{{ $revolving['ledger']->links() }}</div>@endif
+            </div>
+        @elseif (! $state)
+            <div class="card"><div class="card-body text-body-secondary">{{ __('A credit card has no schedule. Purchases, bill payments, interest and fees are recorded here once card entries are added (Task 3A.7).') }}</div></div>
         @else
             <div class="card">
                 <div class="card-header fw-semibold d-flex justify-content-between">
@@ -200,7 +276,7 @@
                     </table>
                 </div>
             </div>
-        @endunless
+        @endif
     </div>
 </div>
 @endsection

@@ -12,6 +12,9 @@ use App\Models\Expense;
 use App\Models\Loan;
 use App\Services\LoanPaymentService;
 use App\Services\LoanService;
+use App\Services\RevolvingAccountService;
+use App\Support\Money;
+use Carbon\Carbon;
 use DomainException;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -26,7 +29,7 @@ class LoanController extends Controller
 {
     public function __construct(private readonly LoanService $loans) {}
 
-    public function index(Request $request, LoanPaymentService $payments): View|Response
+    public function index(Request $request, LoanPaymentService $payments, RevolvingAccountService $accounts): View|Response
     {
         $filters = [
             'search' => trim((string) $request->query('search')),
@@ -52,6 +55,7 @@ class LoanController extends Controller
 
         return $this->listView($request, 'loans.index', compact('loans', 'filters', 'totals') + [
             'summaries' => $payments->summaries($loans->getCollection()),
+            'used' => $accounts->usedFor($loans->getCollection()),
         ]);
     }
 
@@ -70,10 +74,30 @@ class LoanController extends Controller
         return redirect()->route('loans.show', $loan)->with('success', __('Loan :no saved.', ['no' => $loan->loan_no]));
     }
 
-    public function show(Loan $loan, LoanPaymentService $payments): View
+    public function show(Request $request, Loan $loan, LoanPaymentService $payments, RevolvingAccountService $accounts): View
     {
+        $revolving = null;
+        if ($loan->isRevolving()) {
+            [$from, $to] = $accounts->lastCycle($loan);
+            $valid = fn (string $key, string $default) => Carbon::canBeCreatedFromFormat((string) $request->query($key), 'Y-m-d') ? (string) $request->query($key) : $default;
+            $period = ['from' => $valid('from', $from), 'to' => $valid('to', $to)];
+            if ($period['to'] < $period['from']) {
+                $period['to'] = $period['from'];
+            }
+            $used = $accounts->utilized($loan);
+            $revolving = [
+                'used' => $used,
+                'available' => Money::sub($loan->principal_amount, $used),
+                'ledger' => $accounts->ledger($loan),
+                'period' => $period,
+                'estimate' => $accounts->estimate($loan, $period['from'], $period['to']),
+                'latest' => $loan->transactions()->latest('txn_date')->latest('id')->first()?->setRelation('loan', $loan),
+            ];
+        }
+
         return view('loans.show', [
             'loan' => $loan,
+            'revolving' => $revolving,
             'state' => $loan->hasSchedule() ? $payments->state($loan) : null,
             'transactions' => $loan->transactions()->with('paymentMode:id,name')->latest('txn_date')->latest('id')->paginate(20, ['*'], 'txn_page'),
             'revisions' => $loan->revisions()->latest('id')->get(['id', 'kind', 'effective_date', 'old_rate', 'new_rate', 'old_emi', 'new_emi', 'reason']),

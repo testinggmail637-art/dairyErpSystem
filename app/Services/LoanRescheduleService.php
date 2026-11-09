@@ -127,14 +127,7 @@ class LoanRescheduleService
     /** Revolving / card: used = draws + interest + charges (+ card purchases) − repayments − subvention (spec §6). */
     public function utilized(Loan $loan): string
     {
-        $t = $loan->transactions()->selectRaw('COALESCE(SUM(CASE WHEN type IN (?, ?, ?) THEN amount ELSE 0 END), 0) AS plus,
-            COALESCE(SUM(CASE WHEN type IN (?, ?) THEN amount ELSE 0 END), 0) AS minus', [
-            LoanTxnType::OdWithdrawal->value, LoanTxnType::OdInterest->value, LoanTxnType::Charge->value,
-            LoanTxnType::OdRepayment->value, LoanTxnType::SubventionCredit->value,
-        ])->first();
-        $purchases = $loan->isCard() ? (string) DB::table('expenses')->where('paid_by_card_id', $loan->id)->whereNull('deleted_at')->sum('amount') : '0';
-
-        return Money::sub(Money::add((string) $t->plus, $purchases), (string) $t->minus);
+        return app(RevolvingAccountService::class)->utilized($loan);
     }
 
     /**

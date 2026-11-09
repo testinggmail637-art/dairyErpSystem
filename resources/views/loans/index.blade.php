@@ -73,7 +73,11 @@
                         <td class="text-end">@if ($loan->emi_amount)<x-money :value="$loan->emi_amount" />@else — @endif</td>
                         @php($s = $summaries[$loan->id] ?? null)
                         <td class="text-center text-nowrap small">@if ($s){{ $s['paid_count'] }} / {{ $s['total'] }}<div class="text-body-secondary">{{ inr($s['total_paid']) }}</div>@else — @endif</td>
-                        <td class="text-end">@if ($s)<x-money :value="$s['outstanding']" />@else — @endif</td>
+                        <td class="text-end">
+                            @if ($s)<x-money :value="$s['outstanding']" />
+                            @elseif (isset($used[$loan->id]))<x-money :value="$used[$loan->id]" /><div class="small text-body-secondary">{{ __('used · :a free', ['a' => inr(\App\Support\Money::sub($loan->principal_amount, $used[$loan->id]))]) }}</div>
+                            @else — @endif
+                        </td>
                         <td class="text-nowrap">{{ $s && $s['next_due'] ? fmt_date($s['next_due']) : '—' }}</td>
                         <td><span class="badge {{ $loan->status === \App\Enums\LoanStatus::Active ? 'text-bg-success' : 'text-bg-secondary' }}">{{ $loan->status->label() }}</span></td>
                     </tr>
