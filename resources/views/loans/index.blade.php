@@ -53,6 +53,8 @@
                     <th class="text-end">{{ __('Rate') }}</th>
                     <th>{{ __('Period') }}</th>
                     <th class="text-end">{{ __('EMI') }}</th>
+                    <th class="text-center">{{ __('Paid') }}</th>
+                    <th class="text-end">{{ __('Outstanding') }}</th>
                     <th>{{ __('Next due') }}</th>
                     <th>{{ __('Status') }}</th>
                 </tr>
@@ -69,11 +71,14 @@
                         <td class="text-end text-nowrap">{{ $loan->interest_rate }} %</td>
                         <td class="text-nowrap small">{{ $loan->tenure_months ? \App\Support\Format::tenure($loan->tenure_months) : '—' }}</td>
                         <td class="text-end">@if ($loan->emi_amount)<x-money :value="$loan->emi_amount" />@else — @endif</td>
-                        <td class="text-nowrap">{{ $loan->next_due ? fmt_date($loan->next_due) : '—' }}</td>
+                        @php($s = $summaries[$loan->id] ?? null)
+                        <td class="text-center text-nowrap small">@if ($s){{ $s['paid_count'] }} / {{ $s['total'] }}<div class="text-body-secondary">{{ inr($s['total_paid']) }}</div>@else — @endif</td>
+                        <td class="text-end">@if ($s)<x-money :value="$s['outstanding']" />@else — @endif</td>
+                        <td class="text-nowrap">{{ $s && $s['next_due'] ? fmt_date($s['next_due']) : '—' }}</td>
                         <td><span class="badge {{ $loan->status === \App\Enums\LoanStatus::Active ? 'text-bg-success' : 'text-bg-secondary' }}">{{ $loan->status->label() }}</span></td>
                     </tr>
                 @empty
-                    <tr><td colspan="8" class="text-center text-body-secondary py-5">
+                    <tr><td colspan="10" class="text-center text-body-secondary py-5">
                         <i class="bi bi-bank fs-2 d-block mb-2"></i>{{ __('No loans match. Add every loan or overdraft the business has taken.') }}
                     </td></tr>
                 @endforelse
@@ -81,9 +86,9 @@
             @if ($loans->total() > 0)
                 <tfoot class="table-group-divider">
                     <tr class="fw-semibold">
-                        <td colspan="2">{{ __('Borrowed (loans) · OD limits') }}</td>
+                        <td colspan="2">{{ __('Borrowed (loans) · limits (OD / CC / KCC / cards)') }}</td>
                         <td class="text-end"><x-money :value="$totals->borrowed ?? 0" /> · <x-money :value="$totals->od_limit ?? 0" /></td>
-                        <td colspan="5"></td>
+                        <td colspan="7"></td>
                     </tr>
                 </tfoot>
             @endif
@@ -93,5 +98,5 @@
     @endfragment
     </div>
 </div>
-<p class="form-text mt-2">{{ __('Payments, EMIs paid, outstanding and overdraft use come next; for now each loan shows its schedule.') }}</p>
+<p class="form-text mt-2">{{ __('Paid = instalments fully paid / all instalments, and the amount paid so far. Outstanding = principal still owed. Overdraft, CC, KCC and card balances come with their own pages.') }}</p>
 @endsection

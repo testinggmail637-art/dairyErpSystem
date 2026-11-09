@@ -2,10 +2,22 @@
 
 @section('title', $loan->loan_no.' · '.$loan->lender_name)
 
+@php
+    $open = $loan->status === \App\Enums\LoanStatus::Active;
+    $statusBadge = ['paid' => 'text-bg-success', 'partially_paid' => 'text-bg-warning', 'overdue' => 'text-bg-danger', 'due' => 'text-bg-light border'];
+    $statusLabel = ['paid' => __('Paid'), 'partially_paid' => __('Part paid'), 'overdue' => __('Overdue'), 'due' => __('Due')];
+@endphp
+
 @section('page-actions')
     <a href="{{ route('loans.index') }}" class="btn btn-outline-secondary btn-sm"><i class="bi bi-arrow-left me-1"></i>{{ __('Loans') }}</a>
+    @if ($loan->hasSchedule() && $open)
+        @can('loan_payments.create')
+            <a href="{{ route('loans.payments.create', $loan) }}" class="btn btn-primary btn-sm"><i class="bi bi-cash-coin me-1"></i>{{ __('Record payment') }}</a>
+            <a href="{{ route('loans.payments.create', [$loan, 'kind' => 'charge']) }}" class="btn btn-outline-primary btn-sm"><i class="bi bi-receipt me-1"></i>{{ __('Bank charge') }}</a>
+        @endcan
+    @endif
     @can('loans.manage')
-        @if ($loan->status === \App\Enums\LoanStatus::Active)
+        @if ($open)
             <a href="{{ route('loans.edit', $loan) }}" class="btn btn-outline-primary btn-sm"><i class="bi bi-pencil me-1"></i>{{ __('Edit') }}</a>
         @endif
         @unless ($locked)
@@ -19,25 +31,29 @@
     <div class="col-6 col-lg-3"><div class="card h-100"><div class="card-body">
         <div class="small text-body-secondary">{{ match ($loan->family()) { \App\Enums\LoanFamily::Revolving => __('Sanctioned limit'), \App\Enums\LoanFamily::CreditCard => __('Credit limit'), default => __('Loan amount') } }}</div>
         <div class="fs-5 fw-semibold"><x-money :value="$loan->principal_amount" /></div>
+        <div class="small text-body-secondary">{{ $loan->interest_rate }} % {{ __('a year') }} (= {{ \App\Support\Money::div($loan->interest_rate, '12') }} % {{ __('a month') }})</div>
     </div></div></div>
-    <div class="col-6 col-lg-3"><div class="card h-100"><div class="card-body">
-        <div class="small text-body-secondary">{{ __('Interest') }}</div>
-        <div class="fs-5">{{ $loan->interest_rate }} % {{ __('a year') }}</div>
-        <div class="small text-body-secondary">= {{ \App\Support\Money::div($loan->interest_rate, '12') }} % {{ __('a month') }}@if ($loan->repayment_method) · {{ $loan->repayment_method->label() }}@endif</div>
-    </div></div></div>
-    @if ($loan->hasSchedule())
+    @if ($state)
         <div class="col-6 col-lg-3"><div class="card h-100"><div class="card-body">
             <div class="small text-body-secondary">{{ match ($loan->repayment_method) { \App\Enums\RepaymentMethod::InterestOnly => __('Interest each instalment'), \App\Enums\RepaymentMethod::Bullet => __('Pay at maturity'), default => __('EMI') } }}</div>
             <div class="fs-5 fw-semibold"><x-money :value="$loan->emi_amount" /></div>
-            <div class="small text-body-secondary">
-                {{ __(':n instalments, :freq, from :date', ['n' => $installments->where('installment_no', '>', 0)->count(), 'freq' => mb_strtolower($loan->installment_frequency->label()), 'date' => fmt_date($loan->first_due_date)]) }}
-                @if ($loan->moratorium_months) · {{ __(':m months moratorium', ['m' => $loan->moratorium_months]) }}@endif
-            </div>
+            <div class="small text-body-secondary">{{ $loan->repayment_method->label() }} · {{ mb_strtolower($loan->installment_frequency->label()) }}@if ($loan->moratorium_months) · {{ __(':m months moratorium', ['m' => $loan->moratorium_months]) }}@endif</div>
         </div></div></div>
         <div class="col-6 col-lg-3"><div class="card h-100"><div class="card-body">
-            <div class="small text-body-secondary">{{ __('Total interest (schedule)') }}</div>
-            <div class="fs-5"><x-money :value="\App\Support\Money::sum($installments->pluck('interest_part'))" /></div>
-            <div class="small text-body-secondary">{{ __('Total to pay') }} <x-money :value="\App\Support\Money::sum($installments->pluck('emi_amount'))" /></div>
+            <div class="small text-body-secondary">{{ __('Instalments paid') }}</div>
+            <div class="fs-5 fw-semibold">{{ $state['paid_count'] }} / {{ $state['total'] }}</div>
+            <div class="small text-body-secondary">
+                @if ($next = $state['next'])
+                    {{ __('Next: :date · :amount', ['date' => fmt_date($next->due_date), 'amount' => inr($next->balance_due)]) }}
+                @else
+                    {{ __('All paid') }}
+                @endif
+            </div>
+        </div></div></div>
+        <div class="col-6 col-lg-3"><div class="card h-100 border-primary"><div class="card-body">
+            <div class="small text-body-secondary">{{ __('Outstanding principal') }}</div>
+            <div class="fs-5 fw-semibold"><x-money :value="$state['outstanding']" /></div>
+            <div class="small text-body-secondary">{{ __('Paid :total (interest :i · principal :p)', ['total' => inr($state['total_paid']), 'i' => inr($state['interest_paid']), 'p' => inr($state['principal_paid'])]) }}</div>
         </div></div></div>
     @elseif ($loan->isRevolving())
         <div class="col-6 col-lg-3"><div class="card h-100"><div class="card-body">
@@ -55,8 +71,8 @@
 </div>
 
 <div class="row g-3">
-    <div class="col-12 col-lg-4">
-        <div class="card">
+    <div class="col-12 col-xl-4">
+        <div class="card mb-3">
             <div class="card-header fw-semibold">{{ __('Details') }}</div>
             <div class="card-body">
                 <dl class="row small mb-0">
@@ -71,16 +87,53 @@
                 </dl>
             </div>
         </div>
+
+        @if ($state)
+            <div class="card">
+                <div class="card-header fw-semibold">{{ __('Payments & charges') }}</div>
+                <ul class="list-group list-group-flush small">
+                    @forelse ($transactions as $t)
+                        <li class="list-group-item">
+                            <div class="d-flex justify-content-between">
+                                <span>{{ fmt_date($t->txn_date) }} · {{ $t->type->label() }}</span>
+                                <span class="fw-semibold">{{ inr($t->amount) }}</span>
+                            </div>
+                            <div class="d-flex justify-content-between text-body-secondary">
+                                <span>
+                                    @if ($t->type !== \App\Enums\LoanTxnType::Charge)
+                                        {{ __('interest :i · principal :p', ['i' => inr($t->interest_part), 'p' => inr($t->principal_part)]) }}
+                                    @else
+                                        {{ $t->note }}
+                                    @endif
+                                    · {{ $t->paymentMode?->name }}@if ($t->reference_no) · {{ $t->reference_no }}@endif
+                                </span>
+                                @if ($loop->first && $transactions->onFirstPage())
+                                @can('update', $t->setRelation('loan', $loan))
+                                    <a href="{{ route('loan-transactions.edit', $t) }}" title="{{ __('Edit') }}"><i class="bi bi-pencil"></i></a>
+                                @endcan
+                                @endif
+                            </div>
+                        </li>
+                    @empty
+                        <li class="list-group-item text-body-secondary">{{ __('No payments yet.') }}</li>
+                    @endforelse
+                </ul>
+                @if ($transactions->hasPages())<div class="card-footer">{{ $transactions->links() }}</div>@endif
+            </div>
+        @endif
     </div>
 
-    <div class="col-12 col-lg-8">
-        @unless ($loan->hasSchedule())
+    <div class="col-12 col-xl-8">
+        @unless ($state)
             <div class="card"><div class="card-body text-body-secondary">{{ $loan->isCard()
                 ? __('A credit card has no schedule. Purchases, bill payments, interest and fees are recorded here once card entries are added (Task 3A.7).')
                 : __('This account has no EMI schedule. Withdrawals, repayments and bank interest are recorded here once account entries are added (Task 3A.6).') }}</div></div>
         @else
             <div class="card">
-                <div class="card-header fw-semibold">{{ __('Repayment schedule') }}</div>
+                <div class="card-header fw-semibold d-flex justify-content-between">
+                    <span>{{ __('Repayment schedule') }}</span>
+                    <span class="small text-body-secondary">{{ __('Total interest :i · total to pay :t', ['i' => inr(\App\Support\Money::sum($state['rows']->pluck('interest_part'))), 't' => inr(\App\Support\Money::sum($state['rows']->pluck('emi_amount')))]) }}</span>
+                </div>
                 <div class="table-responsive">
                     <table class="table table-sm table-hover align-middle mb-0">
                         <thead>
@@ -92,11 +145,12 @@
                                 <th class="text-end">{{ __('Principal') }}</th>
                                 <th class="text-end">{{ __('Interest') }}</th>
                                 <th class="text-end">{{ __('Closing') }}</th>
+                                <th>{{ __('Status') }}</th>
                             </tr>
                         </thead>
                         <tbody>
-                            @foreach ($installments as $i)
-                                <tr>
+                            @foreach ($state['rows'] as $i)
+                                <tr @class(['table-danger' => $i->status === 'overdue'])>
                                     <td class="text-nowrap">{{ $i->installment_no ?: __('BPI') }}@if ($i->installment_no === 0)<span class="small text-body-secondary d-block">{{ __('broken period') }}</span>@endif</td>
                                     <td class="text-nowrap">{{ fmt_date($i->due_date) }}</td>
                                     <td class="text-end">{{ inr($i->opening_principal) }}</td>
@@ -104,6 +158,12 @@
                                     <td class="text-end">{{ inr($i->principal_part) }}</td>
                                     <td class="text-end">{{ inr($i->interest_part) }}</td>
                                     <td class="text-end">{{ inr($i->closing_principal) }}</td>
+                                    <td class="text-nowrap">
+                                        <span class="badge {{ $statusBadge[$i->status] }}">{{ $statusLabel[$i->status] }}</span>
+                                        @if ($i->status === 'partially_paid' || ($i->status === 'overdue' && ! \App\Support\Money::isZero(\App\Support\Money::add($i->paid_interest, $i->paid_principal))))
+                                            <span class="small text-body-secondary d-block">{{ __(':due left', ['due' => inr($i->balance_due)]) }}</span>
+                                        @endif
+                                    </td>
                                 </tr>
                             @endforeach
                         </tbody>

@@ -16,6 +16,7 @@ use App\Http\Controllers\Herd\AnimalController;
 use App\Http\Controllers\Herd\MilkProductionController;
 use App\Http\Controllers\HomeController;
 use App\Http\Controllers\Loans\LoanController;
+use App\Http\Controllers\Loans\LoanPaymentController;
 use App\Http\Controllers\MilkStock\MilkStockController;
 use App\Http\Controllers\Reports\ExpenseReportController;
 use App\Http\Controllers\Reports\MilkReportController;
@@ -281,6 +282,16 @@ Route::middleware(['auth', 'active', 'farm'])->group(function () {
         Route::put('loans/{loan}', [LoanController::class, 'update'])->name('loans.update');
         Route::delete('loans/{loan}', [LoanController::class, 'destroy'])->name('loans.destroy');
     });
+    // Loan payments / charges (policy: loan_payments.edit, or own same-day entry with loan_payments.create; latest only)
+    Route::middleware('can:loan_payments.create')->group(function () {
+        Route::get('loans/{loan}/payments/create', [LoanPaymentController::class, 'create'])->name('loans.payments.create');
+        Route::post('loans/{loan}/payments', [LoanPaymentController::class, 'store'])->name('loans.payments.store');
+        Route::get('loans/{loan}/payments/split', [LoanPaymentController::class, 'split'])->name('loans.payments.split');
+    });
+    Route::get('loan-transactions/{loan_transaction}/edit', [LoanPaymentController::class, 'edit'])
+        ->middleware('can:update,loan_transaction')->name('loan-transactions.edit');
+    Route::put('loan-transactions/{loan_transaction}', [LoanPaymentController::class, 'update'])->name('loan-transactions.update');
+    Route::delete('loan-transactions/{loan_transaction}', [LoanPaymentController::class, 'destroy'])->name('loan-transactions.destroy');
     Route::middleware('can:loans.view')->group(function () {
         Route::get('loans', [LoanController::class, 'index'])->name('loans.index');
         Route::get('loans/{loan}', [LoanController::class, 'show'])->whereNumber('loan')->name('loans.show');

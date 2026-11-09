@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Loans;
 
+use App\Enums\LoanFamily;
 use App\Enums\LoanStatus;
 use App\Enums\LoanType;
 use App\Http\Controllers\Controller;
@@ -9,6 +10,7 @@ use App\Http\Requests\Loans\DeleteLoanRequest;
 use App\Http\Requests\Loans\LoanRequest;
 use App\Models\Expense;
 use App\Models\Loan;
+use App\Services\LoanPaymentService;
 use App\Services\LoanService;
 use DomainException;
 use Illuminate\Http\RedirectResponse;
@@ -24,7 +26,7 @@ class LoanController extends Controller
 {
     public function __construct(private readonly LoanService $loans) {}
 
-    public function index(Request $request): View|Response
+    public function index(Request $request, LoanPaymentService $payments): View|Response
     {
         $filters = [
             'search' => trim((string) $request->query('search')),
@@ -39,15 +41,18 @@ class LoanController extends Controller
             ->when(LoanStatus::tryFrom((string) $filters['status']), fn ($q, $s) => $q->where('status', $s));
 
         $loans = (clone $base)
-            ->withMin(['installments as next_due' => fn ($q) => $q->where('due_date', '>=', today()->toDateString())], 'due_date')
             ->orderBy('status')->latest('start_date')->latest('id')
             ->paginate(25)
             ->withQueryString();
 
-        $totals = (clone $base)->selectRaw('SUM(CASE WHEN loan_type <> ? THEN principal_amount ELSE 0 END) AS borrowed,
-            SUM(CASE WHEN loan_type = ? THEN principal_amount ELSE 0 END) AS od_limit', [LoanType::Overdraft->value, LoanType::Overdraft->value])->first();
+        $instalmentTypes = LoanType::valuesOf(LoanFamily::Instalment);
+        $in = implode(',', array_fill(0, count($instalmentTypes), '?'));
+        $totals = (clone $base)->selectRaw("SUM(CASE WHEN loan_type IN ($in) THEN principal_amount ELSE 0 END) AS borrowed,
+            SUM(CASE WHEN loan_type NOT IN ($in) THEN principal_amount ELSE 0 END) AS od_limit", [...$instalmentTypes, ...$instalmentTypes])->first();
 
-        return $this->listView($request, 'loans.index', compact('loans', 'filters', 'totals'));
+        return $this->listView($request, 'loans.index', compact('loans', 'filters', 'totals') + [
+            'summaries' => $payments->summaries($loans->getCollection()),
+        ]);
     }
 
     public function create(): View
@@ -65,11 +70,12 @@ class LoanController extends Controller
         return redirect()->route('loans.show', $loan)->with('success', __('Loan :no saved.', ['no' => $loan->loan_no]));
     }
 
-    public function show(Loan $loan): View
+    public function show(Loan $loan, LoanPaymentService $payments): View
     {
         return view('loans.show', [
             'loan' => $loan,
-            'installments' => $loan->hasSchedule() ? $loan->installments()->get() : collect(),
+            'state' => $loan->hasSchedule() ? $payments->state($loan) : null,
+            'transactions' => $loan->transactions()->with('paymentMode:id,name')->latest('txn_date')->latest('id')->paginate(20, ['*'], 'txn_page'),
             'feeExpenseId' => Expense::query()->where('source_type', $loan->getMorphClass())->where('source_id', $loan->id)->value('id'),
             'locked' => $this->loans->hasTransactions($loan),
         ]);
