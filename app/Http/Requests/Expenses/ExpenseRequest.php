@@ -3,12 +3,19 @@
 namespace App\Http\Requests\Expenses;
 
 use App\Enums\ExpenseUnit;
+use App\Enums\LoanStatus;
+use App\Enums\LoanType;
 use App\Http\Requests\Concerns\RequiresReason;
 use App\Models\Expense;
+use App\Models\Loan;
+use App\Models\PaymentMode;
+use App\Services\RevolvingAccountService;
 use App\Support\CurrentFarm;
+use App\Support\Money;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\Rules\Exists;
+use Illuminate\Validation\Validator;
 
 /**
  * Create / edit an expense (spec 6 + 7.1). Every lookup must belong to the current farm; inactive categories,
@@ -41,6 +48,11 @@ class ExpenseRequest extends FormRequest
             'payment_mode_id' => $this->boolean('is_credit') ? null : ($this->input('payment_mode_id') ?: null),
             'unit' => $this->input('unit') ?: null,
         ]);
+
+        // a card is kept only when the expense is paid with the "Card" payment mode
+        $cardMode = PaymentMode::query()->where('code', 'CARD')->value('id');
+        $this->merge(['paid_by_card_id' => $this->input('payment_mode_id') && (int) $this->input('payment_mode_id') === $cardMode
+            ? ($this->input('paid_by_card_id') ?: null) : null]);
     }
 
     /**
@@ -69,12 +81,31 @@ class ExpenseRequest extends FormRequest
                 $this->lookup('vendors', 'vendor_id')->whereNull('deleted_at')],
             'paid_to_text' => ['nullable', 'string', 'max:150'],
             'payment_mode_id' => ['nullable', 'required_if:is_credit,false', 'integer', $this->lookup('payment_modes', 'payment_mode_id')],
+            'paid_by_card_id' => ['nullable', 'integer', Rule::exists('loans', 'id')->where('farm_id', app(CurrentFarm::class)->id())
+                ->where('loan_type', LoanType::CreditCard->value)->whereNull('deleted_at')
+                ->where(fn ($q) => $q->where('status', LoanStatus::Active->value)->when($this->expense()?->paid_by_card_id, fn ($q, $id) => $q->orWhere('id', $id)))],
             'quantity' => ['nullable', 'decimal:0,2', 'gt:0', 'max:99999999.99'],
             'unit' => ['nullable', 'required_with:quantity', Rule::enum(ExpenseUnit::class)],
             'receipt' => ['nullable', 'file', 'mimes:jpg,jpeg,png,pdf', 'max:5120'],
             'remove_receipt' => ['boolean'],
             'note' => ['nullable', 'string', 'max:2000'],
         ];
+    }
+
+    /** A card purchase must fit in the card's free limit, like a real card (spec 7.4A). */
+    public function after(): array
+    {
+        return [function (Validator $validator) {
+            $card = $validator->errors()->isEmpty() && $this->input('paid_by_card_id') ? Loan::find($this->input('paid_by_card_id')) : null;
+            if (! $card) {
+                return;
+            }
+            $used = app(RevolvingAccountService::class)->utilized($card, null, null, $this->expense()?->id);
+            $free = Money::sub($card->principal_amount, $used);
+            if (Money::compare($this->input('amount'), $free) > 0) {
+                $validator->errors()->add('amount', __('This is more than the :free free on this card.', ['free' => inr($free)]));
+            }
+        }];
     }
 
     /**

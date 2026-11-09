@@ -59,7 +59,11 @@
 
                     @unless ($expense->is_credit)
                         <dt class="col-5 col-md-4 fw-normal text-body-secondary">{{ __('Payment mode') }}</dt>
-                        <dd class="col-7 col-md-8">{{ $expense->paymentMode?->name ?? '—' }}</dd>
+                        <dd class="col-7 col-md-8">{{ $expense->paymentMode?->name ?? '—' }}
+                            @if ($card = $expense->paidByCard)
+                                · @can('loans.view')<a href="{{ route('loans.show', $card) }}">{{ $card->lender_name }} · {{ $card->loan_no }}</a>@else{{ $card->lender_name }} · {{ $card->loan_no }}@endcan
+                            @endif
+                        </dd>
                     @endunless
 
                     @if ($expense->quantity)

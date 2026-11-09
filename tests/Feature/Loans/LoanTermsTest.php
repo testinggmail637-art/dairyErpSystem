@@ -107,7 +107,7 @@ it('saves cash credit / KCC and credit cards without a schedule', function () {
     expect($card)->loan_type->toBe(LoanType::CreditCard)->interest_rate->toBe('42.00')->statement_day->toBe(15)->due_day->toBe(5)
         ->and($card->isCard())->toBeTrue()->and($card->installments()->count())->toBe(0);
 
-    $this->get(route('loans.show', $card))->assertOk()->assertSee('Credit limit')->assertSee('15 · 5');
+    $this->get(route('loans.show', $card))->assertOk()->assertSee('Credit limit')->assertSee('Last statement')->assertSee('Next due');
     $this->get(route('loans.create'))->assertOk()->assertSee('Kisan Credit Card (KCC)')->assertSee('Credit card EMI');
 });
 

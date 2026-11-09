@@ -18,6 +18,19 @@
                 <a href="{{ route('loans.prepayment.create', $loan) }}" class="btn btn-outline-primary btn-sm"><i class="bi bi-skip-forward me-1"></i>{{ __('Prepayment') }}</a>
             @endif
         @endcan
+    @elseif ($loan->isCard() && $open)
+        @can('loan_payments.create')
+            <a href="{{ route('loans.entries.create', [$loan, 'type' => 'od_repayment']) }}" class="btn btn-primary btn-sm"><i class="bi bi-box-arrow-in-down me-1"></i>{{ __('Bill payment') }}</a>
+            <a href="{{ route('loans.entries.create', [$loan, 'type' => 'od_interest']) }}" class="btn btn-outline-primary btn-sm"><i class="bi bi-percent me-1"></i>{{ __('Interest + GST') }}</a>
+            <a href="{{ route('loans.entries.create', [$loan, 'type' => 'charge']) }}" class="btn btn-outline-primary btn-sm"><i class="bi bi-receipt me-1"></i>{{ __('Fee') }}</a>
+            <a href="{{ route('loans.entries.create', [$loan, 'type' => 'od_withdrawal']) }}" class="btn btn-outline-primary btn-sm"><i class="bi bi-box-arrow-up me-1"></i>{{ __('Cash withdrawal') }}</a>
+        @endcan
+        @can('expenses.create')
+            <a href="{{ route('expenses.create', ['paid_by_card_id' => $loan->id]) }}" class="btn btn-outline-primary btn-sm"><i class="bi bi-cart me-1"></i>{{ __('Card purchase') }}</a>
+        @endcan
+        @can('loans.manage')
+            <a href="{{ route('loans.create', ['loan_type' => \App\Enums\LoanType::CardEmi->value]) }}" class="btn btn-outline-secondary btn-sm" title="{{ __('A purchase or balance converted to EMI is its own Card EMI loan') }}"><i class="bi bi-calendar2-range me-1"></i>{{ __('Card EMI') }}</a>
+        @endcan
     @elseif ($loan->isRevolving() && $open)
         @can('loan_payments.create')
             <a href="{{ route('loans.entries.create', [$loan, 'type' => 'od_withdrawal']) }}" class="btn btn-primary btn-sm"><i class="bi bi-box-arrow-up me-1"></i>{{ __('Withdrawal') }}</a>
@@ -85,17 +98,29 @@
             <div class="small text-body-secondary">{{ __('Available') }}</div>
             <div class="fs-5 fw-semibold"><x-money :value="$revolving['available']" /></div>
         </div></div></div>
-        <div class="col-6 col-lg-3"><div class="card h-100"><div class="card-body">
-            <div class="small text-body-secondary">{{ __('Bank debits interest') }}</div>
-            <div class="fs-5">{{ $loan->interest_debit_cycle?->label() }}</div>
-            <div class="small text-body-secondary">{{ __('Renewal') }}: {{ $loan->od_renewal_date ? fmt_date($loan->od_renewal_date) : '—' }}</div>
-        </div></div></div>
-    @else
-        <div class="col-6 col-lg-3"><div class="card h-100"><div class="card-body">
-            <div class="small text-body-secondary">{{ __('Bill day · due day') }}</div>
-            <div class="fs-5">{{ $loan->statement_day }} · {{ $loan->due_day }}</div>
-            <div class="small text-body-secondary">{{ __('of every month') }}</div>
-        </div></div></div>
+        @if ($c = $revolving['card'])
+            <div class="col-6 col-lg-3"><div class="card h-100 {{ $c['part_paid'] ? 'border-danger' : '' }}"><div class="card-body">
+                <div class="small text-body-secondary">{{ __('Last statement :date', ['date' => fmt_date($c['statement_date'])]) }}</div>
+                <div class="fs-5 fw-semibold"><x-money :value="$c['statement_amount']" /></div>
+                <div class="small text-body-secondary">{{ __('Due :date · paid :paid · to pay :left', ['date' => fmt_date($c['due_date']), 'paid' => inr($c['paid']), 'left' => inr($c['to_pay'])]) }}</div>
+                @if ($c['part_paid'])
+                    <div class="badge text-bg-danger mt-1"><i class="bi bi-exclamation-triangle me-1"></i>{{ __('Part paid — interest is running') }}</div>
+                @endif
+                <div class="small text-body-secondary mt-1">{{ __('Next due: :date', ['date' => fmt_date($c['next_due'])]) }}</div>
+            </div></div></div>
+        @elseif ($loan->isCard())
+            <div class="col-6 col-lg-3"><div class="card h-100"><div class="card-body">
+                <div class="small text-body-secondary">{{ __('Bill day · due day') }}</div>
+                <div class="fs-5">—</div>
+                <div class="small text-body-secondary">{{ __('Set the bill and due day (Edit) to see the statement and due date.') }}</div>
+            </div></div></div>
+        @else
+            <div class="col-6 col-lg-3"><div class="card h-100"><div class="card-body">
+                <div class="small text-body-secondary">{{ __('Bank debits interest') }}</div>
+                <div class="fs-5">{{ $loan->interest_debit_cycle?->label() }}</div>
+                <div class="small text-body-secondary">{{ __('Renewal') }}: {{ $loan->od_renewal_date ? fmt_date($loan->od_renewal_date) : '—' }}</div>
+            </div></div></div>
+        @endif
     @endif
 </div>
 
@@ -173,7 +198,7 @@
 
     <div class="col-12 col-xl-8">
         @if ($revolving)
-            @php($e = $revolving['estimate'])
+            @if ($e = $revolving['estimate'])
             <div class="card mb-3">
                 <div class="card-header fw-semibold">{{ __('Check the bank\'s interest') }}</div>
                 <div class="card-body">
@@ -190,6 +215,7 @@
                     <p class="form-text mb-0 mt-2">{{ __('Estimate = Σ (used at the end of each day × :rate % ÷ 365). Banks round and may debit a few days later, so small differences are normal; a big one is worth asking the bank about.', ['rate' => $loan->interest_rate]) }}</p>
                 </div>
             </div>
+            @endif
             <div class="card">
                 <div class="card-header fw-semibold">{{ __('Entries') }}</div>
                 <div class="table-responsive">
@@ -207,17 +233,17 @@
                         </thead>
                         <tbody>
                             @forelse ($revolving['ledger'] as $row)
-                                @php($type = \App\Enums\LoanTxnType::from($row->type))
-                                @php($plus = in_array($type, [\App\Enums\LoanTxnType::OdWithdrawal, \App\Enums\LoanTxnType::OdInterest, \App\Enums\LoanTxnType::Charge], true))
+                                @php($plus = \App\Support\Money::compare($row->delta, '0') > 0)
+                                @php($label = \App\Services\RevolvingAccountService::label($loan, $row->type))
                                 <tr>
                                     <td class="text-nowrap">{{ fmt_date($row->txn_date) }}</td>
-                                    <td>{{ $type->label() }}</td>
+                                    <td>@if ($row->src === 'e')<a href="{{ route('expenses.show', $row->id) }}">{{ $label }}</a>@else{{ $label }}@endif</td>
                                     <td class="small">{{ collect([$row->mode, $row->reference_no, $row->note])->filter()->implode(' · ') }}</td>
                                     <td class="text-end">{{ $plus ? inr($row->amount) : '' }}</td>
                                     <td class="text-end">{{ $plus ? '' : inr($row->amount) }}</td>
                                     <td class="text-end fw-semibold">{{ inr($row->balance) }}</td>
                                     <td class="text-end">
-                                        @if ($loop->first && $revolving['ledger']->onFirstPage() && $open && $revolving['latest']?->id === $row->id)
+                                        @if ($row->src === 't' && $open && $revolving['latest']?->id === $row->id)
                                             @can('update', $revolving['latest'])
                                                 <a href="{{ route('loan-transactions.entry.edit', $row->id) }}" title="{{ __('Edit') }}"><i class="bi bi-pencil"></i></a>
                                             @endcan
@@ -225,15 +251,13 @@
                                     </td>
                                 </tr>
                             @empty
-                                <tr><td colspan="7" class="text-center text-body-secondary py-4">{{ __('No entries yet. Record withdrawals, repayments and the interest the bank debits.') }}</td></tr>
+                                <tr><td colspan="7" class="text-center text-body-secondary py-4">{{ $loan->isCard() ? __('No entries yet. Pay expenses with this card, then record bill payments, interest and fees from the statement.') : __('No entries yet. Record withdrawals, repayments and the interest the bank debits.') }}</td></tr>
                             @endforelse
                         </tbody>
                     </table>
                 </div>
                 @if ($revolving['ledger']->hasPages())<div class="card-footer">{{ $revolving['ledger']->links() }}</div>@endif
             </div>
-        @elseif (! $state)
-            <div class="card"><div class="card-body text-body-secondary">{{ __('A credit card has no schedule. Purchases, bill payments, interest and fees are recorded here once card entries are added (Task 3A.7).') }}</div></div>
         @else
             <div class="card">
                 <div class="card-header fw-semibold d-flex justify-content-between">

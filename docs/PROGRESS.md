@@ -8,11 +8,11 @@
 | Item | Value |
 |---|---|
 | Current phase | Phase 3A — Loans, Overdraft & Credit Cards (🟡 in progress) |
-| Last completed task | 3A.6 — Revolving accounts (OD / CC / KCC) with limit check and interest estimate |
-| Next task | 3A.7 — Credit cards: card on expenses, bill payment, interest + GST / fees, part-paid warning; card EMI |
-| Overall progress | 54 / 97 tasks (56%) |
-| Tests passing | 580 |
-| Last updated (IST) | 2026-11-09 (task/3A.6-revolving-accounts) |
+| Last completed task | 3A.7 — Credit cards: card on expenses, bill payment, interest + GST / fees, part-paid warning, card EMI link |
+| Next task | 3A.8 — Loan detail screens + `loans:reminders` + dashboard loan cards + Expenses loan filter and "principal repaid / cash paid out" lines |
+| Overall progress | 55 / 97 tasks (57%) |
+| Tests passing | 584 |
+| Last updated (IST) | 2026-11-09 (task/3A.7-credit-cards) |
 
 ## Phase overview
 
@@ -293,7 +293,7 @@ Status legend: ⬜ Not started · 🟡 In progress · ✅ Done · ⏸ On hold
 - [x] 3A.4 Loan payments: FIFO interest/principal split (editable to the bank's split), interest → expense, edit/delete latest with reason
 - [x] 3A.5 Prepayment (reduce EMI / reduce tenure) + interest rate change (EMI or period) + close / re-open
 - [x] 3A.6 Revolving accounts (OD / cash credit / KCC): withdrawal / repayment / interest debit / subvention, limit check, running balance, estimated interest
-- [ ] 3A.7 Credit cards: card on expenses, bill payment, interest + GST / fees, part-paid warning; card EMI
+- [x] 3A.7 Credit cards: card on expenses, bill payment, interest + GST / fees, part-paid warning; card EMI
 - [ ] 3A.8 Loan detail screens + `loans:reminders` command + dashboard loan cards + Expenses loan filter and "principal repaid / cash paid out" lines
 - [ ] 3A.9 Loan reports (summary, instalments due, interest & principal paid per loan / type / FY, loan statement, monthly payments by type) + Phase 3A acceptance tests + README/CHANGELOG updated
 

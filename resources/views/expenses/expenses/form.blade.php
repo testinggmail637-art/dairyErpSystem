@@ -86,6 +86,13 @@
                             <x-form.select name="payment_mode_id" :label="__('Payment mode')" :options="$paymentModes" :selected="$expense->payment_mode_id"
                                            :placeholder="__('Choose')" group-class="mb-0" />
                         </div>
+                        @if ($cards->isNotEmpty())
+                            <div class="col-12 col-md-6" data-show-when="card" data-card-mode="{{ $cardModeId }}">
+                                <x-form.select name="paid_by_card_id" :label="__('Which credit card?')" :options="$cards" :selected="$expense->paid_by_card_id"
+                                               :placeholder="__('Not a credit card (debit card)')" group-class="mb-0" />
+                                <div class="form-text">{{ __('Raises that card\'s used amount. Paying the card bill later is not another expense.') }}</div>
+                            </div>
+                        @endif
                     </div>
 
                     <hr>

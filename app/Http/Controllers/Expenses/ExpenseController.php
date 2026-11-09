@@ -3,6 +3,8 @@
 namespace App\Http\Controllers\Expenses;
 
 use App\Enums\ExpenseUnit;
+use App\Enums\LoanStatus;
+use App\Enums\LoanType;
 use App\Exports\ExpensesExport;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Expenses\DeleteExpenseRequest;
@@ -11,6 +13,7 @@ use App\Http\Requests\Expenses\ExpenseRequest;
 use App\Models\Animal;
 use App\Models\Expense;
 use App\Models\ExpenseCategory;
+use App\Models\Loan;
 use App\Models\PaymentMode;
 use App\Models\Section;
 use App\Models\User;
@@ -71,6 +74,9 @@ class ExpenseController extends Controller
             'is_credit' => false,
             'section_id' => $request->integer('section_id') ?: null,
             'category_id' => $request->integer('category_id') ?: null,
+            // "Card purchase" button on a credit card page
+            'paid_by_card_id' => $request->integer('paid_by_card_id') ?: null,
+            'payment_mode_id' => $request->integer('paid_by_card_id') ? PaymentMode::query()->where('code', 'CARD')->value('id') : null,
         ])));
     }
 
@@ -94,7 +100,7 @@ class ExpenseController extends Controller
     public function show(Expense $expense): View
     {
         return view('expenses.expenses.show', [
-            'expense' => $expense->load(['category', 'subcategory', 'section', 'vendor', 'paymentMode', 'creator', 'updater', 'animal:id,tag_no,name']),
+            'expense' => $expense->load(['category', 'subcategory', 'section', 'vendor', 'paymentMode', 'creator', 'updater', 'animal:id,tag_no,name', 'paidByCard:id,lender_name,loan_no']),
         ]);
     }
 
@@ -185,6 +191,11 @@ class ExpenseController extends Controller
                 : collect(),
             'sections' => $activeOr(Section::query(), $expense->section_id)->orderBy('name')->pluck('name', 'id'),
             'paymentModes' => $activeOr(PaymentMode::query(), $expense->payment_mode_id)->orderBy('name')->pluck('name', 'id'),
+            // credit cards to pick when paid by card (spec 7.4A); a closed card only when this expense already uses it
+            'cards' => Loan::query()->where('loan_type', LoanType::CreditCard)
+                ->where(fn ($q) => $q->where('status', LoanStatus::Active)->when($expense->paid_by_card_id, fn ($q, $id) => $q->orWhere('id', $id)))
+                ->orderBy('lender_name')->get(['id', 'lender_name', 'loan_no'])->mapWithKeys(fn ($c) => [$c->id => $c->lender_name.' · '.$c->loan_no]),
+            'cardModeId' => PaymentMode::query()->where('code', 'CARD')->value('id'),
             'selectedVendor' => ($vendorId = old('vendor_id', $expense->vendor_id))
                 ? Vendor::withTrashed()->whereKey($vendorId)->pluck('name', 'id')
                 : collect(),

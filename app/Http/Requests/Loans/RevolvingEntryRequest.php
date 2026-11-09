@@ -42,7 +42,7 @@ class RevolvingEntryRequest extends FormRequest
         $mode = $this->txn()?->payment_mode_id;
 
         return ($this->txn() ? $this->reasonRules() : []) + [
-            'type' => ['required', Rule::in(array_map(fn ($t) => $t->value, RevolvingAccountService::TYPES))],
+            'type' => ['required', Rule::in(array_map(fn ($t) => $t->value, RevolvingAccountService::typesFor($loan)))],
             'txn_date' => ['required', 'date_format:Y-m-d', 'before_or_equal:today', 'after_or_equal:'.$loan->start_date->toDateString()],
             'amount' => ['required', 'decimal:0,2', 'gt:0', 'max:9999999999.99'],
             'payment_mode_id' => ['required_if:type,'.LoanTxnType::OdRepayment->value, 'nullable', 'integer',

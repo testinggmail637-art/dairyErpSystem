@@ -21,7 +21,7 @@ class RevolvingEntryController extends Controller
 
     public function create(Request $request, Loan $loan): View|RedirectResponse
     {
-        if (! $loan->isRevolving()) {
+        if ($loan->hasSchedule()) {
             return redirect()->route('loans.show', $loan);
         }
 
@@ -39,7 +39,7 @@ class RevolvingEntryController extends Controller
         }
 
         return redirect()->route('loans.show', $loan)->with('success', $created
-            ? __(':type of :amount saved.', ['type' => $txn->type->label(), 'amount' => inr($txn->amount)])
+            ? __(':type of :amount saved.', ['type' => RevolvingAccountService::label($loan, $txn->type), 'amount' => inr($txn->amount)])
             : __('This entry was already saved.'));
     }
 
@@ -68,7 +68,7 @@ class RevolvingEntryController extends Controller
             'loan' => $loan,
             'txn' => $txn,
             'used' => $this->accounts->utilized($loan, null, $txn->exists ? $txn->id : null),
-            'types' => collect(RevolvingAccountService::TYPES)->mapWithKeys(fn ($t) => [$t->value => $t->label()])->all(),
+            'types' => collect(RevolvingAccountService::typesFor($loan))->mapWithKeys(fn ($t) => [$t->value => RevolvingAccountService::label($loan, $t)])->all(),
             'paymentModes' => PaymentMode::query()
                 ->where(fn ($q) => $q->where('is_active', true)->when($current, fn ($q) => $q->orWhere('id', $current)))
                 ->orderBy('name')->pluck('name', 'id'),

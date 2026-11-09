@@ -9,6 +9,7 @@ use App\Enums\LoanStatus;
 use App\Enums\LoanType;
 use App\Enums\MoratoriumInterest;
 use App\Enums\RepaymentMethod;
+use App\Models\Expense;
 use App\Models\Loan;
 use App\Models\LoanInstallment;
 use App\Support\Money;
@@ -84,7 +85,7 @@ class LoanService
 
     public function hasTransactions(Loan $loan): bool
     {
-        return $loan->transactions()->exists();
+        return $loan->transactions()->exists() || ($loan->isCard() && Expense::query()->where('paid_by_card_id', $loan->id)->exists());
     }
 
     /** (Re)build the whole schedule from the loan's terms; revolving accounts and credit cards have none. */

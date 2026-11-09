@@ -110,6 +110,12 @@ class Expense extends Model
         return $this->belongsTo(PaymentMode::class);
     }
 
+    /** @return BelongsTo<Loan, $this> the credit card it was paid with */
+    public function paidByCard(): BelongsTo
+    {
+        return $this->belongsTo(Loan::class, 'paid_by_card_id')->withTrashed();
+    }
+
     /** Treatment, feed purchase or salary run that created this expense (later phases). */
     public function source(): MorphTo
     {
