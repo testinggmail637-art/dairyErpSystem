@@ -18,6 +18,7 @@ use App\Http\Controllers\HomeController;
 use App\Http\Controllers\Loans\LoanActionController;
 use App\Http\Controllers\Loans\LoanController;
 use App\Http\Controllers\Loans\LoanPaymentController;
+use App\Http\Controllers\Loans\RevolvingEntryController;
 use App\Http\Controllers\MilkStock\MilkStockController;
 use App\Http\Controllers\Reports\ExpenseReportController;
 use App\Http\Controllers\Reports\MilkReportController;
@@ -288,6 +289,8 @@ Route::middleware(['auth', 'active', 'farm'])->group(function () {
         Route::get('loans/{loan}/payments/create', [LoanPaymentController::class, 'create'])->name('loans.payments.create');
         Route::post('loans/{loan}/payments', [LoanPaymentController::class, 'store'])->name('loans.payments.store');
         Route::get('loans/{loan}/payments/split', [LoanPaymentController::class, 'split'])->name('loans.payments.split');
+        Route::get('loans/{loan}/entries/create', [RevolvingEntryController::class, 'create'])->name('loans.entries.create');
+        Route::post('loans/{loan}/entries', [RevolvingEntryController::class, 'store'])->name('loans.entries.store');
         Route::get('loans/{loan}/prepayment', [LoanActionController::class, 'prepaymentForm'])->name('loans.prepayment.create');
         Route::post('loans/{loan}/prepayment', [LoanActionController::class, 'prepay'])->name('loans.prepayment.store');
     });
@@ -300,6 +303,9 @@ Route::middleware(['auth', 'active', 'farm'])->group(function () {
     Route::get('loan-transactions/{loan_transaction}/edit', [LoanPaymentController::class, 'edit'])
         ->middleware('can:update,loan_transaction')->name('loan-transactions.edit');
     Route::put('loan-transactions/{loan_transaction}', [LoanPaymentController::class, 'update'])->name('loan-transactions.update');
+    Route::get('loan-transactions/{loan_transaction}/entry', [RevolvingEntryController::class, 'edit'])
+        ->middleware('can:update,loan_transaction')->name('loan-transactions.entry.edit');
+    Route::put('loan-transactions/{loan_transaction}/entry', [RevolvingEntryController::class, 'update'])->name('loan-transactions.entry.update');
     Route::delete('loan-transactions/{loan_transaction}', [LoanPaymentController::class, 'destroy'])->name('loan-transactions.destroy');
     Route::middleware('can:loans.view')->group(function () {
         Route::get('loans', [LoanController::class, 'index'])->name('loans.index');
