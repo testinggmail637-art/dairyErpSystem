@@ -196,6 +196,10 @@ Route::middleware(['auth', 'active', 'farm'])->group(function () {
         ->middleware('can:farmers.view')->name('farmers.show');
     // collection entry: collections.view to see the shift, collections.create to save
     Route::get('collections', [CollectionController::class, 'index'])->middleware('can:collections.view')->name('collections.index');
+    Route::get('collections/list', [CollectionController::class, 'list'])->middleware('can:collections.view')->name('collections.list');
+    Route::get('collections/{collection}/edit', [CollectionController::class, 'edit'])->middleware('can:update,collection')->name('collections.edit');
+    Route::put('collections/{collection}', [CollectionController::class, 'update'])->name('collections.update'); // checked in the request
+    Route::delete('collections/{collection}', [CollectionController::class, 'destroy'])->name('collections.destroy');
     Route::middleware('can:collections.create')->group(function () {
         Route::post('collections', [CollectionController::class, 'store'])->name('collections.store');
         Route::get('collections/quote', [CollectionController::class, 'quote'])->name('collections.quote');

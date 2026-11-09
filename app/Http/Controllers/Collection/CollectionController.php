@@ -4,11 +4,15 @@ namespace App\Http\Controllers\Collection;
 
 use App\Enums\MilkShift;
 use App\Enums\MilkType;
+use App\Enums\QualityStatus;
 use App\Exceptions\BelowStandardMilkException;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Collection\CollectionQuoteRequest;
 use App\Http\Requests\Collection\CollectionRequest;
+use App\Http\Requests\Collection\CollectionUpdateRequest;
+use App\Http\Requests\Collection\DeleteCollectionRequest;
 use App\Models\Farmer;
+use App\Models\MilkCollection;
 use App\Services\CollectionService;
 use DomainException;
 use Illuminate\Http\JsonResponse;
@@ -63,6 +67,78 @@ class CollectionController extends Controller
 
         return redirect()->route('collections.index', ['date' => $collection->collection_date->toDateString(), 'shift' => $collection->shift->value])
             ->with('success', $message);
+    }
+
+    /** All collections with filters, SQL totals and paging (newest first). */
+    public function list(Request $request): View|Response
+    {
+        $valid = fn ($v) => Carbon::canBeCreatedFromFormat((string) $v, 'Y-m-d') ? (string) $v : null;
+        $filters = [
+            'from' => $valid($request->query('from')) ?? today()->startOfMonth()->toDateString(),
+            'to' => $valid($request->query('to')) ?? today()->toDateString(),
+            'shift' => MilkShift::tryFrom((string) $request->query('shift'))?->value ?? '',
+            'milk_type' => MilkType::tryFrom((string) $request->query('milk_type'))?->value ?? '',
+            'status' => QualityStatus::tryFrom((string) $request->query('status'))?->value ?? '',
+            'farmer_id' => (string) ($request->integer('farmer_id') ?: ''),
+        ];
+
+        $query = MilkCollection::query()
+            ->whereBetween('collection_date', [$filters['from'], $filters['to']])
+            ->when($filters['shift'], fn ($q, $v) => $q->where('shift', $v))
+            ->when($filters['milk_type'], fn ($q, $v) => $q->where('milk_type', $v))
+            ->when($filters['status'], fn ($q, $v) => $q->where('quality_status', $v))
+            ->when($filters['farmer_id'], fn ($q, $v) => $q->where('farmer_id', $v));
+
+        $accepted = QualityStatus::Accepted->value;
+        $totals = (clone $query)->toBase()
+            ->selectRaw('COUNT(*) AS cnt, COALESCE(SUM(CASE WHEN quality_status = ? THEN quantity_litre END), 0) AS litres', [$accepted])
+            ->selectRaw('COALESCE(SUM(CASE WHEN quality_status <> ? THEN quantity_litre END), 0) AS rejected, COALESCE(SUM(amount), 0) AS amount', [$accepted])
+            ->first();
+
+        $entries = $query->with(['farmer:id,code,name', 'creator:id,name'])
+            ->orderByDesc('collection_date')->orderByDesc('shift')->orderByDesc('id')
+            ->paginate(50, ['*'], 'page', null, (int) $totals->cnt) // reuse the totals count
+            ->appends(array_filter($filters));
+
+        $farmer = $filters['farmer_id'] ? Farmer::withTrashed()->find((int) $filters['farmer_id'], ['id', 'code', 'name']) : null;
+
+        return $this->listView($request, 'collection.collections.list', [
+            'entries' => $entries,
+            'filters' => $filters,
+            'totals' => $totals,
+            'selectedFarmer' => $farmer ? [$farmer->id => $farmer->code.' · '.$farmer->name] : [],
+        ]);
+    }
+
+    public function edit(MilkCollection $collection): View
+    {
+        return view('collection.collections.edit', ['collection' => $collection->load('farmer:id,code,name')]);
+    }
+
+    public function update(CollectionUpdateRequest $request, MilkCollection $collection): RedirectResponse
+    {
+        try {
+            $this->collections->update($collection, $request->validated());
+        } catch (BelowStandardMilkException $e) {
+            return back()->withInput()->with('error', $e->getMessage())->with('below_standard', true);
+        } catch (DomainException $e) {
+            return back()->withInput()->with('error', $e->getMessage());
+        }
+
+        return redirect()->route('collections.index', ['date' => $collection->collection_date->toDateString(), 'shift' => $collection->shift->value])
+            ->with('success', __('Entry of :code changed: :qty L × :rate = :amount.', ['code' => $collection->farmer->code,
+                'qty' => fmt_qty($collection->quantity_litre), 'rate' => inr($collection->rate_per_litre), 'amount' => inr($collection->amount)]));
+    }
+
+    public function destroy(DeleteCollectionRequest $request, MilkCollection $collection): RedirectResponse
+    {
+        try {
+            $this->collections->delete($collection);
+        } catch (DomainException $e) {
+            return back()->with('error', $e->getMessage());
+        }
+
+        return back()->with('success', __('Entry deleted.'));
     }
 
     /** Live rate and amount for the reading being typed (JSON). */
