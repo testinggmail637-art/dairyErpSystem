@@ -31,10 +31,10 @@ it('shows only menu items the user is allowed to see', function () {
 });
 
 it('hides menu items whose module is not built yet even when permitted', function () {
-    Gate::define('farmers.view', fn () => true); // Farmers arrive in Phase 4
+    Gate::define('animal_trading.view', fn () => true); // Trading arrives in Phase 6
 
     $this->actingAs(User::factory()->forFarm()->create())->get(route('profile.edit'))
-        ->assertDontSee('>Farmers<', false);
+        ->assertDontSee('>Parties<', false);
 });
 
 it('marks the current page as active', function () {

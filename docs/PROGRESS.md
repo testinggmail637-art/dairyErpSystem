@@ -7,12 +7,12 @@
 
 | Item | Value |
 |---|---|
-| Current phase | Phase 3A — Loans, Overdraft & Credit Cards (✅ done, tag `phase-3a-done` after merge) → next Phase 4 |
-| Last completed task | 3A.9 — Loan reports + Phase 3A acceptance test (Phase 3A complete) |
-| Next task | 4.1 — Farmers CRUD |
-| Overall progress | 57 / 97 tasks (59%) |
-| Tests passing | 596 |
-| Last updated (IST) | 2026-11-09 (task/3A.9-loan-reports) |
+| Current phase | Phase 4 — Farmers & Collection Center (🟡 in progress) |
+| Last completed task | 4.1 — Farmers CRUD |
+| Next task | 4.2 — Rate charts (fixed, fat_rate, fat_snf_rate, slab) + slabs + rate preview calculator |
+| Overall progress | 58 / 97 tasks (60%) |
+| Tests passing | 607 |
+| Last updated (IST) | 2026-11-09 (task/4.1-farmers) |
 
 ## Phase overview
 
@@ -23,7 +23,7 @@
 | 2 | Animals, Milk Production, Milk Stock | ✅ Done | 2026-10-19 | 2026-10-28 | `phase-2-done` |
 | 3 | Customers, Delivery, Billing, Payments | ✅ Done | 2026-10-29 | 2026-11-06 | `phase-3-done` |
 | 3A | Loans, Overdraft & Credit Cards (added 2026-11-05) | ✅ Done | 2026-11-06 | 2026-11-09 | `phase-3a-done` |
-| 4 | Farmers & Collection Center | ⬜ Not started | | | |
+| 4 | Farmers & Collection Center | 🟡 In progress | 2026-11-09 | | |
 | 5 | Health, Breeding, Feed | ⬜ Not started | | | |
 | 6 | Animal Trading & Staff | ⬜ Not started | | | |
 | 7 | Dashboard & Reports | ⬜ Not started | | | |
@@ -319,7 +319,7 @@ Status legend: ⬜ Not started · 🟡 In progress · ✅ Done · ⏸ On hold
 ## Phase 4 — Farmers & Collection Center
 
 ### Checklist
-- [ ] 4.1 Farmers CRUD
+- [x] 4.1 Farmers CRUD
 - [ ] 4.2 Rate charts (fixed, fat_rate, fat_snf_rate, slab) + slabs + rate preview calculator
 - [ ] 4.3 Collection entry screen (fast, keyboard-only)
 - [ ] 4.4 Collection list / edit with lock rules
