@@ -2,7 +2,7 @@
 
 You are building a Dairy ERP for an Indian dairy business that has (1) its own cow/buffalo herd,
 (2) a milk collection center that buys milk from farmers, (3) milk sales (B2C home delivery + B2B bulk),
-(4) cow/buffalo buying & selling, and (5) tracking the loans and overdrafts the business has taken (Phase 3A).
+(4) cow/buffalo buying & selling, and (5) tracking the loans, overdrafts / cash credit / KCC and credit cards the business has taken (Phase 3A).
 
 **The full specification is in `docs/DAIRY_ERP_SPEC.md`.** It is the single source of truth. Every table,
 column, business rule, permission and phase is defined there. Do **not** read it whole — see "Token budget" below.

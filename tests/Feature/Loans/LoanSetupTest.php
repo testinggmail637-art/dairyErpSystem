@@ -75,8 +75,10 @@ it('stores loans per farm with enum and money casts and soft delete', function (
     expect(Loan::count())->toBe(0)->and(Loan::withTrashed()->count())->toBe(1);
 });
 
-it('hides the Loans menu item until the loan screens exist', function () {
+it('shows the Loans menu item only to users with loans.view', function () {
     $owner = User::factory()->forFarm($this->farm)->withRole(RoleName::Owner)->create();
+    $herd = User::factory()->forFarm($this->farm)->withRole(RoleName::HerdStaff)->create();
 
-    $this->actingAs($owner)->get(route('profile.edit'))->assertOk()->assertDontSee('>Loans<', false);
+    $this->actingAs($owner)->get(route('profile.edit'))->assertOk()->assertSee(route('loans.index'), false);
+    $this->actingAs($herd)->get(route('profile.edit'))->assertOk()->assertDontSee(route('loans.index'), false);
 });

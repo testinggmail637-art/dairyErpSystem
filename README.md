@@ -18,7 +18,7 @@ cow/buffalo buying & selling, expenses, loans & overdraft, staff, and profit rep
 | 1 | Expense Management (no approval) + Excel import | ✅ Done (v0.1.0) |
 | 2 | Animals, Milk Production, Milk Stock | ✅ Done (v0.2.0) |
 | 3 | Customers, Delivery, Billing, Payments | ✅ Done (v0.3.0) |
-| 3A | Loans & Overdraft | 🟡 In progress |
+| 3A | Loans, Overdraft & Credit Cards | 🟡 In progress |
 | 4 | Farmers & Collection Center | ⬜ Not started |
 | 5 | Health, Breeding, Feed | ⬜ Not started |
 | 6 | Animal Trading & Staff | ⬜ Not started |
@@ -58,7 +58,7 @@ _TODO: for each module, list the working features in plain language once its pha
   finalize with number, balance snapshots and PDF, cancel); payments set against bills oldest first (paid / part paid,
   advance); adjustments (discounts / extra charges); customer ledger with running balance (Excel / PDF); sales
   reports (customer-, route-, product-wise, dairy plant reconciliation).
-- **Loans & overdraft** — _TODO_ (Phase 3A: loans taken with interest, tenure, EMI schedule and due dates, EMIs paid / left, amount paid per loan, outstanding; overdraft limit / utilized / available)
+- **Loans, overdraft & credit cards** 🟡 — loans and overdrafts with EMI schedule (reducing / flat / interest-only), processing fee as expense. Still to come (Phase 3A, redesigned 2026-11-06): more loan types (dairy / NABARD, gold, cash credit, KCC, credit card, card EMI, private), quarterly / half-yearly instalments, moratorium, bullet repayment, payments with interest → expense, prepayment / rate change, OD / CC / KCC entries with interest estimate, credit cards (bill, interest + GST), reminders, dashboard, loan reports; loan interest shown in expenses, principal as a separate "principal repaid" line.
 - **Collection center** — _TODO_
 - **Health, breeding & feed** — _TODO_
 - **Animal trading** — _TODO_

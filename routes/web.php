@@ -15,6 +15,7 @@ use App\Http\Controllers\Herd\AnimalBreedController;
 use App\Http\Controllers\Herd\AnimalController;
 use App\Http\Controllers\Herd\MilkProductionController;
 use App\Http\Controllers\HomeController;
+use App\Http\Controllers\Loans\LoanController;
 use App\Http\Controllers\MilkStock\MilkStockController;
 use App\Http\Controllers\Reports\ExpenseReportController;
 use App\Http\Controllers\Reports\MilkReportController;
@@ -271,6 +272,19 @@ Route::middleware(['auth', 'active', 'farm'])->group(function () {
 
     // Download a queued (large) export file made for the logged-in user
     Route::get('exports/{file}', ExportDownloadController::class)->name('exports.download');
+
+    // Loans & overdraft (spec Phase 3A): loans.view to see, loans.manage to add / edit / delete
+    Route::middleware('can:loans.manage')->group(function () {
+        Route::get('loans/create', [LoanController::class, 'create'])->name('loans.create');
+        Route::post('loans', [LoanController::class, 'store'])->name('loans.store');
+        Route::get('loans/{loan}/edit', [LoanController::class, 'edit'])->name('loans.edit');
+        Route::put('loans/{loan}', [LoanController::class, 'update'])->name('loans.update');
+        Route::delete('loans/{loan}', [LoanController::class, 'destroy'])->name('loans.destroy');
+    });
+    Route::middleware('can:loans.view')->group(function () {
+        Route::get('loans', [LoanController::class, 'index'])->name('loans.index');
+        Route::get('loans/{loan}', [LoanController::class, 'show'])->whereNumber('loan')->name('loans.show');
+    });
 
     Route::get('vendors', [VendorController::class, 'index'])->middleware('can:vendors.view')->name('vendors.index');
     Route::get('vendors/search', [VendorController::class, 'search'])->middleware('can:vendors.view')->name('vendors.search');
