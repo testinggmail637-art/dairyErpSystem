@@ -1,0 +1,101 @@
+<?php
+
+namespace App\Http\Controllers\Collection;
+
+use App\Enums\MilkType;
+use App\Http\Controllers\Controller;
+use App\Http\Requests\Collection\DeleteFarmerRequest;
+use App\Http\Requests\Collection\FarmerRequest;
+use App\Models\Farmer;
+use App\Services\FarmerService;
+use Illuminate\Http\JsonResponse;
+use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\Request;
+use Illuminate\Http\Response;
+use Illuminate\View\View;
+
+/** Collection → Farmers (spec Phase 4). */
+class FarmerController extends Controller
+{
+    public function __construct(private readonly FarmerService $farmers) {}
+
+    public function index(Request $request): View|Response
+    {
+        $filters = [
+            'search' => trim((string) $request->query('search')),
+            'milk_type' => (string) $request->query('milk_type'),
+            'status' => (string) $request->query('status'),
+        ];
+
+        $farmers = Farmer::query()
+            ->search($filters['search'])
+            ->when(MilkType::tryFrom($filters['milk_type']), fn ($q, $type) => $q->where('default_milk_type', $type))
+            ->when($filters['status'] === 'active', fn ($q) => $q->where('is_active', true))
+            ->when($filters['status'] === 'inactive', fn ($q) => $q->where('is_active', false))
+            ->orderBy('code')
+            ->paginate(50)
+            ->withQueryString();
+
+        return $this->listView($request, 'collection.farmers.index', compact('farmers', 'filters'));
+    }
+
+    public function create(): View
+    {
+        return view('collection.farmers.form', ['farmer' => new Farmer([
+            'default_milk_type' => MilkType::Cow, 'is_active' => true, 'opening_balance' => '0.00',
+        ])]);
+    }
+
+    public function store(FarmerRequest $request): RedirectResponse
+    {
+        $farmer = $this->farmers->create($request->validated());
+
+        return redirect()->route('farmers.show', $farmer)
+            ->with('success', __('Farmer :name added as :code.', ['name' => $farmer->name, 'code' => $farmer->code]));
+    }
+
+    public function show(Farmer $farmer): View
+    {
+        return view('collection.farmers.show', ['farmer' => $farmer]);
+    }
+
+    public function edit(Farmer $farmer): View
+    {
+        return view('collection.farmers.form', ['farmer' => $farmer]);
+    }
+
+    public function update(FarmerRequest $request, Farmer $farmer): RedirectResponse
+    {
+        $this->farmers->update($farmer, $request->validated());
+
+        return redirect()->route('farmers.show', $farmer)->with('success', __('Farmer :name updated.', ['name' => $farmer->name]));
+    }
+
+    public function destroy(DeleteFarmerRequest $request, Farmer $farmer): RedirectResponse
+    {
+        $this->farmers->delete($farmer);
+
+        return redirect()->route('farmers.index')->with('success', __('Farmer :name deleted.', ['name' => $farmer->name]));
+    }
+
+    /**
+     * Select2 / collection-entry search: active farmers by code (7 → F-007), name, village or phone, 20 per page.
+     * Response: {"results": [{"id": 1, "text": "F-007 · Ramesh Patil · Wadgaon", "milk_type": "cow"}], "pagination": {"more": false}}
+     */
+    public function search(Request $request): JsonResponse
+    {
+        $farmers = Farmer::query()->active()
+            ->search($request->query('q'))
+            ->orderBy('code')
+            ->simplePaginate(20, ['id', 'code', 'name', 'village', 'default_milk_type'], 'page', max(1, $request->integer('page', 1)));
+
+        return response()->json([
+            'results' => $farmers->getCollection()->map(fn (Farmer $f) => [
+                'id' => $f->id,
+                'text' => collect([$f->code, $f->name, $f->village])->filter()->implode(' · '),
+                'milk_type' => $f->default_milk_type->value,
+            ])->values(),
+            'pagination' => ['more' => $farmers->hasMorePages()],
+        ]);
+    }
+}

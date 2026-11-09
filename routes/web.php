@@ -4,6 +4,7 @@ use App\Http\Controllers\Account\ExportDownloadController;
 use App\Http\Controllers\Account\NotificationController;
 use App\Http\Controllers\Account\ProfileController;
 use App\Http\Controllers\Auth\LoginController;
+use App\Http\Controllers\Collection\FarmerController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\Expenses\ExpenseCategoryController;
 use App\Http\Controllers\Expenses\ExpenseController;
@@ -182,6 +183,15 @@ Route::middleware(['auth', 'active', 'farm'])->group(function () {
             Route::post('adjustments', [MilkStockController::class, 'store'])->name('adjustments.store');
         });
     });
+
+    /*
+    | Collection (spec Phase 4) — farmers: farmers.view to see, farmers.manage to add / edit / delete
+    */
+    Route::get('farmers', [FarmerController::class, 'index'])->middleware('can:farmers.view')->name('farmers.index');
+    Route::get('farmers/search', [FarmerController::class, 'search'])->middleware('can:farmers.view')->name('farmers.search');
+    Route::resource('farmers', FarmerController::class)->except(['index', 'show'])->middleware('can:farmers.manage');
+    Route::get('farmers/{farmer}', [FarmerController::class, 'show'])->whereNumber('farmer')
+        ->middleware('can:farmers.view')->name('farmers.show');
 
     /*
     | Sales (spec Phase 3) — customers, routes and products: customers.view to see, customers.manage to add / edit
