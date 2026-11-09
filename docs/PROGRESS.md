@@ -8,11 +8,11 @@
 | Item | Value |
 |---|---|
 | Current phase | Phase 4 — Farmers & Collection Center (🟡 in progress) |
-| Last completed task | 4.3 — Collection entry screen (keyboard-only, live rate, below-standard choice) |
-| Next task | 4.4 — Collection list / edit with lock rules |
-| Overall progress | 60 / 97 tasks (62%) |
-| Tests passing | 618 |
-| Last updated (IST) | 2026-11-09 (task/4.3-collection-entry) |
+| Last completed task | 4.4 — Collection list / edit / delete with lock rules |
+| Next task | 4.5 — Farmer advances |
+| Overall progress | 61 / 97 tasks (63%) |
+| Tests passing | 623 |
+| Last updated (IST) | 2026-11-09 (task/4.4-collection-list-edit) |
 
 ## Phase overview
 
@@ -322,7 +322,7 @@ Status legend: ⬜ Not started · 🟡 In progress · ✅ Done · ⏸ On hold
 - [x] 4.1 Farmers CRUD
 - [x] 4.2 Rate charts (fixed, fat_rate, fat_snf_rate, slab) + slabs + rate preview calculator
 - [x] 4.3 Collection entry screen (fast, keyboard-only)
-- [ ] 4.4 Collection list / edit with lock rules
+- [x] 4.4 Collection list / edit with lock rules
 - [ ] 4.5 Farmer advances
 - [ ] 4.6 Payment cycles: create, draft edit, finalize, mark paid
 - [ ] 4.7 Farmer statement PDF + bank sheet Excel

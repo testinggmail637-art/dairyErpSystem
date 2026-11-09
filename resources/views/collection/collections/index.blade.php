@@ -8,6 +8,10 @@
     $isToday = $date === today()->toDateString();
 @endphp
 
+@section('page-actions')
+    <a href="{{ route('collections.list') }}" class="btn btn-outline-secondary btn-sm"><i class="bi bi-list-ul me-1"></i>{{ __('All collections') }}</a>
+@endsection
+
 @section('content')
 {{-- Date + shift --}}
 <div class="card mb-3">
@@ -131,45 +135,7 @@
             <span class="text-danger">{{ __('Rejected :qty L', ['qty' => fmt_qty($totals['rejected'])]) }}</span>
         @endif
     </div>
-    <div class="table-responsive">
-        <table class="table table-sm table-hover align-middle mb-0">
-            <thead>
-                <tr>
-                    <th>{{ __('Farmer') }}</th>
-                    <th>{{ __('Milk') }}</th>
-                    <th class="text-end">{{ __('Litres') }}</th>
-                    <th class="text-end">{{ __('Fat') }}</th>
-                    <th class="text-end">{{ __('SNF') }}</th>
-                    <th class="text-end">{{ __('Rate') }}</th>
-                    <th class="text-end">{{ __('Amount') }}</th>
-                    <th>{{ __('Status') }}</th>
-                </tr>
-            </thead>
-            <tbody>
-                @forelse ($entries as $entry)
-                    <tr @class(['table-danger' => ! $entry->isAccepted()])>
-                        <td><span class="font-monospace small">{{ $entry->farmer->code }}</span> {{ $entry->farmer->name }}</td>
-                        <td>{{ $entry->milk_type->label() }}</td>
-                        <td class="text-end">{{ fmt_qty($entry->quantity_litre) }}</td>
-                        <td class="text-end">{{ $entry->fat ?? '—' }}</td>
-                        <td class="text-end">{{ $entry->snf ?? '—' }}</td>
-                        <td class="text-end">{{ inr($entry->rate_per_litre) }}</td>
-                        <td class="text-end fw-semibold">{{ inr($entry->amount) }}</td>
-                        <td>
-                            @if ($entry->isAccepted())
-                                <span class="badge text-bg-success">{{ __('Accepted') }}</span>
-                            @else
-                                <span class="badge text-bg-danger" title="{{ $entry->rejection_reason }}">{{ __('Rejected') }}</span>
-                                <div class="small text-body-secondary">{{ $entry->rejection_reason }}</div>
-                            @endif
-                        </td>
-                    </tr>
-                @empty
-                    <tr><td colspan="8" class="text-center text-body-secondary py-4">{{ __('No milk collected in this shift yet.') }}</td></tr>
-                @endforelse
-            </tbody>
-        </table>
-    </div>
+    @include('collection.collections._table', ['entries' => $entries, 'showDate' => false])
     @endfragment
 </div>
 @endsection

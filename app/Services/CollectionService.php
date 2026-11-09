@@ -60,9 +60,66 @@ class CollectionService
         }
 
         $farmer = Farmer::query()->findOrFail($data['farmer_id']);
+        $attributes = $this->priced($farmer, $data, null);
+
+        try {
+            return [DB::transaction(function () use ($attributes, $farmer, $uuid) {
+                $collection = MilkCollection::create($attributes + ['farmer_id' => $farmer->id, 'client_uuid' => $uuid]);
+                $this->stock->syncForReference($collection);
+
+                return $collection;
+            }), true];
+        } catch (UniqueConstraintViolationException $e) {
+            // a double submit raced past the checks: the unique index kept the first one
+            $existing = $uuid ? MilkCollection::query()->where('client_uuid', $uuid)->first() : null;
+            if ($existing) {
+                return [$existing, false];
+            }
+            $this->ensureFirstOfShift($farmer, $attributes['collection_date'], $attributes['shift'], $attributes['milk_type']);
+
+            throw $e;
+        }
+    }
+
+    /**
+     * Change an entry (farmer stays). It is priced again from the chart in force on its date, like a new entry.
+     *
+     * @param  array<string, mixed>  $data
+     *
+     * @throws BelowStandardMilkException|DomainException
+     */
+    public function update(MilkCollection $collection, array $data): MilkCollection
+    {
+        return DB::transaction(function () use ($collection, $data) {
+            $this->ensureUnlocked($collection);
+            $collection->fill($this->priced($collection->farmer, $data, $collection->id))->save();
+            $this->stock->syncForReference($collection);
+
+            return $collection;
+        });
+    }
+
+    /** Delete an entry and its stock movement. */
+    public function delete(MilkCollection $collection): void
+    {
+        DB::transaction(function () use ($collection) {
+            $this->ensureUnlocked($collection);
+            $this->stock->deleteForReference($collection);
+            $collection->delete();
+        });
+    }
+
+    /**
+     * Row attributes with the rate copied from the chart (accepted) or ₹0 (rejected).
+     *
+     * @param  array<string, mixed>  $data
+     * @return array<string, mixed>
+     */
+    private function priced(Farmer $farmer, array $data, ?int $exceptId): array
+    {
         $milkType = MilkType::from($data['milk_type']);
         $shift = MilkShift::from($data['shift']);
-        $this->ensureFirstOfShift($farmer, $data['collection_date'], $shift, $milkType);
+        $this->ensureFirstOfShift($farmer, $data['collection_date'], $shift, $milkType, $exceptId);
 
         $qty = Money::round2($data['quantity_litre']);
         $accepted = ($data['quality_status'] ?? QualityStatus::Accepted->value) === QualityStatus::Accepted->value;
@@ -74,29 +131,21 @@ class CollectionService
             }
         }
 
-        try {
-            return [DB::transaction(function () use ($data, $farmer, $milkType, $shift, $qty, $accepted, $price, $uuid) {
-                $collection = MilkCollection::create([
-                    'collection_date' => $data['collection_date'], 'shift' => $shift, 'farmer_id' => $farmer->id, 'milk_type' => $milkType,
-                    'quantity_litre' => $qty, 'fat' => $data['fat'] ?? null, 'snf' => $data['snf'] ?? null, 'clr' => $data['clr'] ?? null,
-                    'rate_chart_id' => $price['chart_id'], 'rate_per_litre' => $price['rate'], 'amount' => $price['amount'],
-                    'quality_status' => $accepted ? QualityStatus::Accepted : QualityStatus::Rejected,
-                    'rejection_reason' => $accepted ? null : ($data['rejection_reason'] ?? null),
-                    'client_uuid' => $uuid, 'notes' => $data['notes'] ?? null,
-                ]);
-                $this->stock->syncForReference($collection);
+        return [
+            'collection_date' => $data['collection_date'], 'shift' => $shift, 'milk_type' => $milkType, 'quantity_litre' => $qty,
+            'fat' => $data['fat'] ?? null, 'snf' => $data['snf'] ?? null, 'clr' => $data['clr'] ?? null,
+            'rate_chart_id' => $price['chart_id'], 'rate_per_litre' => $price['rate'], 'amount' => $price['amount'],
+            'quality_status' => $accepted ? QualityStatus::Accepted : QualityStatus::Rejected,
+            'rejection_reason' => $accepted ? null : ($data['rejection_reason'] ?? null),
+            'notes' => $data['notes'] ?? null,
+        ];
+    }
 
-                return $collection;
-            }), true];
-        } catch (UniqueConstraintViolationException $e) {
-            // a double submit raced past the checks: the unique index kept the first one
-            $existing = $uuid ? MilkCollection::query()->where('client_uuid', $uuid)->first() : null;
-            if ($existing) {
-                return [$existing, false];
-            }
-            $this->ensureFirstOfShift($farmer, $data['collection_date'], $shift, $milkType);
-
-            throw $e;
+    private function ensureUnlocked(MilkCollection $collection): void
+    {
+        // re-read under a lock: a payment cycle may have just taken this entry
+        if (MilkCollection::query()->whereKey($collection->id)->lockForUpdate()->value('farmer_payment_id') !== null) {
+            throw new DomainException(__('This entry is in a farmer payment statement and is locked.'));
         }
     }
 
@@ -143,10 +192,11 @@ class CollectionService
         ];
     }
 
-    private function ensureFirstOfShift(Farmer $farmer, string $date, MilkShift $shift, MilkType $milkType): void
+    private function ensureFirstOfShift(Farmer $farmer, string $date, MilkShift $shift, MilkType $milkType, ?int $exceptId = null): void
     {
         $taken = MilkCollection::query()->where('farmer_id', $farmer->id)->where('collection_date', $date)
-            ->where('shift', $shift)->where('milk_type', $milkType)->exists();
+            ->where('shift', $shift)->where('milk_type', $milkType)
+            ->when($exceptId, fn ($q) => $q->whereKeyNot($exceptId))->exists();
 
         if ($taken) {
             throw new DomainException(__(':code :name already has :milk milk in the :date :shift shift. Change that entry instead.', [
