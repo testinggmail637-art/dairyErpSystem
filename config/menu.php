@@ -40,6 +40,7 @@ return [
             ['label' => 'Farmers', 'route' => 'farmers.index', 'active' => 'farmers.*', 'permission' => 'farmers.view'],
             ['label' => 'Collection Entry', 'route' => 'collections.index', 'active' => 'collections.*', 'permission' => 'collections.view'],
             ['label' => 'Rate Charts', 'route' => 'rate-charts.index', 'active' => 'rate-charts.*', 'permission' => 'rate_charts.manage'],
+            ['label' => 'Advances', 'route' => 'farmer-advances.index', 'active' => 'farmer-advances.*', 'permission' => 'farmer_advances.manage'],
             ['label' => 'Farmer Payments', 'route' => 'farmer-payments.index', 'active' => 'farmer-payments.*', 'permission' => 'farmer_payments.view'],
         ],
     ],

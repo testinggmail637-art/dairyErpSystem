@@ -5,6 +5,7 @@ use App\Http\Controllers\Account\NotificationController;
 use App\Http\Controllers\Account\ProfileController;
 use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\Collection\CollectionController;
+use App\Http\Controllers\Collection\FarmerAdvanceController;
 use App\Http\Controllers\Collection\FarmerController;
 use App\Http\Controllers\Collection\RateChartController;
 use App\Http\Controllers\DashboardController;
@@ -203,6 +204,12 @@ Route::middleware(['auth', 'active', 'farm'])->group(function () {
     Route::middleware('can:collections.create')->group(function () {
         Route::post('collections', [CollectionController::class, 'store'])->name('collections.store');
         Route::get('collections/quote', [CollectionController::class, 'quote'])->name('collections.quote');
+    });
+    // farmer advances: farmer_advances.manage
+    Route::middleware('can:farmer_advances.manage')->group(function () {
+        Route::get('farmer-advances', [FarmerAdvanceController::class, 'index'])->name('farmer-advances.index');
+        Route::post('farmer-advances', [FarmerAdvanceController::class, 'store'])->name('farmer-advances.store');
+        Route::delete('farmer-advances/{farmer_advance}', [FarmerAdvanceController::class, 'destroy'])->name('farmer-advances.destroy');
     });
     // rate charts + preview calculator: rate_charts.manage
     Route::middleware('can:rate_charts.manage')->group(function () {
