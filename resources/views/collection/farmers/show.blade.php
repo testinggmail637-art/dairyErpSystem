@@ -24,6 +24,8 @@
                     <dt class="col-5 fw-normal text-body-secondary">{{ __('Village') }}</dt><dd class="col-7">{{ $farmer->village ?: '—' }}</dd>
                     <dt class="col-5 fw-normal text-body-secondary">{{ __('Address') }}</dt><dd class="col-7">{{ $farmer->address ?: '—' }}</dd>
                     <dt class="col-5 fw-normal text-body-secondary">{{ __('Usual milk') }}</dt><dd class="col-7">{{ $farmer->default_milk_type->label() }}</dd>
+                    <dt class="col-5 fw-normal text-body-secondary">{{ __('Rate chart') }}</dt>
+                    <dd class="col-7">@if ($farmer->rateChart)@can('rate_charts.manage')<a href="{{ route('rate-charts.show', $farmer->rateChart) }}">{{ $farmer->rateChart->name }}</a>@else{{ $farmer->rateChart->name }}@endcan @else{{ __('Default chart of the milk') }}@endif</dd>
                     <dt class="col-5 fw-normal text-body-secondary">{{ __('Status') }}</dt>
                     <dd class="col-7">{!! $farmer->is_active ? '<span class="badge text-bg-success">'.e(__('Active')).'</span>' : '<span class="badge text-bg-secondary">'.e(__('Inactive')).'</span>' !!}</dd>
                     @if ($farmer->notes)

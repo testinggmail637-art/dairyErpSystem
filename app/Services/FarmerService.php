@@ -60,6 +60,7 @@ class FarmerService
             'village' => $data['village'] ?? null,
             'address' => $data['address'] ?? null,
             'default_milk_type' => $data['default_milk_type'],
+            'rate_chart_id' => $data['rate_chart_id'] ?? null,
             'bank_account_name' => $data['bank_account_name'] ?? null,
             'bank_account_no' => $data['bank_account_no'] ?? null,
             'ifsc' => $data['ifsc'] ?? null,

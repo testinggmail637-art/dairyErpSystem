@@ -10,6 +10,7 @@ use Database\Factories\FarmerFactory;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
 /** A farmer who sells milk to our collection center (spec Phase 4). Opening balance + = we owe the farmer. */
@@ -50,6 +51,14 @@ class Farmer extends Model
             'opening_balance' => 'decimal:2',
             'is_active' => 'boolean',
         ];
+    }
+
+    /**
+     * @return BelongsTo<RateChart, $this> own rate chart (overrides the default chart of the milk type)
+     */
+    public function rateChart(): BelongsTo
+    {
+        return $this->belongsTo(RateChart::class)->withTrashed();
     }
 
     protected function setPhoneAttribute(?string $value): void

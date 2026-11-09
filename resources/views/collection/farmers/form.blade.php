@@ -42,6 +42,13 @@
                         </div>
                     </div>
 
+                    <div class="row g-3">
+                        <div class="col-12 col-md-6">
+                            <x-form.select name="rate_chart_id" :label="__('Own rate chart')" :options="$rateCharts" :selected="$farmer->rate_chart_id"
+                                           :placeholder="__('Default chart of the milk')" :help="__('Only when this farmer is paid at a different rate than the others.')" />
+                        </div>
+                    </div>
+
                     <h2 class="h6 mt-2">{{ __('Payment details') }}</h2>
                     <div class="row g-3">
                         <div class="col-12 col-md-6">

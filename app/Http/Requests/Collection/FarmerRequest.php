@@ -6,6 +6,7 @@ use App\Enums\MilkType;
 use App\Http\Requests\Concerns\RequiresReason;
 use App\Models\Farmer;
 use App\Models\User;
+use App\Support\CurrentFarm;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
@@ -35,6 +36,7 @@ class FarmerRequest extends FormRequest
             'upi_id' => strtolower(trim((string) $this->input('upi_id'))) ?: null,
             'opening_balance' => $opening === '' ? '0' : $opening,
             'is_active' => $this->has('is_active') ? $this->boolean('is_active') : true,
+            'rate_chart_id' => $this->input('rate_chart_id') ?: null,
         ]);
     }
 
@@ -50,6 +52,9 @@ class FarmerRequest extends FormRequest
             'village' => ['nullable', 'string', 'max:100'],
             'address' => ['nullable', 'string', 'max:500'],
             'default_milk_type' => ['required', Rule::enum(MilkType::class)],
+            // own rate chart (overrides the default chart), same milk type, of this farm
+            'rate_chart_id' => ['nullable', 'integer', Rule::exists('rate_charts', 'id')->where('farm_id', app(CurrentFarm::class)->id())
+                ->where('milk_type', (string) $this->input('default_milk_type'))->whereNull('deleted_at')],
             'bank_account_name' => ['nullable', 'string', 'max:150'],
             'bank_account_no' => ['nullable', 'regex:/^\d{9,18}$/'],
             'ifsc' => ['nullable', 'required_with:bank_account_no', 'regex:/^[A-Z]{4}0[A-Z0-9]{6}$/'],
@@ -67,6 +72,7 @@ class FarmerRequest extends FormRequest
     {
         return [
             'phone.digits' => __('Enter a 10-digit mobile number.'),
+            'rate_chart_id.exists' => __('Choose a rate chart for the same milk as the farmer\'s usual milk.'),
             'bank_account_no.regex' => __('Enter the account number: 9 to 18 digits.'),
             'ifsc.required_with' => __('Enter the IFSC code of the bank branch.'),
             'ifsc.regex' => __('Enter a valid 11-character IFSC, e.g. SBIN0001234.'),

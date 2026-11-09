@@ -7,6 +7,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\Collection\DeleteFarmerRequest;
 use App\Http\Requests\Collection\FarmerRequest;
 use App\Models\Farmer;
+use App\Models\RateChart;
 use App\Services\FarmerService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
@@ -41,9 +42,9 @@ class FarmerController extends Controller
 
     public function create(): View
     {
-        return view('collection.farmers.form', ['farmer' => new Farmer([
+        return view('collection.farmers.form', $this->formData(new Farmer([
             'default_milk_type' => MilkType::Cow, 'is_active' => true, 'opening_balance' => '0.00',
-        ])]);
+        ])));
     }
 
     public function store(FarmerRequest $request): RedirectResponse
@@ -56,12 +57,12 @@ class FarmerController extends Controller
 
     public function show(Farmer $farmer): View
     {
-        return view('collection.farmers.show', ['farmer' => $farmer]);
+        return view('collection.farmers.show', ['farmer' => $farmer->load('rateChart:id,name')]);
     }
 
     public function edit(Farmer $farmer): View
     {
-        return view('collection.farmers.form', ['farmer' => $farmer]);
+        return view('collection.farmers.form', $this->formData($farmer));
     }
 
     public function update(FarmerRequest $request, Farmer $farmer): RedirectResponse
@@ -76,6 +77,16 @@ class FarmerController extends Controller
         $this->farmers->delete($farmer);
 
         return redirect()->route('farmers.index')->with('success', __('Farmer :name deleted.', ['name' => $farmer->name]));
+    }
+
+    /** @return array<string, mixed> */
+    private function formData(Farmer $farmer): array
+    {
+        // own rate chart: active charts (or the farmer's current one), grouped by milk in the label
+        $charts = RateChart::query()->where(fn ($q) => $q->where('is_active', true)->orWhere('id', $farmer->rate_chart_id))
+            ->orderBy('milk_type')->orderBy('name')->get(['id', 'name', 'milk_type']);
+
+        return ['farmer' => $farmer, 'rateCharts' => $charts->mapWithKeys(fn ($c) => [$c->id => $c->milk_type->label().' · '.$c->name])->all()];
     }
 
     /**

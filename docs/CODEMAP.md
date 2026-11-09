@@ -32,6 +32,7 @@ Keep this file short. Update it in the same commit when you add a new **shared**
 - **Financial year** `app/Support/FinancialYear.php`. **Permissions list** `app/Support/Permissions.php`. **Menu** `app/Support/Menu.php`.
 - **Exports** `app/Support/Exporter.php::download()` (queues big ones), `app/Reports/ReportTable.php` (report table + PDF/Excel).
 - **Loans at a glance** `Services/LoanOverviewService.php` (`overview()` for dashboard cards, `reminders()` for `loans:reminders`); OD / card balances in `Services/RevolvingAccountService.php`.
+- **Farmer milk rate** `Services/RateChartService.php` — `resolve(farmer, milkType, date)` then `calculate(chart, fat, snf)` → rate + below-standard flag (copy the rate onto the row).
 - **Milk stock** models moving milk implement `app/Contracts/MovesMilkStock.php`; ledger in `Services/MilkStockService.php`.
 - **Sales money** `Services/PricingService` (customer rate on a date, batch `ownRatesFor`), `CustomerBalanceService`
   (ledger balance as of a date, payments / adjustments between dates), `PaymentAllocationService::allocate($customerId)`
