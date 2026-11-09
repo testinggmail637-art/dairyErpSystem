@@ -69,7 +69,7 @@ class LoanController extends Controller
     {
         return view('loans.show', [
             'loan' => $loan,
-            'installments' => $loan->isOverdraft() ? collect() : $loan->installments()->get(),
+            'installments' => $loan->hasSchedule() ? $loan->installments()->get() : collect(),
             'feeExpenseId' => Expense::query()->where('source_type', $loan->getMorphClass())->where('source_id', $loan->id)->value('id'),
             'locked' => $this->loans->hasTransactions($loan),
         ]);

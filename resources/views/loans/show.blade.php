@@ -17,31 +17,41 @@
 @section('content')
 <div class="row g-3 mb-3">
     <div class="col-6 col-lg-3"><div class="card h-100"><div class="card-body">
-        <div class="small text-body-secondary">{{ $loan->isOverdraft() ? __('Sanctioned limit') : __('Loan amount') }}</div>
+        <div class="small text-body-secondary">{{ match ($loan->family()) { \App\Enums\LoanFamily::Revolving => __('Sanctioned limit'), \App\Enums\LoanFamily::CreditCard => __('Credit limit'), default => __('Loan amount') } }}</div>
         <div class="fs-5 fw-semibold"><x-money :value="$loan->principal_amount" /></div>
     </div></div></div>
     <div class="col-6 col-lg-3"><div class="card h-100"><div class="card-body">
         <div class="small text-body-secondary">{{ __('Interest') }}</div>
         <div class="fs-5">{{ $loan->interest_rate }} % {{ __('a year') }}</div>
-        @if ($loan->repayment_method)<div class="small text-body-secondary">{{ $loan->repayment_method->label() }}</div>@endif
+        <div class="small text-body-secondary">= {{ \App\Support\Money::div($loan->interest_rate, '12') }} % {{ __('a month') }}@if ($loan->repayment_method) · {{ $loan->repayment_method->label() }}@endif</div>
     </div></div></div>
-    @unless ($loan->isOverdraft())
+    @if ($loan->hasSchedule())
         <div class="col-6 col-lg-3"><div class="card h-100"><div class="card-body">
-            <div class="small text-body-secondary">{{ $loan->repayment_method === \App\Enums\RepaymentMethod::InterestOnly ? __('Monthly interest') : __('EMI') }}</div>
+            <div class="small text-body-secondary">{{ match ($loan->repayment_method) { \App\Enums\RepaymentMethod::InterestOnly => __('Interest each instalment'), \App\Enums\RepaymentMethod::Bullet => __('Pay at maturity'), default => __('EMI') } }}</div>
             <div class="fs-5 fw-semibold"><x-money :value="$loan->emi_amount" /></div>
-            <div class="small text-body-secondary">{{ __(':n instalments from :date', ['n' => $loan->tenure_months, 'date' => fmt_date($loan->first_due_date)]) }}</div>
+            <div class="small text-body-secondary">
+                {{ __(':n instalments, :freq, from :date', ['n' => $installments->where('installment_no', '>', 0)->count(), 'freq' => mb_strtolower($loan->installment_frequency->label()), 'date' => fmt_date($loan->first_due_date)]) }}
+                @if ($loan->moratorium_months) · {{ __(':m months moratorium', ['m' => $loan->moratorium_months]) }}@endif
+            </div>
         </div></div></div>
         <div class="col-6 col-lg-3"><div class="card h-100"><div class="card-body">
             <div class="small text-body-secondary">{{ __('Total interest (schedule)') }}</div>
             <div class="fs-5"><x-money :value="\App\Support\Money::sum($installments->pluck('interest_part'))" /></div>
             <div class="small text-body-secondary">{{ __('Total to pay') }} <x-money :value="\App\Support\Money::sum($installments->pluck('emi_amount'))" /></div>
         </div></div></div>
+    @elseif ($loan->isRevolving())
+        <div class="col-6 col-lg-3"><div class="card h-100"><div class="card-body">
+            <div class="small text-body-secondary">{{ __('Bank debits interest') }}</div>
+            <div class="fs-5">{{ $loan->interest_debit_cycle?->label() }}</div>
+            <div class="small text-body-secondary">{{ __('Renewal') }}: {{ $loan->od_renewal_date ? fmt_date($loan->od_renewal_date) : '—' }}</div>
+        </div></div></div>
     @else
         <div class="col-6 col-lg-3"><div class="card h-100"><div class="card-body">
-            <div class="small text-body-secondary">{{ __('Renewal date') }}</div>
-            <div class="fs-5">{{ $loan->od_renewal_date ? fmt_date($loan->od_renewal_date) : '—' }}</div>
+            <div class="small text-body-secondary">{{ __('Bill day · due day') }}</div>
+            <div class="fs-5">{{ $loan->statement_day }} · {{ $loan->due_day }}</div>
+            <div class="small text-body-secondary">{{ __('of every month') }}</div>
         </div></div></div>
-    @endunless
+    @endif
 </div>
 
 <div class="row g-3">
@@ -64,8 +74,10 @@
     </div>
 
     <div class="col-12 col-lg-8">
-        @if ($loan->isOverdraft())
-            <div class="card"><div class="card-body text-body-secondary">{{ __('An overdraft has no EMI schedule. Withdrawals, repayments and bank interest are recorded on this page once overdraft entries are added (next task).') }}</div></div>
+        @unless ($loan->hasSchedule())
+            <div class="card"><div class="card-body text-body-secondary">{{ $loan->isCard()
+                ? __('A credit card has no schedule. Purchases, bill payments, interest and fees are recorded here once card entries are added (Task 3A.7).')
+                : __('This account has no EMI schedule. Withdrawals, repayments and bank interest are recorded here once account entries are added (Task 3A.6).') }}</div></div>
         @else
             <div class="card">
                 <div class="card-header fw-semibold">{{ __('Repayment schedule') }}</div>
@@ -85,7 +97,7 @@
                         <tbody>
                             @foreach ($installments as $i)
                                 <tr>
-                                    <td>{{ $i->installment_no }}</td>
+                                    <td class="text-nowrap">{{ $i->installment_no ?: __('BPI') }}@if ($i->installment_no === 0)<span class="small text-body-secondary d-block">{{ __('broken period') }}</span>@endif</td>
                                     <td class="text-nowrap">{{ fmt_date($i->due_date) }}</td>
                                     <td class="text-end">{{ inr($i->opening_principal) }}</td>
                                     <td class="text-end fw-semibold">{{ inr($i->emi_amount) }}</td>
@@ -98,7 +110,7 @@
                     </table>
                 </div>
             </div>
-        @endif
+        @endunless
     </div>
 </div>
 @endsection

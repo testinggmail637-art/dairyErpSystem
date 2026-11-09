@@ -2,8 +2,11 @@
 
 namespace App\Models;
 
+use App\Enums\InstallmentFrequency;
+use App\Enums\LoanFamily;
 use App\Enums\LoanStatus;
 use App\Enums\LoanType;
+use App\Enums\MoratoriumInterest;
 use App\Enums\RepaymentMethod;
 use App\Models\Concerns\Auditable;
 use App\Models\Concerns\BelongsToFarm;
@@ -36,12 +39,19 @@ class Loan extends Model
         'principal_amount',
         'interest_rate',
         'repayment_method',
+        'installment_frequency',
         'tenure_months',
+        'moratorium_months',
+        'moratorium_interest',
         'start_date',
         'first_due_date',
+        'broken_period_interest',
         'emi_amount',
         'processing_fee',
         'od_renewal_date',
+        'interest_debit_cycle',
+        'statement_day',
+        'due_day',
         'status',
         'closed_on',
         'notes',
@@ -55,10 +65,17 @@ class Loan extends Model
         return [
             'loan_type' => LoanType::class,
             'repayment_method' => RepaymentMethod::class,
+            'installment_frequency' => InstallmentFrequency::class,
+            'moratorium_interest' => MoratoriumInterest::class,
+            'interest_debit_cycle' => InstallmentFrequency::class,
             'status' => LoanStatus::class,
             'principal_amount' => 'decimal:2',
             'interest_rate' => 'decimal:2',
             'emi_amount' => 'decimal:2',
+            'broken_period_interest' => 'decimal:2',
+            'moratorium_months' => 'integer',
+            'statement_day' => 'integer',
+            'due_day' => 'integer',
             'processing_fee' => 'decimal:2',
             'tenure_months' => 'integer',
             'start_date' => 'date',
@@ -92,8 +109,24 @@ class Loan extends Model
         return $this->hasMany(LoanRevision::class);
     }
 
-    public function isOverdraft(): bool
+    public function family(): LoanFamily
     {
-        return $this->loan_type === LoanType::Overdraft;
+        return $this->loan_type->family();
+    }
+
+    /** Instalment loans have a schedule; revolving accounts and credit cards do not. */
+    public function hasSchedule(): bool
+    {
+        return $this->family() === LoanFamily::Instalment;
+    }
+
+    public function isRevolving(): bool
+    {
+        return $this->family() === LoanFamily::Revolving;
+    }
+
+    public function isCard(): bool
+    {
+        return $this->family() === LoanFamily::CreditCard;
     }
 }

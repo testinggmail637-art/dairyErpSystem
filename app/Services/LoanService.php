@@ -3,8 +3,11 @@
 namespace App\Services;
 
 use App\Enums\DocumentType;
+use App\Enums\InstallmentFrequency;
+use App\Enums\LoanFamily;
 use App\Enums\LoanStatus;
 use App\Enums\LoanType;
+use App\Enums\MoratoriumInterest;
 use App\Enums\RepaymentMethod;
 use App\Models\Loan;
 use App\Models\LoanInstallment;
@@ -84,19 +87,20 @@ class LoanService
         return $loan->transactions()->exists();
     }
 
-    /** (Re)build the whole schedule from the loan's terms; overdrafts have none. */
+    /** (Re)build the whole schedule from the loan's terms; revolving accounts and credit cards have none. */
     private function buildSchedule(Loan $loan): void
     {
         $loan->installments()->delete();
 
-        if ($loan->isOverdraft()) {
+        if (! $loan->hasSchedule()) {
             $loan->update(['emi_amount' => null]);
 
             return;
         }
 
         $schedule = $this->calculator->schedule($loan->repayment_method, $loan->principal_amount, $loan->interest_rate,
-            $loan->tenure_months, $loan->first_due_date);
+            $loan->tenure_months, $loan->first_due_date, $loan->installment_frequency, $loan->moratorium_months,
+            $loan->moratorium_interest, $loan->broken_period_interest);
         $now = now();
 
         LoanInstallment::insert(array_map(fn (array $row) => $row + [
@@ -109,29 +113,64 @@ class LoanService
     private function syncFee(Loan $loan): void
     {
         $this->expenses->sync($loan, $loan->processing_fee, $loan->start_date->toDateString(), FinanceExpenseService::CHARGES, null,
-            $loan->lender_name, __('Processing fee · :no', ['no' => $loan->loan_no]));
+            $loan->lender_name, __('Processing fee · :no', ['no' => $loan->loan_no]), $loan->id);
     }
 
     /**
-     * Money terms; schedule fields are cleared for an overdraft and od_renewal_date for other loans.
+     * Money terms by family: instalment loans get schedule fields (bullet: one instalment at start + tenure; broken-period
+     * interest calculated when not typed); revolving accounts an interest debit cycle; cards statement / due days.
      *
      * @param  array<string, mixed>  $data
      * @return array<string, mixed>
      */
     private function terms(array $data): array
     {
-        $od = $data['loan_type'] === LoanType::Overdraft->value;
-
-        return [
+        $family = LoanType::from($data['loan_type'])->family();
+        $principal = Money::round2($data['principal_amount']);
+        $rate = Money::round2($data['interest_rate']);
+        $terms = [
             'loan_type' => $data['loan_type'],
-            'principal_amount' => Money::round2($data['principal_amount']),
-            'interest_rate' => Money::round2($data['interest_rate']),
-            'repayment_method' => $od ? null : RepaymentMethod::from($data['repayment_method']),
-            'tenure_months' => $od ? null : (int) $data['tenure_months'],
+            'principal_amount' => $principal,
+            'interest_rate' => $rate,
             'start_date' => $data['start_date'],
-            'first_due_date' => $od ? null : $data['first_due_date'],
             'processing_fee' => Money::round2($data['processing_fee'] ?? '0'),
+            'repayment_method' => null, 'installment_frequency' => InstallmentFrequency::Monthly, 'tenure_months' => null,
+            'moratorium_months' => 0, 'moratorium_interest' => null, 'first_due_date' => null, 'broken_period_interest' => '0.00',
+            'interest_debit_cycle' => null, 'statement_day' => null, 'due_day' => null,
         ];
+
+        if ($family === LoanFamily::Revolving) {
+            return ['interest_debit_cycle' => $data['interest_debit_cycle'] ?? InstallmentFrequency::Monthly->value] + $terms;
+        }
+
+        if ($family === LoanFamily::CreditCard) {
+            return ['statement_day' => (int) $data['statement_day'], 'due_day' => (int) $data['due_day']] + $terms;
+        }
+
+        $method = RepaymentMethod::from($data['repayment_method']);
+        $months = (int) $data['tenure_months'];
+
+        if ($method === RepaymentMethod::Bullet) {
+            return ['repayment_method' => $method, 'tenure_months' => $months,
+                'first_due_date' => Carbon::parse($data['start_date'])->addMonthsNoOverflow($months)->toDateString()] + $terms;
+        }
+
+        $frequency = InstallmentFrequency::from($data['installment_frequency'] ?? InstallmentFrequency::Monthly->value);
+        $moratorium = (int) ($data['moratorium_months'] ?? 0);
+        $moratoriumInterest = $moratorium > 0 ? MoratoriumInterest::from($data['moratorium_interest']) : null;
+        $firstDue = Carbon::parse($data['first_due_date']);
+
+        // The first instalment period starts one period before the first due date (and, when the moratorium interest
+        // is capitalised, before the moratorium too); interest for any days before that is broken-period interest.
+        $periodStart = $firstDue->copy()->subMonthsNoOverflow($frequency->months()
+            + ($moratoriumInterest === MoratoriumInterest::Capitalised ? $moratorium : 0));
+        $bpi = filled($data['broken_period_interest'] ?? null)
+            ? Money::round2($data['broken_period_interest'])
+            : $this->calculator->brokenPeriodInterest($principal, $rate, Carbon::parse($data['start_date']), $periodStart);
+
+        return ['repayment_method' => $method, 'installment_frequency' => $frequency, 'tenure_months' => $months,
+            'moratorium_months' => $moratorium, 'moratorium_interest' => $moratoriumInterest,
+            'first_due_date' => $firstDue->toDateString(), 'broken_period_interest' => $bpi] + $terms;
     }
 
     /**
@@ -144,7 +183,7 @@ class LoanService
             'lender_name' => $data['lender_name'],
             'lender_phone' => $data['lender_phone'] ?? null,
             'account_no' => $data['account_no'] ?? null,
-            'od_renewal_date' => $loanType === LoanType::Overdraft->value ? ($data['od_renewal_date'] ?? null) : null,
+            'od_renewal_date' => LoanType::from($loanType)->family() === LoanFamily::Revolving ? ($data['od_renewal_date'] ?? null) : null,
             'notes' => $data['notes'] ?? null,
         ];
     }

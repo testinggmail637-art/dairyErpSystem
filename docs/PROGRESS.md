@@ -8,11 +8,11 @@
 | Item | Value |
 |---|---|
 | Current phase | Phase 3A — Loans, Overdraft & Credit Cards (🟡 in progress) |
-| Last completed task | 3A.2 — Loans CRUD + LoanService EMI schedule (reducing / flat / interest-only) |
-| Next task | 3A.3 — Loan types & terms extension (redesign approved 2026-11-06) |
-| Overall progress | 50 / 97 tasks (52%) |
-| Tests passing | 552 |
-| Last updated (IST) | 2026-11-06 (docs/loans-redesign) |
+| Last completed task | 3A.3 — Loan types & terms extension |
+| Next task | 3A.4 — Loan payments: FIFO interest/principal split (editable to the bank's split), interest → expense, edit/delete latest with reason |
+| Overall progress | 51 / 97 tasks (53%) |
+| Tests passing | 562 |
+| Last updated (IST) | 2026-11-09 (task/3A.3-loan-types-terms) |
 
 ## Phase overview
 
@@ -289,7 +289,7 @@ Status legend: ⬜ Not started · 🟡 In progress · ✅ Done · ⏸ On hold
 ### Checklist
 - [x] 3A.1 Tables (`loans`, `loan_installments`, `loan_transactions`, `loan_revisions`), enums, permissions, Finance expense category seed
 - [x] 3A.2 Loans CRUD + LoanService EMI schedule (reducing / flat / interest-only)
-- [ ] 3A.3 Loan types & terms extension (new migration): types dairy/agri, cash credit, KCC, credit card, card EMI, private loan; bullet method; instalment frequency; moratorium; broken-period interest; rate per month; revolving / card fields; `expenses.loan_id` + `paid_by_card_id` (owner's redesign 2026-11-06)
+- [x] 3A.3 Loan types & terms extension (new migration): types dairy/agri, cash credit, KCC, credit card, card EMI, private loan; bullet method; instalment frequency; moratorium; broken-period interest; rate per month; revolving / card fields; `expenses.loan_id` + `paid_by_card_id` (owner's redesign 2026-11-06)
 - [ ] 3A.4 Loan payments: FIFO interest/principal split (editable to the bank's split), interest → expense, edit/delete latest with reason
 - [ ] 3A.5 Prepayment (reduce EMI / reduce tenure) + interest rate change (EMI or period) + close / re-open
 - [ ] 3A.6 Revolving accounts (OD / cash credit / KCC): withdrawal / repayment / interest debit / subvention, limit check, running balance, estimated interest
