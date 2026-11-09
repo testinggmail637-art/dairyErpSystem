@@ -11,9 +11,9 @@ use App\Models\MilkCollection;
 use App\Models\RateChart;
 use App\Models\User;
 use App\Services\CollectionService;
+use App\Services\FarmerPaymentService;
 use App\Services\MilkStockService;
 use App\Support\CurrentFarm;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Testing\TestResponse;
 
 beforeEach(function () {
@@ -79,8 +79,9 @@ it('stops operators on another day, refuses a duplicate shift, deletes with a re
 });
 
 it('locks an entry that is in a farmer payment statement, for everyone (spec acceptance)', function () {
-    DB::table('milk_collections')->where('id', $this->entry->id)->update(['farmer_payment_id' => 1]);
+    app(FarmerPaymentService::class)->createCycle('2026-11-01', '2026-11-09');
     $locked = $this->entry->fresh();
+    expect($locked->farmer_payment_id)->not->toBeNull();
 
     $this->actingAs($this->owner);
     $this->get(route('collections.edit', $locked))->assertForbidden();

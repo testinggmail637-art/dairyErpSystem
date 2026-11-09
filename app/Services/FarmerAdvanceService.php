@@ -4,15 +4,18 @@ namespace App\Services;
 
 use App\Models\FarmerAdvance;
 use App\Support\Money;
+use DomainException;
 use Illuminate\Database\UniqueConstraintViolationException;
 use Illuminate\Support\Facades\DB;
 
 /**
  * Farmer advances (spec Phase 4). Outstanding advance = Σ advances − Σ advance deducted on finalized payment
- * statements; the deduction side arrives with payment cycles (Task 4.6).
+ * statements (FarmerPaymentService::outstandingAdvances).
  */
 class FarmerAdvanceService
 {
+    public function __construct(private readonly FarmerPaymentService $payments) {}
+
     /**
      * @param  array<string, mixed>  $data
      * @return array{0: FarmerAdvance, 1: bool} the advance and whether it was newly created (client_uuid, spec 4.7)
@@ -37,14 +40,20 @@ class FarmerAdvanceService
         }
     }
 
+    /** Refused when the advance is already (partly) recovered through a finalized statement. */
     public function delete(FarmerAdvance $advance): void
     {
-        $advance->delete();
+        DB::transaction(function () use ($advance) {
+            if (Money::compare($this->outstanding($advance->farmer_id), $advance->amount) < 0) {
+                throw new DomainException(__('This advance is already recovered in a finalized payment statement and cannot be deleted.'));
+            }
+            $advance->delete();
+        });
     }
 
     /** Advance still to be recovered from this farmer. */
     public function outstanding(int $farmerId): string
     {
-        return Money::round2((string) FarmerAdvance::query()->where('farmer_id', $farmerId)->sum('amount'));
+        return $this->payments->outstandingAdvances([$farmerId])[$farmerId];
     }
 }
