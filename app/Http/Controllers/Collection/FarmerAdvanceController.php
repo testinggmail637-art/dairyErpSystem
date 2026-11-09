@@ -63,7 +63,11 @@ class FarmerAdvanceController extends Controller
 
     public function destroy(DeleteFarmerAdvanceRequest $request, FarmerAdvance $farmerAdvance): RedirectResponse
     {
-        $this->advances->delete($farmerAdvance);
+        try {
+            $this->advances->delete($farmerAdvance);
+        } catch (\DomainException $e) {
+            return back()->with('error', $e->getMessage());
+        }
 
         return back()->with('success', __('Advance deleted.'));
     }

@@ -46,6 +46,10 @@
                     <dt class="col-5 fw-normal text-body-secondary">{{ __('UPI ID') }}</dt><dd class="col-7">{{ $farmer->upi_id ?: '—' }}</dd>
                     <dt class="col-5 fw-normal text-body-secondary">{{ __('Opening balance') }}</dt>
                     <dd class="col-7"><x-money :value="$farmer->opening_balance" /> <span class="small text-body-secondary">{{ __('(+ = we owe the farmer)') }}</span></dd>
+                    @if ($balance !== null)
+                        <dt class="col-5 fw-normal text-body-secondary">{{ __('Balance now') }}</dt>
+                        <dd class="col-7 fw-semibold"><x-money :value="$balance" /> <span class="small text-body-secondary fw-normal">{{ __('opening + finalized statements − advances − paid') }}</span></dd>
+                    @endif
                 </dl>
             </div>
         </div>

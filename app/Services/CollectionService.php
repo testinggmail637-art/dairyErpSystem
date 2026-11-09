@@ -23,6 +23,7 @@ class CollectionService
     public function __construct(
         private readonly RateChartService $charts,
         private readonly MilkStockService $stock,
+        private readonly FarmerPaymentService $payments,
     ) {}
 
     /**
@@ -92,6 +93,7 @@ class CollectionService
     {
         return DB::transaction(function () use ($collection, $data) {
             $this->ensureUnlocked($collection);
+            $this->ensureOpenPeriod($collection->collection_date->toDateString());
             $collection->fill($this->priced($collection->farmer, $data, $collection->id))->save();
             $this->stock->syncForReference($collection);
 
@@ -104,6 +106,7 @@ class CollectionService
     {
         DB::transaction(function () use ($collection) {
             $this->ensureUnlocked($collection);
+            $this->ensureOpenPeriod($collection->collection_date->toDateString());
             $this->stock->deleteForReference($collection);
             $collection->delete();
         });
@@ -119,6 +122,7 @@ class CollectionService
     {
         $milkType = MilkType::from($data['milk_type']);
         $shift = MilkShift::from($data['shift']);
+        $this->ensureOpenPeriod($data['collection_date']);
         $this->ensureFirstOfShift($farmer, $data['collection_date'], $shift, $milkType, $exceptId);
 
         $qty = Money::round2($data['quantity_litre']);
@@ -139,6 +143,16 @@ class CollectionService
             'rejection_reason' => $accepted ? null : ($data['rejection_reason'] ?? null),
             'notes' => $data['notes'] ?? null,
         ];
+    }
+
+    /** Milk of a date inside a payment cycle cannot be added or changed: the cycle has already been worked out. */
+    private function ensureOpenPeriod(string $date): void
+    {
+        if ($cycle = $this->payments->cycleOn($date)) {
+            throw new DomainException(__('Payment cycle :no (:from – :to) covers :date. Milk of that period cannot be added or changed.', [
+                'no' => $cycle->cycle_no, 'from' => fmt_date($cycle->from_date), 'to' => fmt_date($cycle->to_date), 'date' => fmt_date($date),
+            ]));
+        }
     }
 
     private function ensureUnlocked(MilkCollection $collection): void

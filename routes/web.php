@@ -7,6 +7,7 @@ use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\Collection\CollectionController;
 use App\Http\Controllers\Collection\FarmerAdvanceController;
 use App\Http\Controllers\Collection\FarmerController;
+use App\Http\Controllers\Collection\FarmerPaymentController;
 use App\Http\Controllers\Collection\RateChartController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\Expenses\ExpenseCategoryController;
@@ -210,6 +211,19 @@ Route::middleware(['auth', 'active', 'farm'])->group(function () {
         Route::get('farmer-advances', [FarmerAdvanceController::class, 'index'])->name('farmer-advances.index');
         Route::post('farmer-advances', [FarmerAdvanceController::class, 'store'])->name('farmer-advances.store');
         Route::delete('farmer-advances/{farmer_advance}', [FarmerAdvanceController::class, 'destroy'])->name('farmer-advances.destroy');
+    });
+    // farmer payment cycles: farmer_payments.view to see, farmer_payments.manage to make / change / finalize / pay
+    Route::get('farmer-payments', [FarmerPaymentController::class, 'index'])->middleware('can:farmer_payments.view')->name('farmer-payments.index');
+    Route::get('farmer-payments/{farmer_payment}', [FarmerPaymentController::class, 'show'])->middleware('can:farmer_payments.view')->name('farmer-payments.show');
+    Route::middleware('can:farmer_payments.manage')->group(function () {
+        Route::post('farmer-payments', [FarmerPaymentController::class, 'store'])->name('farmer-payments.store');
+        Route::delete('farmer-payments/{farmer_payment}', [FarmerPaymentController::class, 'destroy'])->name('farmer-payments.destroy');
+        Route::post('farmer-payments/{farmer_payment}/finalize', [FarmerPaymentController::class, 'finalize'])->name('farmer-payments.finalize');
+        Route::post('farmer-payments/{farmer_payment}/pay-all', [FarmerPaymentController::class, 'payAll'])->name('farmer-payments.pay-all');
+        Route::get('farmer-statements/{statement}/edit', [FarmerPaymentController::class, 'editStatement'])->name('farmer-statements.edit');
+        Route::put('farmer-statements/{statement}', [FarmerPaymentController::class, 'updateStatement'])->name('farmer-statements.update');
+        Route::post('farmer-statements/{statement}/pay', [FarmerPaymentController::class, 'pay'])->name('farmer-statements.pay');
+        Route::post('farmer-statements/{statement}/unpay', [FarmerPaymentController::class, 'unpay'])->name('farmer-statements.unpay');
     });
     // rate charts + preview calculator: rate_charts.manage
     Route::middleware('can:rate_charts.manage')->group(function () {
