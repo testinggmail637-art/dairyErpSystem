@@ -34,10 +34,14 @@ class LoanPaymentService
      */
     public function state(Loan $loan, ?int $exceptTxnId = null): array
     {
+        // Instalment payments drive the schedule status; prepayments (which re-plan the schedule) only add to the totals shown.
         $totals = $loan->transactions()
-            ->whereIn('type', array_map(fn ($t) => $t->value, self::INSTALMENT_TYPES))
+            ->whereIn('type', [...array_map(fn ($t) => $t->value, self::INSTALMENT_TYPES), LoanTxnType::Prepayment->value])
             ->when($exceptTxnId, fn ($q) => $q->whereKeyNot($exceptTxnId))
-            ->selectRaw('COALESCE(SUM(amount), 0) AS paid, COALESCE(SUM(interest_part), 0) AS interest, COALESCE(SUM(principal_part), 0) AS principal')
+            ->selectRaw('COALESCE(SUM(CASE WHEN type <> ? THEN amount ELSE 0 END), 0) AS paid,
+                COALESCE(SUM(CASE WHEN type <> ? THEN principal_part ELSE 0 END), 0) AS principal,
+                COALESCE(SUM(interest_part), 0) AS interest, COALESCE(SUM(CASE WHEN type = ? THEN amount ELSE 0 END), 0) AS prepaid',
+                [LoanTxnType::Prepayment->value, LoanTxnType::Prepayment->value, LoanTxnType::Prepayment->value])
             ->first();
 
         $left = Money::round2((string) $totals->paid);
@@ -76,8 +80,8 @@ class LoanPaymentService
             'paid_count' => $paidCount,
             'total' => $rows->where('installment_no', '>', 0)->count(),
             'interest_paid' => Money::round2((string) $totals->interest),
-            'principal_paid' => Money::round2((string) $totals->principal),
-            'total_paid' => Money::round2((string) $totals->paid),
+            'principal_paid' => Money::add((string) $totals->principal, (string) $totals->prepaid),
+            'total_paid' => Money::add((string) $totals->paid, (string) $totals->prepaid),
             'outstanding' => Money::sub($schedulePrincipal, (string) $totals->principal),
             'next' => $next,
             'remaining_due' => Money::sum($rows->pluck('balance_due')),
@@ -196,6 +200,9 @@ class LoanPaymentService
             Loan::query()->whereKey($loan->id)->lockForUpdate()->value('id');
             $this->assertLatest($txn);
             $this->assertOpen($loan);
+            if ($txn->type === LoanTxnType::Prepayment) {
+                throw new DomainException(__('A prepayment cannot be edited. Delete it (the schedule goes back) and enter it again.'));
+            }
             $this->apply($loan, $txn, $data);
 
             return $txn;
@@ -207,6 +214,10 @@ class LoanPaymentService
         DB::transaction(function () use ($txn) {
             Loan::query()->whereKey($txn->loan_id)->lockForUpdate()->value('id');
             $this->assertLatest($txn);
+
+            if ($txn->type === LoanTxnType::Prepayment) {
+                app(LoanRescheduleService::class)->undoPrepayment($txn); // the old schedule comes back
+            }
 
             $expense = $txn->expense;
             $txn->update(['expense_id' => null]);

@@ -15,6 +15,7 @@ use App\Http\Controllers\Herd\AnimalBreedController;
 use App\Http\Controllers\Herd\AnimalController;
 use App\Http\Controllers\Herd\MilkProductionController;
 use App\Http\Controllers\HomeController;
+use App\Http\Controllers\Loans\LoanActionController;
 use App\Http\Controllers\Loans\LoanController;
 use App\Http\Controllers\Loans\LoanPaymentController;
 use App\Http\Controllers\MilkStock\MilkStockController;
@@ -287,6 +288,14 @@ Route::middleware(['auth', 'active', 'farm'])->group(function () {
         Route::get('loans/{loan}/payments/create', [LoanPaymentController::class, 'create'])->name('loans.payments.create');
         Route::post('loans/{loan}/payments', [LoanPaymentController::class, 'store'])->name('loans.payments.store');
         Route::get('loans/{loan}/payments/split', [LoanPaymentController::class, 'split'])->name('loans.payments.split');
+        Route::get('loans/{loan}/prepayment', [LoanActionController::class, 'prepaymentForm'])->name('loans.prepayment.create');
+        Route::post('loans/{loan}/prepayment', [LoanActionController::class, 'prepay'])->name('loans.prepayment.store');
+    });
+    Route::middleware('can:loans.manage')->group(function () {
+        Route::get('loans/{loan}/rate', [LoanActionController::class, 'rateForm'])->name('loans.rate.edit');
+        Route::post('loans/{loan}/rate', [LoanActionController::class, 'changeRate'])->name('loans.rate.update');
+        Route::post('loans/{loan}/close', [LoanActionController::class, 'close'])->name('loans.close');
+        Route::post('loans/{loan}/reopen', [LoanActionController::class, 'reopen'])->name('loans.reopen'); // owner only (request)
     });
     Route::get('loan-transactions/{loan_transaction}/edit', [LoanPaymentController::class, 'edit'])
         ->middleware('can:update,loan_transaction')->name('loan-transactions.edit');

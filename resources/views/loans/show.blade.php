@@ -14,11 +14,22 @@
         @can('loan_payments.create')
             <a href="{{ route('loans.payments.create', $loan) }}" class="btn btn-primary btn-sm"><i class="bi bi-cash-coin me-1"></i>{{ __('Record payment') }}</a>
             <a href="{{ route('loans.payments.create', [$loan, 'kind' => 'charge']) }}" class="btn btn-outline-primary btn-sm"><i class="bi bi-receipt me-1"></i>{{ __('Bank charge') }}</a>
+            @if ($loan->repayment_method !== \App\Enums\RepaymentMethod::Bullet)
+                <a href="{{ route('loans.prepayment.create', $loan) }}" class="btn btn-outline-primary btn-sm"><i class="bi bi-skip-forward me-1"></i>{{ __('Prepayment') }}</a>
+            @endif
         @endcan
     @endif
     @can('loans.manage')
         @if ($open)
+            @if ($loan->hasSchedule() && $loan->repayment_method !== \App\Enums\RepaymentMethod::Bullet)
+                <a href="{{ route('loans.rate.edit', $loan) }}" class="btn btn-outline-primary btn-sm"><i class="bi bi-percent me-1"></i>{{ __('Change rate') }}</a>
+            @endif
             <a href="{{ route('loans.edit', $loan) }}" class="btn btn-outline-primary btn-sm"><i class="bi bi-pencil me-1"></i>{{ __('Edit') }}</a>
+            <x-confirm-form :action="route('loans.close', $loan)" method="POST" reason :label="__('Close')" icon="bi-check2-circle"
+                            button-class="btn btn-outline-success btn-sm" :message="__('Close loan :no? It must be fully repaid.', ['no' => $loan->loan_no])" :confirm-button="__('Close')" />
+        @elseif (auth()->user()->hasRole(\App\Enums\RoleName::Owner->value))
+            <x-confirm-form :action="route('loans.reopen', $loan)" method="POST" reason :label="__('Re-open')" icon="bi-arrow-counterclockwise"
+                            button-class="btn btn-outline-warning btn-sm" :message="__('Re-open loan :no?', ['no' => $loan->loan_no])" :confirm-button="__('Re-open')" />
         @endif
         @unless ($locked)
             <x-confirm-form :action="route('loans.destroy', $loan)" reason :label="__('Delete')" :message="__('Delete loan :no?', ['no' => $loan->loan_no])" />
@@ -91,6 +102,9 @@
         @if ($state)
             <div class="card">
                 <div class="card-header fw-semibold">{{ __('Payments & charges') }}</div>
+                @if ($loan->status === \App\Enums\LoanStatus::Closed)
+                    <div class="card-body py-2 small text-success border-bottom"><i class="bi bi-check2-circle"></i> {{ __('Closed on :date', ['date' => fmt_date($loan->closed_on)]) }}</div>
+                @endif
                 <ul class="list-group list-group-flush small">
                     @forelse ($transactions as $t)
                         <li class="list-group-item">
@@ -120,6 +134,22 @@
                 </ul>
                 @if ($transactions->hasPages())<div class="card-footer">{{ $transactions->links() }}</div>@endif
             </div>
+            @if ($revisions->isNotEmpty())
+                <div class="card mt-3">
+                    <div class="card-header fw-semibold">{{ __('Re-plans (rate changes & prepayments)') }}</div>
+                    <ul class="list-group list-group-flush small">
+                        @foreach ($revisions as $r)
+                            <li class="list-group-item">
+                                <div class="d-flex justify-content-between">
+                                    <span>{{ fmt_date($r->effective_date) }} · {{ $r->kind === 'prepayment' ? __('Prepayment') : __('Rate change') }}</span>
+                                    <span>{{ $r->old_rate }} % → {{ $r->new_rate }} % · {{ __('EMI') }} {{ inr($r->old_emi) }} → {{ inr($r->new_emi) }}</span>
+                                </div>
+                                <div class="text-body-secondary">{{ $r->reason }}</div>
+                            </li>
+                        @endforeach
+                    </ul>
+                </div>
+            @endif
         @endif
     </div>
 

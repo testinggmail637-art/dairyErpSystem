@@ -8,11 +8,11 @@
 | Item | Value |
 |---|---|
 | Current phase | Phase 3A — Loans, Overdraft & Credit Cards (🟡 in progress) |
-| Last completed task | 3A.4 — Loan payments (FIFO split, interest → expense, bank charges) |
-| Next task | 3A.5 — Prepayment (reduce EMI / reduce tenure) + interest rate change (EMI or period) + close / re-open |
-| Overall progress | 52 / 97 tasks (54%) |
-| Tests passing | 569 |
-| Last updated (IST) | 2026-11-09 (task/3A.4-loan-payments) |
+| Last completed task | 3A.5 — Prepayment + interest rate change + close / re-open |
+| Next task | 3A.6 — Revolving accounts (OD / cash credit / KCC): withdrawal / repayment / interest debit / subvention, limit check, running balance, estimated interest |
+| Overall progress | 53 / 97 tasks (55%) |
+| Tests passing | 575 |
+| Last updated (IST) | 2026-11-09 (task/3A.5-prepayment-rate-close) |
 
 ## Phase overview
 
@@ -291,7 +291,7 @@ Status legend: ⬜ Not started · 🟡 In progress · ✅ Done · ⏸ On hold
 - [x] 3A.2 Loans CRUD + LoanService EMI schedule (reducing / flat / interest-only)
 - [x] 3A.3 Loan types & terms extension (new migration): types dairy/agri, cash credit, KCC, credit card, card EMI, private loan; bullet method; instalment frequency; moratorium; broken-period interest; rate per month; revolving / card fields; `expenses.loan_id` + `paid_by_card_id` (owner's redesign 2026-11-06)
 - [x] 3A.4 Loan payments: FIFO interest/principal split (editable to the bank's split), interest → expense, edit/delete latest with reason
-- [ ] 3A.5 Prepayment (reduce EMI / reduce tenure) + interest rate change (EMI or period) + close / re-open
+- [x] 3A.5 Prepayment (reduce EMI / reduce tenure) + interest rate change (EMI or period) + close / re-open
 - [ ] 3A.6 Revolving accounts (OD / cash credit / KCC): withdrawal / repayment / interest debit / subvention, limit check, running balance, estimated interest
 - [ ] 3A.7 Credit cards: card on expenses, bill payment, interest + GST / fees, part-paid warning; card EMI
 - [ ] 3A.8 Loan detail screens + `loans:reminders` command + dashboard loan cards + Expenses loan filter and "principal repaid / cash paid out" lines

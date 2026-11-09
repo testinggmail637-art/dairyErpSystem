@@ -18,12 +18,15 @@ class LoanRevision extends Model
     protected $fillable = [
         'farm_id',
         'loan_id',
+        'loan_transaction_id',
+        'kind',
         'effective_date',
         'old_rate',
         'new_rate',
         'old_emi',
         'new_emi',
         'reason',
+        'schedule_before',
     ];
 
     /**
@@ -37,6 +40,7 @@ class LoanRevision extends Model
             'new_rate' => 'decimal:2',
             'old_emi' => 'decimal:2',
             'new_emi' => 'decimal:2',
+            'schedule_before' => 'array',
         ];
     }
 
