@@ -5,6 +5,7 @@ use App\Http\Controllers\Account\NotificationController;
 use App\Http\Controllers\Account\ProfileController;
 use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\Collection\FarmerController;
+use App\Http\Controllers\Collection\RateChartController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\Expenses\ExpenseCategoryController;
 use App\Http\Controllers\Expenses\ExpenseController;
@@ -192,6 +193,11 @@ Route::middleware(['auth', 'active', 'farm'])->group(function () {
     Route::resource('farmers', FarmerController::class)->except(['index', 'show'])->middleware('can:farmers.manage');
     Route::get('farmers/{farmer}', [FarmerController::class, 'show'])->whereNumber('farmer')
         ->middleware('can:farmers.view')->name('farmers.show');
+    // rate charts + preview calculator: rate_charts.manage
+    Route::middleware('can:rate_charts.manage')->group(function () {
+        Route::resource('rate-charts', RateChartController::class);
+        Route::get('rate-charts/{rate_chart}/preview', [RateChartController::class, 'preview'])->name('rate-charts.preview');
+    });
 
     /*
     | Sales (spec Phase 3) — customers, routes and products: customers.view to see, customers.manage to add / edit
