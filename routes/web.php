@@ -4,6 +4,7 @@ use App\Http\Controllers\Account\ExportDownloadController;
 use App\Http\Controllers\Account\NotificationController;
 use App\Http\Controllers\Account\ProfileController;
 use App\Http\Controllers\Auth\LoginController;
+use App\Http\Controllers\Collection\CollectionController;
 use App\Http\Controllers\Collection\FarmerController;
 use App\Http\Controllers\Collection\RateChartController;
 use App\Http\Controllers\DashboardController;
@@ -193,6 +194,12 @@ Route::middleware(['auth', 'active', 'farm'])->group(function () {
     Route::resource('farmers', FarmerController::class)->except(['index', 'show'])->middleware('can:farmers.manage');
     Route::get('farmers/{farmer}', [FarmerController::class, 'show'])->whereNumber('farmer')
         ->middleware('can:farmers.view')->name('farmers.show');
+    // collection entry: collections.view to see the shift, collections.create to save
+    Route::get('collections', [CollectionController::class, 'index'])->middleware('can:collections.view')->name('collections.index');
+    Route::middleware('can:collections.create')->group(function () {
+        Route::post('collections', [CollectionController::class, 'store'])->name('collections.store');
+        Route::get('collections/quote', [CollectionController::class, 'quote'])->name('collections.quote');
+    });
     // rate charts + preview calculator: rate_charts.manage
     Route::middleware('can:rate_charts.manage')->group(function () {
         Route::resource('rate-charts', RateChartController::class);
