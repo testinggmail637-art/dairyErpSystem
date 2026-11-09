@@ -18,7 +18,7 @@ cow/buffalo buying & selling, expenses, loans & overdraft, staff, and profit rep
 | 1 | Expense Management (no approval) + Excel import | ✅ Done (v0.1.0) |
 | 2 | Animals, Milk Production, Milk Stock | ✅ Done (v0.2.0) |
 | 3 | Customers, Delivery, Billing, Payments | ✅ Done (v0.3.0) |
-| 3A | Loans, Overdraft & Credit Cards | 🟡 In progress |
+| 3A | Loans, Overdraft & Credit Cards | ✅ Done (v0.3.1) |
 | 4 | Farmers & Collection Center | ⬜ Not started |
 | 5 | Health, Breeding, Feed | ⬜ Not started |
 | 6 | Animal Trading & Staff | ⬜ Not started |
@@ -58,7 +58,7 @@ _TODO: for each module, list the working features in plain language once its pha
   finalize with number, balance snapshots and PDF, cancel); payments set against bills oldest first (paid / part paid,
   advance); adjustments (discounts / extra charges); customer ledger with running balance (Excel / PDF); sales
   reports (customer-, route-, product-wise, dairy plant reconciliation).
-- **Loans, overdraft & credit cards** 🟡 — loans and overdrafts with EMI schedule (reducing / flat / interest-only), all loan types (personal, business, dairy / NABARD, vehicle, gold, private, card EMI, OD, cash credit, KCC, credit card), monthly / quarterly / half-yearly / yearly instalments, moratorium, broken-period interest, bullet repayment, rate per year or month, processing fee as expense; payments (split oldest instalment first, editable to the bank's, interest → expense, paid x / y, outstanding), bank charges, prepayment (lower EMI or finish earlier), rate change (EMI or period), close / re-open; OD / CC / KCC entries (withdrawal within the limit, repayment, interest debited, charges, subvention) with running balance and interest estimate. Still to come (Phase 3A): credit cards (bill, interest + GST), reminders, dashboard, loan reports; loan interest shown in expenses, principal as a separate "principal repaid" line.
+- **Loans, overdraft & credit cards** ✅ — loans and overdrafts with EMI schedule (reducing / flat / interest-only), all loan types (personal, business, dairy / NABARD, vehicle, gold, private, card EMI, OD, cash credit, KCC, credit card), monthly / quarterly / half-yearly / yearly instalments, moratorium, broken-period interest, bullet repayment, rate per year or month, processing fee as expense; payments (split oldest instalment first, editable to the bank's, interest → expense, paid x / y, outstanding), bank charges, prepayment (lower EMI or finish earlier), rate change (EMI or period), close / re-open; OD / CC / KCC entries (withdrawal within the limit, repayment, interest debited, charges, subvention) with running balance and interest estimate; credit cards (card chosen on expenses, statement / due date, bill payment, interest + GST and fees, "part paid — interest is running" warning); daily reminders; dashboard loan cards; Expenses "Loan" filter with "Loan principal repaid" and "Total cash paid out" beside the expense total; reports — loan summary, instalments due, interest & principal per loan / type / financial year, loan statement, monthly payments by type (screen, Excel, PDF).
 - **Collection center** — _TODO_
 - **Health, breeding & feed** — _TODO_
 - **Animal trading** — _TODO_

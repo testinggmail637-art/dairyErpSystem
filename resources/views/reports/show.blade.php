@@ -4,7 +4,7 @@
 
 @php($exportQuery = array_filter(\Illuminate\Support\Arr::only($filters, [
     ...match ($filterType) { 'month' => ['month'], 'date' => ['date'], 'none' => [], default => ['from', 'to'] },
-    'milk_type',
+    'milk_type', 'loan_id',
 ])))
 
 @section('page-actions')
@@ -26,10 +26,16 @@
                     </div>
                 @else
                     <div class="col-6 col-md-3">
-                        <x-form.date name="from" :label="__('From')" :value="$filters['from']" max="today" group-class="mb-0" class="form-control-sm" />
+                        <x-form.date name="from" :label="__('From')" :value="$filters['from']" :max="($futureDates ?? false) ? null : 'today'" group-class="mb-0" class="form-control-sm" />
                     </div>
                     <div class="col-6 col-md-3">
-                        <x-form.date name="to" :label="__('To')" :value="$filters['to']" max="today" group-class="mb-0" class="form-control-sm" />
+                        <x-form.date name="to" :label="__('To')" :value="$filters['to']" :max="($futureDates ?? false) ? null : 'today'" group-class="mb-0" class="form-control-sm" />
+                    </div>
+                @endif
+                @if (array_key_exists('loan_id', $filters))
+                    <div class="col-12 col-md-3">
+                        <x-form.select name="loan_id" :label="__('Loan')" :options="$loanOptions" :selected="$filters['loan_id']"
+                                       :placeholder="__('Choose')" group-class="mb-0" class="form-select-sm" />
                     </div>
                 @endif
                 @if (array_key_exists('milk_type', $filters))
