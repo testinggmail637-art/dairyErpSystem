@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Services\DashboardService;
+use App\Services\LoanOverviewService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
@@ -10,9 +11,15 @@ use Illuminate\View\View;
 
 class DashboardController extends Controller
 {
-    public function __invoke(DashboardService $dashboard): View
+    public function __invoke(Request $request, DashboardService $dashboard, LoanOverviewService $loans): View
     {
-        return view('dashboard', ['data' => $dashboard->data()]);
+        $user = $request->user();
+
+        return view('dashboard', [
+            'data' => $dashboard->data(),
+            // loan cards (spec 7.4A): a few grouped queries, not cached so a payment shows at once
+            'loans' => $user->can('dashboard.financial') && $user->can('loans.view') ? $loans->overview() : null,
+        ]);
     }
 
     /** Income vs expenses for the period buttons (day / week / month / year) — same rights as the money cards. */

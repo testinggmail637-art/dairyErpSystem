@@ -165,6 +165,7 @@ Scheduled jobs (IST, defined in `routes/console.php`):
 | 03:00 | `backup:monitor` | Health check; owners get a bell notification if a backup failed or is too old |
 | 03:30 | `exports:prune` | Delete queued Excel export files older than 3 days |
 | every 5 min | `deliveries:generate --scheduled` | Today's delivery sheet for each farm, once, after its "Delivery sheet time" (Settings → Farm). Manual: `php artisan deliveries:generate 2026-11-10` |
+| daily 08:00 | `loans:reminders` | Bell notifications to users with `loans.view`: instalment due in 3 days / today / overdue (day 1, then weekly), card bill due in 3 days, interest debit day of OD / CC / KCC, limit renewal in 15 days. Each farm once a day |
 
 _More jobs (reminders) are added in later phases._ Restore steps: `docs/BACKUP_RESTORE.md`.
 

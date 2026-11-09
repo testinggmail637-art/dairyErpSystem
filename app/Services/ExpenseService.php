@@ -3,6 +3,8 @@
 namespace App\Services;
 
 use App\Models\Expense;
+use App\Models\Loan;
+use App\Models\LoanTransaction;
 use App\Models\User;
 use App\Support\CurrentFarm;
 use App\Support\Money;
@@ -112,6 +114,7 @@ class ExpenseService
             ->when($f['vendor_id'] ?? null, fn ($q, $id) => $q->where('vendor_id', $id))
             ->when($f['animal_id'] ?? null, fn ($q, $id) => $q->where('animal_id', $id))
             ->when($f['payment_mode_id'] ?? null, fn ($q, $id) => $q->where('payment_mode_id', $id))
+            ->when($f['loan'] ?? null, fn ($q, $loan) => $this->whereLoan($q, $loan, 'loan_id'))
             ->when(($f['type'] ?? null) === 'paid', fn ($q) => $q->where('is_credit', false))
             ->when(($f['type'] ?? null) === 'credit', fn ($q) => $q->where('is_credit', true))
             ->when($f['created_by'] ?? null, fn ($q, $id) => $q->where('created_by', $id))
@@ -127,6 +130,32 @@ class ExpenseService
      * @param  Builder<Expense>  $query
      * @return array{count: int, total: string, paid: string, credit: string}
      */
+    /**
+     * "Loan principal repaid" line of the Expenses screen: Σ principal part of loan payments in the date range (and loan
+     * filter). Principal is never an expense — it is shown beside the expenses, not in them (spec 7.4A).
+     *
+     * @param  array<string, mixed>  $f
+     */
+    public function principalRepaid(array $f): string
+    {
+        $query = LoanTransaction::query()->where('principal_part', '>', 0)
+            ->when($f['from'] ?? null, fn ($q, $d) => $q->where('txn_date', '>=', $d))
+            ->when($f['to'] ?? null, fn ($q, $d) => $q->where('txn_date', '<=', $d))
+            ->when($f['loan'] ?? null, fn ($q, $loan) => $this->whereLoan($q, $loan, 'loan_id'));
+
+        return Money::round2((string) $query->sum('principal_part'));
+    }
+
+    /** Loan filter value: "any", "t:<loan type>" or "l:<loan id>". */
+    private function whereLoan(Builder $query, string $loan, string $column): Builder
+    {
+        return match (true) {
+            $loan === 'any' => $query->whereNotNull($column),
+            str_starts_with($loan, 't:') => $query->whereIn($column, Loan::withTrashed()->where('loan_type', substr($loan, 2))->select('id')),
+            default => $query->where($column, (int) substr($loan, 2)),
+        };
+    }
+
     public function totals(Builder $query): array
     {
         $row = (clone $query)->toBase()

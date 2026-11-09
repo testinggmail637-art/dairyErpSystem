@@ -41,6 +41,7 @@ class LoanController extends Controller
             ->when($filters['search'] !== '', fn ($q) => $q->where(fn ($w) => $w->where('lender_name', 'like', "%{$filters['search']}%")
                 ->orWhere('loan_no', 'like', "%{$filters['search']}%")->orWhere('account_no', $filters['search'])))
             ->when(LoanType::tryFrom($filters['type']), fn ($q, $t) => $q->where('loan_type', $t))
+            ->when(LoanFamily::tryFrom(str_replace('family:', '', $filters['type'])), fn ($q, $f) => $q->whereIn('loan_type', LoanType::valuesOf($f)))
             ->when(LoanStatus::tryFrom((string) $filters['status']), fn ($q, $s) => $q->where('status', $s));
 
         $loans = (clone $base)

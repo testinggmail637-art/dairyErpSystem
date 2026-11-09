@@ -8,11 +8,11 @@
 | Item | Value |
 |---|---|
 | Current phase | Phase 3A — Loans, Overdraft & Credit Cards (🟡 in progress) |
-| Last completed task | 3A.7 — Credit cards: card on expenses, bill payment, interest + GST / fees, part-paid warning, card EMI link |
-| Next task | 3A.8 — Loan detail screens + `loans:reminders` + dashboard loan cards + Expenses loan filter and "principal repaid / cash paid out" lines |
-| Overall progress | 55 / 97 tasks (57%) |
-| Tests passing | 584 |
-| Last updated (IST) | 2026-11-09 (task/3A.7-credit-cards) |
+| Last completed task | 3A.8 — Loan screens, `loans:reminders`, dashboard loan cards, Expenses loan filter + "principal repaid / cash paid out" |
+| Next task | 3A.9 — Loan reports + Phase 3A acceptance tests + README / CHANGELOG (v0.3.1) |
+| Overall progress | 56 / 97 tasks (58%) |
+| Tests passing | 588 |
+| Last updated (IST) | 2026-11-09 (task/3A.8-loan-screens-reminders-dashboard) |
 
 ## Phase overview
 
@@ -294,7 +294,7 @@ Status legend: ⬜ Not started · 🟡 In progress · ✅ Done · ⏸ On hold
 - [x] 3A.5 Prepayment (reduce EMI / reduce tenure) + interest rate change (EMI or period) + close / re-open
 - [x] 3A.6 Revolving accounts (OD / cash credit / KCC): withdrawal / repayment / interest debit / subvention, limit check, running balance, estimated interest
 - [x] 3A.7 Credit cards: card on expenses, bill payment, interest + GST / fees, part-paid warning; card EMI
-- [ ] 3A.8 Loan detail screens + `loans:reminders` command + dashboard loan cards + Expenses loan filter and "principal repaid / cash paid out" lines
+- [x] 3A.8 Loan detail screens + `loans:reminders` command + dashboard loan cards + Expenses loan filter and "principal repaid / cash paid out" lines
 - [ ] 3A.9 Loan reports (summary, instalments due, interest & principal paid per loan / type / FY, loan statement, monthly payments by type) + Phase 3A acceptance tests + README/CHANGELOG updated
 
 ### Phase log
