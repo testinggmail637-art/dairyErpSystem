@@ -11,7 +11,7 @@
 | Last completed task | 3A.6 — Revolving accounts (OD / CC / KCC) with limit check and interest estimate |
 | Next task | 3A.7 — Credit cards: card on expenses, bill payment, interest + GST / fees, part-paid warning; card EMI |
 | Overall progress | 54 / 97 tasks (56%) |
-| Tests passing | 575 |
+| Tests passing | 580 |
 | Last updated (IST) | 2026-11-09 (task/3A.6-revolving-accounts) |
 
 ## Phase overview
