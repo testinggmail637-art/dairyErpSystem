@@ -5,6 +5,7 @@ namespace App\Services;
 use App\Enums\CycleStatus;
 use App\Enums\DocumentType;
 use App\Enums\FarmerPaymentStatus;
+use App\Enums\MilkShift;
 use App\Enums\QualityStatus;
 use App\Models\Farmer;
 use App\Models\FarmerAdvance;
@@ -12,8 +13,10 @@ use App\Models\FarmerPayment;
 use App\Models\FarmerPaymentCycle;
 use App\Models\MilkCollection;
 use App\Models\PaymentMode;
+use App\Reports\ReportTable;
 use App\Support\CurrentFarm;
 use App\Support\Money;
+use Barryvdh\DomPDF\Facade\Pdf;
 use Carbon\Carbon;
 use DomainException;
 use Illuminate\Support\Facades\DB;
@@ -194,6 +197,59 @@ class FarmerPaymentService
 
             return $count;
         });
+    }
+
+    /** Statement PDF of one farmer in one cycle: day/shift-wise milk, totals, deductions, net. */
+    public function renderStatementPdf(FarmerPayment $payment): \Barryvdh\DomPDF\PDF
+    {
+        $payment->loadMissing(['farmer', 'cycle', 'paymentMode:id,name']);
+
+        $rows = $payment->collections()
+            ->orderBy('collection_date')->orderByRaw('shift = ?', [MilkShift::Evening->value])->orderBy('milk_type')
+            ->get(['collection_date', 'shift', 'milk_type', 'quantity_litre', 'fat', 'snf', 'rate_per_litre', 'amount']);
+
+        return Pdf::loadView('pdf.farmer-statement', ['s' => $payment, 'rows' => $rows]);
+    }
+
+    /**
+     * Bank sheet of a finalized cycle: the statements still to pay (net > 0) with the farmer's bank details.
+     *
+     * @throws DomainException while the cycle is a draft (amounts can still change)
+     */
+    public function bankSheet(FarmerPaymentCycle $cycle): ReportTable
+    {
+        if ($cycle->isDraft()) {
+            throw new DomainException(__('Finalize the cycle first — draft amounts can still change.'));
+        }
+
+        $statements = $cycle->payments()
+            ->join('farmers', 'farmers.id', '=', 'farmer_payments.farmer_id')
+            ->where('farmer_payments.status', FarmerPaymentStatus::Pending->value)
+            ->where('farmer_payments.net_payable', '>', 0)
+            ->orderBy('farmers.code')
+            ->get(['farmers.code', 'farmers.name', 'farmers.bank_account_name', 'farmers.bank_account_no',
+                'farmers.ifsc', 'farmers.upi_id', 'farmer_payments.net_payable']);
+
+        $rows = $statements->map(fn ($s) => [$s->code, $s->name, $s->bank_account_name, $s->bank_account_no, $s->ifsc, $s->upi_id, $s->net_payable])->all();
+        $noAccount = $statements->filter(fn ($s) => blank($s->bank_account_no))->count();
+
+        return new ReportTable(
+            title: __('Bank sheet :no', ['no' => $cycle->cycle_no]),
+            period: fmt_date($cycle->from_date).' – '.fmt_date($cycle->to_date),
+            columns: [
+                ReportTable::column(__('Code')),
+                ReportTable::column(__('Farmer')),
+                ReportTable::column(__('Account holder')),
+                ReportTable::column(__('Account no')),
+                ReportTable::column(__('IFSC')),
+                ReportTable::column(__('UPI')),
+                ReportTable::column(__('Net amount'), ReportTable::MONEY),
+            ],
+            rows: $rows,
+            totals: [__('Total (:n)', ['n' => count($rows)]), null, null, null, null, null, Money::sum($statements->pluck('net_payable'))],
+            notes: $noAccount ? [__(':n farmer(s) have no bank account — pay them by cash or UPI.', ['n' => $noAccount])] : [],
+            emptyText: __('Nothing left to pay in this cycle.'),
+        );
     }
 
     /**

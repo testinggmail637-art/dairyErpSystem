@@ -215,6 +215,8 @@ Route::middleware(['auth', 'active', 'farm'])->group(function () {
     // farmer payment cycles: farmer_payments.view to see, farmer_payments.manage to make / change / finalize / pay
     Route::get('farmer-payments', [FarmerPaymentController::class, 'index'])->middleware('can:farmer_payments.view')->name('farmer-payments.index');
     Route::get('farmer-payments/{farmer_payment}', [FarmerPaymentController::class, 'show'])->middleware('can:farmer_payments.view')->name('farmer-payments.show');
+    Route::get('farmer-payments/{farmer_payment}/bank-sheet', [FarmerPaymentController::class, 'bankSheet'])->middleware('can:farmer_payments.view')->name('farmer-payments.bank-sheet');
+    Route::get('farmer-statements/{statement}/pdf', [FarmerPaymentController::class, 'statementPdf'])->middleware('can:farmer_payments.view')->name('farmer-statements.pdf');
     Route::middleware('can:farmer_payments.manage')->group(function () {
         Route::post('farmer-payments', [FarmerPaymentController::class, 'store'])->name('farmer-payments.store');
         Route::delete('farmer-payments/{farmer_payment}', [FarmerPaymentController::class, 'destroy'])->name('farmer-payments.destroy');
