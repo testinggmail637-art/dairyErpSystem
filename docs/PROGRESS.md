@@ -8,11 +8,11 @@
 | Item | Value |
 |---|---|
 | Current phase | Phase 4 — Farmers & Collection Center (🟡 in progress) |
-| Last completed task | 4.7 — Farmer statement PDF + bank sheet Excel |
-| Next task | 4.8 — Collection reports + B2B dairy plant reconciliation report |
-| Overall progress | 64 / 97 tasks (66%) |
-| Tests passing | 637 |
-| Last updated (IST) | 2026-11-12 (task/4.7-farmer-statement-pdf-bank-sheet) |
+| Last completed task | 4.8 — Collection reports (+ B2B dairy plant reconciliation, from 3.13) |
+| Next task | 4.9 — Phase 4 acceptance tests + README/CHANGELOG |
+| Overall progress | 65 / 97 tasks (67%) |
+| Tests passing | 640 |
+| Last updated (IST) | 2026-11-12 (task/4.8-collection-reports) |
 
 ## Phase overview
 
@@ -326,7 +326,7 @@ Status legend: ⬜ Not started · 🟡 In progress · ✅ Done · ⏸ On hold
 - [x] 4.5 Farmer advances
 - [x] 4.6 Payment cycles: create, draft edit, finalize, mark paid
 - [x] 4.7 Farmer statement PDF + bank sheet Excel
-- [ ] 4.8 Collection reports + B2B dairy plant reconciliation report
+- [x] 4.8 Collection reports + B2B dairy plant reconciliation report
 - [ ] 4.9 Phase 4 acceptance tests pass + README/CHANGELOG updated
 
 ### Phase log
