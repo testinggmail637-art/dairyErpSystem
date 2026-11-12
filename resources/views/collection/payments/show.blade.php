@@ -9,6 +9,9 @@
 
 @section('page-actions')
     <a href="{{ route('farmer-payments.index') }}" class="btn btn-outline-secondary btn-sm"><i class="bi bi-arrow-left me-1"></i>{{ __('Farmer payments') }}</a>
+    @unless ($cycle->isDraft())
+        <a href="{{ route('farmer-payments.bank-sheet', $cycle) }}" class="btn btn-outline-primary btn-sm"><i class="bi bi-file-earmark-excel me-1"></i>{{ __('Bank sheet') }}</a>
+    @endunless
     @if ($canManage && $cycle->isDraft())
         <x-confirm-form :action="route('farmer-payments.finalize', $cycle)" method="POST" :label="__('Finalize')" icon="bi-check2-circle"
                         button-class="btn btn-success btn-sm" :confirm-button="__('Finalize')"
@@ -60,6 +63,7 @@
                     <tr>
                         <td>
                             <span class="font-monospace small">{{ $s->farmer->code }}</span> {{ $s->farmer->name }}
+                            <a href="{{ route('farmer-statements.pdf', $s) }}" target="_blank" class="ms-1" aria-label="{{ __('Statement PDF') }}" title="{{ __('Statement PDF') }}"><i class="bi bi-file-earmark-pdf"></i></a>
                             @if ($canManage && $cycle->isDraft())
                                 <a href="{{ route('farmer-statements.edit', $s) }}" class="ms-1" aria-label="{{ __('Edit') }}"><i class="bi bi-pencil"></i></a>
                             @endif

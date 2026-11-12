@@ -3,6 +3,7 @@
 use App\Enums\CycleStatus;
 use App\Enums\FarmerPaymentStatus;
 use App\Enums\RoleName;
+use App\Exports\FarmerBankSheetExport;
 use App\Models\Farm;
 use App\Models\Farmer;
 use App\Models\FarmerAdvance;
@@ -18,6 +19,8 @@ use App\Services\FarmerPaymentService;
 use App\Support\CurrentFarm;
 use Database\Seeders\DatabaseSeeder;
 use Illuminate\Testing\TestResponse;
+use Maatwebsite\Excel\Facades\Excel;
+use PhpOffice\PhpSpreadsheet\Spreadsheet;
 
 beforeEach(function () {
     $this->seed(DatabaseSeeder::class);
@@ -143,4 +146,48 @@ it('suggests the next range and keeps payments to farmer_payments users', functi
     $operator = User::factory()->forFarm($this->farm)->withRole(RoleName::CollectionOperator)->create();
     $this->actingAs($operator)->get(route('farmer-payments.index'))->assertForbidden();
     makeCycle('2026-11-11', '2026-11-12')->assertForbidden();
+});
+
+it('prints a farmer statement PDF with day/shift rows, deductions and net', function () {
+    makeCycle()->assertSessionHasNoErrors();
+    $asha = FarmerPayment::where('farmer_id', $this->farmer->id)->sole();
+    $this->put(route('farmer-statements.update', $asha), ['bonus' => '200', 'advance_deduction' => '500', 'other_deduction' => '0'])->assertSessionHasNoErrors();
+
+    $this->get(route('farmer-statements.pdf', $asha))->assertOk()->assertHeader('content-type', 'application/pdf');
+
+    $html = view('pdf.farmer-statement', ['s' => $asha->fresh(), 'rows' => $asha->collections()->orderBy('collection_date')->get()])->render();
+    expect($html)->toContain('Asha Pawar')->toContain('01-11-2026')->toContain('10-11-2026')->toContain('DRAFT')
+        ->toContain('₹8,000.00')->toContain('₹500.00')->toContain('₹7,700.00')
+        ->and(substr_count($html, '₹40.00'))->toBe(10); // one row per day, rejected milk is not on it
+
+    $operator = User::factory()->forFarm($this->farm)->withRole(RoleName::CollectionOperator)->create();
+    $this->actingAs($operator)->get(route('farmer-statements.pdf', $asha))->assertForbidden();
+});
+
+it('exports the bank sheet of a finalized cycle: only unpaid farmers, account numbers kept as text', function () {
+    $this->farmer->update(['bank_account_name' => 'Asha Pawar', 'bank_account_no' => '001234567890123', 'ifsc' => 'SBIN0001234']);
+    makeCycle()->assertSessionHasNoErrors();
+    $cycle = FarmerPaymentCycle::sole();
+
+    $this->get(route('farmer-payments.bank-sheet', $cycle))->assertSessionHas('error'); // draft
+
+    $this->post(route('farmer-payments.finalize', $cycle))->assertSessionHasNoErrors();
+    Excel::fake();
+    $this->get(route('farmer-payments.bank-sheet', $cycle))->assertOk();
+    Excel::assertDownloaded('FPAY-2026-27-0001-bank-sheet.xlsx', function (FarmerBankSheetExport $export) {
+        $rows = $export->array();
+        expect($rows[4])->toBe(['F-001', 'Asha Pawar', 'Asha Pawar', '001234567890123', 'SBIN0001234', null, '7500.00'])
+            ->and($rows[5][1])->toBe('Bala More')
+            ->and($rows[6][6])->toBe('7700.00')
+            ->and(end($rows)[0])->toContain('1 farmer(s) have no bank account');
+
+        $cell = (new Spreadsheet)->getActiveSheet()->getCell('D5');
+        $export->bindValue($cell, '001234567890123');
+        expect($cell->getValue())->toBe('001234567890123');
+
+        return true;
+    });
+
+    $this->post(route('farmer-statements.pay', FarmerPayment::where('farmer_id', $this->other->id)->sole()), ['paid_on' => '2026-11-12', 'payment_mode_id' => $this->cash]);
+    expect(app(FarmerPaymentService::class)->bankSheet($cycle->fresh())->rows)->toHaveCount(1); // Bala paid in cash → off the sheet
 });

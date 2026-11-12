@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Collection;
 
 use App\Enums\FarmerPaymentStatus;
+use App\Exports\FarmerBankSheetExport;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Collection\FarmerPaymentReasonRequest;
 use App\Http\Requests\Collection\FarmerStatementRequest;
@@ -17,6 +18,8 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use Illuminate\View\View;
+use Maatwebsite\Excel\Facades\Excel;
+use Symfony\Component\HttpFoundation\BinaryFileResponse;
 
 /** Collection → Farmer Payments (spec Phase 4): cycles, draft statements, finalize, mark paid. */
 class FarmerPaymentController extends Controller
@@ -97,6 +100,24 @@ class FarmerPaymentController extends Controller
         }
 
         return back()->with('success', __(':n statements marked paid in cash.', ['n' => $count]));
+    }
+
+    public function statementPdf(FarmerPayment $statement): Response
+    {
+        $name = str_replace('/', '-', $statement->cycle->cycle_no).'-'.$statement->farmer->code.'.pdf';
+
+        return $this->payments->renderStatementPdf($statement)->stream($name);
+    }
+
+    public function bankSheet(FarmerPaymentCycle $farmerPayment): BinaryFileResponse|RedirectResponse
+    {
+        try {
+            $sheet = $this->payments->bankSheet($farmerPayment);
+        } catch (DomainException $e) {
+            return back()->with('error', $e->getMessage());
+        }
+
+        return Excel::download(new FarmerBankSheetExport($sheet), str_replace('/', '-', $farmerPayment->cycle_no).'-bank-sheet.xlsx');
     }
 
     public function editStatement(FarmerPayment $statement): View
