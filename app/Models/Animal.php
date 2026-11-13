@@ -199,6 +199,10 @@ class Animal extends Model
         return array_filter([
             __('expenses') => $this->expenses()->count(),
             __('calves') => $this->calves()->count(),
+            __('treatments') => Treatment::query()->where('animal_id', $this->id)->count(),
+            __('vaccinations') => AnimalVaccination::query()->where('animal_id', $this->id)->count(),
+            __('breeding events') => BreedingEvent::query()->where('animal_id', $this->id)->count(),
+            __('calvings') => Calving::query()->where('mother_id', $this->id)->count(),
         ]);
     }
 }

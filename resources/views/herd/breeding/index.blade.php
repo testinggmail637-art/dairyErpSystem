@@ -7,6 +7,7 @@
 @endsection
 
 @section('content')
+@include('herd.breeding._tabs')
 <div class="card mb-3">
     <div class="card-header fw-semibold"><i class="bi bi-calendar-heart me-1"></i>{{ __('Expected calvings') }}
         <span class="small fw-normal text-body-secondary">{{ __('up to 30 days late and the next 90 days') }}</span></div>
@@ -15,7 +16,7 @@
     @else
         <div class="table-responsive">
             <table class="table table-sm align-middle mb-0">
-                <thead><tr><th>{{ __('Animal') }}</th><th>{{ __('Expected on') }}</th><th>{{ __('Based on') }}</th><th class="text-end">{{ __('Days') }}</th></tr></thead>
+                <thead><tr><th>{{ __('Animal') }}</th><th>{{ __('Expected on') }}</th><th>{{ __('Based on') }}</th><th class="text-end">{{ __('Days') }}</th><th></th></tr></thead>
                 <tbody>
                     @foreach ($expected as $row)
                         @php($days = (int) today()->diffInDays(\Illuminate\Support\Carbon::parse($row->expected_calving_date), false))
@@ -24,6 +25,7 @@
                             <td>{{ fmt_date($row->expected_calving_date) }}</td>
                             <td class="small">{{ \App\Enums\BreedingEventType::from($row->event_type) === \App\Enums\BreedingEventType::PregnancyCheck ? __('Confirmed pregnant') : __('Service, not yet confirmed') }}</td>
                             <td class="text-end"><span @class(['badge', 'text-bg-danger' => $days < 0, 'text-bg-warning' => $days >= 0 && $days <= 15, 'text-bg-light' => $days > 15])>{{ $days < 0 ? __(':n late', ['n' => -$days]) : $days }}</span></td>
+                            <td class="text-end"><a href="{{ route('breeding.calvings.create', ['mother_id' => $row->animal_id]) }}" class="btn btn-link btn-sm p-0">{{ __('Record calving') }}</a></td>
                         </tr>
                     @endforeach
                 </tbody>
