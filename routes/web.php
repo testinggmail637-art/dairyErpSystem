@@ -20,6 +20,8 @@ use App\Http\Controllers\Herd\AnimalBreedController;
 use App\Http\Controllers\Herd\AnimalController;
 use App\Http\Controllers\Herd\BreedingEventController;
 use App\Http\Controllers\Herd\CalvingController;
+use App\Http\Controllers\Herd\FeedController;
+use App\Http\Controllers\Herd\FeedTransactionController;
 use App\Http\Controllers\Herd\MilkProductionController;
 use App\Http\Controllers\Herd\TreatmentController;
 use App\Http\Controllers\Herd\VaccinationController;
@@ -168,6 +170,19 @@ Route::middleware(['auth', 'active', 'farm'])->group(function () {
     Route::middleware('can:breeding.manage')->group(function () {
         Route::resource('breeding/calvings', CalvingController::class)->only(['index', 'create', 'store', 'destroy'])->names('breeding.calvings');
         Route::resource('breeding', BreedingEventController::class)->except('show');
+    });
+
+    // Herd → Feed: feed.view to see stock and entries, feed.manage to change
+    Route::prefix('feed')->name('feed.')->group(function () {
+        Route::middleware('can:feed.view')->group(function () {
+            Route::get('/', [FeedController::class, 'index'])->name('index');
+            Route::get('entries', [FeedTransactionController::class, 'index'])->name('transactions.index');
+        });
+        Route::middleware('can:feed.manage')->group(function () {
+            Route::resource('items', FeedController::class)->only(['create', 'store', 'edit', 'update', 'destroy'])->names('items');
+            Route::resource('entries', FeedTransactionController::class)->except(['index', 'show'])
+                ->parameters(['entries' => 'transaction'])->names('transactions');
+        });
     });
 
     // Herd → Health: health.view to see, health.manage to add / change / delete
@@ -399,7 +414,7 @@ Route::middleware(['auth', 'active', 'farm'])->group(function () {
     });
 
     Route::get('vendors', [VendorController::class, 'index'])->middleware('can:vendors.view')->name('vendors.index');
-    Route::get('vendors/search', [VendorController::class, 'search'])->middleware('can:vendors.view')->name('vendors.search');
+    Route::get('vendors/search', [VendorController::class, 'search'])->name('vendors.search'); // vendors.view or feed.manage, checked in the controller
     Route::post('vendors/quick', [VendorController::class, 'quickStore'])->middleware('can:vendors.manage')->name('vendors.quick-store');
     Route::resource('vendors', VendorController::class)->except(['index', 'show'])->middleware('can:vendors.manage');
     Route::get('vendors/{vendor}', [VendorController::class, 'show'])->whereNumber('vendor')
