@@ -8,11 +8,11 @@
 | Item | Value |
 |---|---|
 | Current phase | Phase 5 — Health, Breeding, Feed (🟡 in progress) |
-| Last completed task | 5.7 — Reminders command (`reminders:daily`) + bell notifications |
-| Next task | 5.8 — Withdrawal warning in milk entry |
-| Overall progress | 73 / 97 tasks (75%) |
-| Tests passing | 674 |
-| Last updated (IST) | 2026-11-13 (task/5.7-reminders-notifications) |
+| Last completed task | 5.8 — Withdrawal warning in milk entry (grid badge, form alert, search flag) |
+| Next task | 5.9 — Phase 5 acceptance tests + README/CHANGELOG |
+| Overall progress | 74 / 97 tasks (76%) |
+| Tests passing | 676 |
+| Last updated (IST) | 2026-11-13 (task/5.8-withdrawal-warning) |
 
 ## Phase overview
 
@@ -360,7 +360,7 @@ Status legend: ⬜ Not started · 🟡 In progress · ✅ Done · ⏸ On hold
 - [x] 5.5 Dry-off action + heifer suggestion
 - [x] 5.6 Feed items + feed transactions (purchase creates expense) + stock screen
 - [x] 5.7 Reminders command + in-app notifications (bell)
-- [ ] 5.8 Withdrawal warning in milk entry
+- [x] 5.8 Withdrawal warning in milk entry
 - [ ] 5.9 Phase 5 acceptance tests pass + README/CHANGELOG updated
 
 ### Phase log
