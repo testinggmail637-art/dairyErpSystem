@@ -27,6 +27,7 @@
                 <div class="mt-2 d-flex flex-wrap gap-1">
                     <span class="badge {{ $animal->status->badge() }}">{{ $animal->status->label() }}</span>
                     <span class="badge text-bg-light border">{{ $animal->lifecycle_stage->label() }}</span>
+                    @if ($isPregnant)<span class="badge text-bg-info">{{ __('Pregnant') }}</span>@endif
                     <span class="badge text-bg-light border">{{ $animal->ownership_type->label() }}</span>
                 </div>
                 <dl class="row small mt-3 mb-0">
@@ -161,11 +162,53 @@
                     </div>
                 @endif
             </div>
-            <div class="tab-pane fade card-body text-body-secondary" id="pane-health" role="tabpanel" aria-labelledby="tab-health" tabindex="0">
-                <i class="bi bi-heart-pulse me-1"></i>{{ __('Treatments and vaccinations of this animal will show here once health records are in use.') }}
+            <div class="tab-pane fade card-body" id="pane-health" role="tabpanel" aria-labelledby="tab-health" tabindex="0">
+                @if ($treatments === null)
+                    <span class="text-body-secondary">{{ __('You cannot see health records.') }}</span>
+                @else
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <span class="fw-semibold">{{ __('Treatments') }}</span>
+                        <a href="{{ route('health.treatments.index', ['animal_id' => $animal->id, 'from' => '2000-01-01']) }}" class="small">{{ __('All') }}</a>
+                    </div>
+                    <ul class="list-unstyled small mb-3">
+                        @forelse ($treatments as $t)
+                            <li>{{ fmt_date($t->treatment_date) }} · {{ $t->diagnosis }}@if ($t->medicine) · {{ $t->medicine }}@endif
+                                @unless (\App\Support\Money::isZero($t->cost)) · {{ inr($t->cost) }}@endunless
+                                @if ($t->isUnderWithdrawal())<span class="badge text-bg-warning">{{ __('No milk sale until :date', ['date' => fmt_date($t->milk_withdrawal_until)]) }}</span>@endif</li>
+                        @empty
+                            <li class="text-body-secondary">{{ __('No treatments.') }}</li>
+                        @endforelse
+                    </ul>
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <span class="fw-semibold">{{ __('Vaccinations') }}</span>
+                        <a href="{{ route('health.vaccinations.index', ['animal_id' => $animal->id, 'from' => '2000-01-01']) }}" class="small">{{ __('All') }}</a>
+                    </div>
+                    <ul class="list-unstyled small mb-0">
+                        @forelse ($vaccinations as $v)
+                            <li>{{ fmt_date($v->given_on) }} · {{ $v->vaccineType->name }}@if ($v->next_due_on) · {{ __('next :date', ['date' => fmt_date($v->next_due_on)]) }}@endif</li>
+                        @empty
+                            <li class="text-body-secondary">{{ __('No vaccinations.') }}</li>
+                        @endforelse
+                    </ul>
+                @endif
             </div>
-            <div class="tab-pane fade card-body text-body-secondary" id="pane-breeding" role="tabpanel" aria-labelledby="tab-breeding" tabindex="0">
-                <i class="bi bi-gender-ambiguous me-1"></i>{{ __('Heat, AI, pregnancy checks and calvings will show here once breeding records are in use.') }}
+            <div class="tab-pane fade card-body" id="pane-breeding" role="tabpanel" aria-labelledby="tab-breeding" tabindex="0">
+                @if ($breedingEvents === null)
+                    <span class="text-body-secondary">{{ __('You cannot see breeding records.') }}</span>
+                @else
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <span class="fw-semibold">{{ __('Breeding events') }}</span>
+                        <a href="{{ route('breeding.create', ['animal_id' => $animal->id]) }}" class="small"><i class="bi bi-plus-lg"></i> {{ __('Add') }}</a>
+                    </div>
+                    <ul class="list-unstyled small mb-0">
+                        @forelse ($breedingEvents as $e)
+                            <li>{{ fmt_date($e->event_date) }} · {{ $e->event_type->label() }}@if ($e->result) ({{ $e->result->label() }})@endif
+                                @if ($e->expected_calving_date) · {{ __('expected calving :date', ['date' => fmt_date($e->expected_calving_date)]) }}@endif</li>
+                        @empty
+                            <li class="text-body-secondary">{{ __('No breeding events.') }}</li>
+                        @endforelse
+                    </ul>
+                @endif
             </div>
 
             {{-- Expenses linked to this animal --}}

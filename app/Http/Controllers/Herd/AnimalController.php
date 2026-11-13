@@ -15,8 +15,12 @@ use App\Http\Requests\Herd\DeleteAnimalRequest;
 use App\Models\Activity;
 use App\Models\Animal;
 use App\Models\AnimalBreed;
+use App\Models\AnimalVaccination;
+use App\Models\BreedingEvent;
 use App\Models\Expense;
+use App\Models\Treatment;
 use App\Services\AnimalService;
+use App\Services\BreedingService;
 use App\Services\MilkProductionService;
 use DomainException;
 use Illuminate\Http\JsonResponse;
@@ -99,6 +103,13 @@ class AnimalController extends Controller
             'recentExpenses' => (clone $expenses)->with(['category:id,name', 'subcategory:id,name'])
                 ->latest('expense_date')->latest('id')->limit(10)->get(),
             'milkHistory' => request()->user()->can('milk_production.view') ? $this->milk->animalHistory($animal) : null,
+            'treatments' => request()->user()->can('health.view') ? Treatment::query()->where('animal_id', $animal->id)
+                ->latest('treatment_date')->latest('id')->limit(10)->get() : null,
+            'vaccinations' => request()->user()->can('health.view') ? AnimalVaccination::query()->where('animal_id', $animal->id)
+                ->with('vaccineType:id,name')->latest('given_on')->latest('id')->limit(10)->get() : null,
+            'breedingEvents' => request()->user()->can('breeding.manage') ? BreedingEvent::query()->where('animal_id', $animal->id)
+                ->latest('event_date')->latest('id')->limit(20)->get() : null,
+            'isPregnant' => $animal->gender === AnimalGender::Female && app(BreedingService::class)->isPregnant($animal),
             'statusHistory' => $animal->statusHistories()->with('changer:id,name')
                 ->latest('changed_on')->latest('id')->limit(50)->get(),
             'history' => Activity::query()

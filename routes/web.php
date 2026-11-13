@@ -18,6 +18,7 @@ use App\Http\Controllers\Expenses\VendorPaymentController;
 use App\Http\Controllers\Farm\FarmSwitchController;
 use App\Http\Controllers\Herd\AnimalBreedController;
 use App\Http\Controllers\Herd\AnimalController;
+use App\Http\Controllers\Herd\BreedingEventController;
 use App\Http\Controllers\Herd\MilkProductionController;
 use App\Http\Controllers\Herd\TreatmentController;
 use App\Http\Controllers\Herd\VaccinationController;
@@ -159,6 +160,9 @@ Route::middleware(['auth', 'active', 'farm'])->group(function () {
             Route::post('{animal}/change', [AnimalController::class, 'change'])->middleware('can:animals.manage')->name('animals.change');
         });
     });
+
+    // Herd → Breeding: breeding.manage for everything
+    Route::resource('breeding', BreedingEventController::class)->except('show')->middleware('can:breeding.manage');
 
     // Herd → Health: health.view to see, health.manage to add / change / delete
     Route::prefix('health')->name('health.')->group(function () {
