@@ -7,12 +7,12 @@
 
 | Item | Value |
 |---|---|
-| Current phase | Phase 5 — Health, Breeding, Feed (🟡 in progress) |
-| Last completed task | 5.8 — Withdrawal warning in milk entry (grid badge, form alert, search flag) |
-| Next task | 5.9 — Phase 5 acceptance tests + README/CHANGELOG |
-| Overall progress | 74 / 97 tasks (76%) |
-| Tests passing | 676 |
-| Last updated (IST) | 2026-11-13 (task/5.8-withdrawal-warning) |
+| Current phase | Phase 5 — Health, Breeding, Feed (✅ done; tag `phase-5-done` after this PR is merged) |
+| Last completed task | 5.9 — Phase 5 acceptance tests + demo data + README/CHANGELOG |
+| Next task | 6.1 — Parties (buyers/sellers) CRUD |
+| Overall progress | 75 / 97 tasks (77%) |
+| Tests passing | 681 |
+| Last updated (IST) | 2026-11-13 (task/5.9-phase5-acceptance) |
 
 ## Phase overview
 
@@ -24,7 +24,7 @@
 | 3 | Customers, Delivery, Billing, Payments | ✅ Done | 2026-10-29 | 2026-11-06 | `phase-3-done` |
 | 3A | Loans, Overdraft & Credit Cards (added 2026-11-05) | ✅ Done | 2026-11-06 | 2026-11-09 | `phase-3a-done` |
 | 4 | Farmers & Collection Center | ✅ Done | 2026-11-09 | 2026-11-12 | `phase-4-done` |
-| 5 | Health, Breeding, Feed | 🟡 In progress | 2026-11-13 | | |
+| 5 | Health, Breeding, Feed | ✅ Done | 2026-11-13 | 2026-11-13 | `phase-5-done` |
 | 6 | Animal Trading & Staff | ⬜ Not started | | | |
 | 7 | Dashboard & Reports | ⬜ Not started | | | |
 | 8 | Integrations (only on explicit instruction) | ⏸ Not planned | | | |
@@ -361,18 +361,24 @@ Status legend: ⬜ Not started · 🟡 In progress · ✅ Done · ⏸ On hold
 - [x] 5.6 Feed items + feed transactions (purchase creates expense) + stock screen
 - [x] 5.7 Reminders command + in-app notifications (bell)
 - [x] 5.8 Withdrawal warning in milk entry
-- [ ] 5.9 Phase 5 acceptance tests pass + README/CHANGELOG updated
+- [x] 5.9 Phase 5 acceptance tests pass + README/CHANGELOG updated
 
 ### Phase log
-- **Completed on:** _TODO_
-- **What was built (plain language):** _TODO_
-- **Screens / URLs added:** _TODO_
-- **Tables / migrations added:** _TODO_
-- **Services / commands / jobs added:** _TODO_
-- **Tests added (count, all passing?):** _TODO_
-- **Decisions taken:** _TODO_
-- **Known issues / pending:** _TODO_
-- **How to check it manually:** _TODO_
+- **Completed on:** 2026-11-13
+- **What was built (plain language):** The herd's care is now in the app. **Treatments** (diagnosis, medicine, vet, cost, milk withdrawal date) can also record their cost as one linked expense that follows every edit. **Vaccines** (FMD, HS, BQ, Brucellosis, Theileriosis, Deworming + your own, with a repeat interval) are given to one or many animals at once; the next due date is worked out. **Breeding**: heat, AI, natural service, pregnancy check, abortion — AI / service gives the expected calving date (cow 280, buffalo 310 days, settings); a positive check makes a heifer a pregnant heifer. **Calvings** make the mother milking, add 1 to her lactation and create the calf with its mother. **Dry off** and **Mark as heifer** quick actions, with a dashboard suggestion for female calves over 12 months. **Feed**: items with a reorder level, opening / purchase / consumption / adjustments, stock and its value; a purchase is one expense, consumption only lowers stock. A daily **reminder** run (07:00) puts bell notifications for due vaccinations, expected calvings, low feed, milk drops and overdue bills. The **milk entry** screens warn about animals under milk withdrawal.
+- **Screens / URLs added:** `/health/treatments`, `/health/vaccinations` (single & bulk, "due" filter), `/health/vaccines`, `/breeding` (events + expected calvings), `/breeding/calvings`, `/feed` (stock), `/feed/entries` (+ add / edit feed items); animal page: Health and Breeding tabs, Dry off / Mark as heifer; dashboard heifer suggestion card; withdrawal badge on `/milk-production` and its entry form.
+- **Tables / migrations added:** `treatments`, `vaccine_types` + `animal_vaccinations`, `breeding_events`, `calvings`, `feed_items` + `feed_transactions` (2026_11_13_100000 … 140000).
+- **Services / commands / jobs added:** `TreatmentService`, `VaccinationService`, `HealthExpenseService` (shared linked-expense sync), `BreedingService`, `CalvingService`, `FeedService`, `DailyReminderService`; command `reminders:daily` (07:00); `DemoHerdCareSeeder` (Phase 5 demo data).
+- **Tests added (count, all passing?):** 36 Phase 5 tests (treatments 4, vaccinations 6, breeding 5, calvings 4, quick stage 3, feed 5, reminders 2, withdrawal warning 2, Phase 5 acceptance 5) + Phase 5 checks in the DemoSeeder test; full suite 681 passing.
+- **Decisions taken:** [DECISIONS #171–#179](DECISIONS.md) (treatment expense, vaccination expense per animal, pregnant flag, calving undo, dry-off / heifer actions, feed purchase entry and stock rule, reminder shape, withdrawal rule, demo data).
+- **Known issues / pending:** Performance with the demo year (4 feed items, ~1,460 consumption + ~160 purchase rows, 25 treatments, ~110 vaccinations, breeding events), measured locally: treatments 54 ms, vaccinations 83 ms, breeding 63 ms, calvings 37 ms, feed stock 36 ms, feed entries 112 ms, milk grid with withdrawal badges 70 ms, animal page 147 ms, dashboard 39 ms. Feed demo purchases add to the Phase 1 demo feed expenses (demo only). Health / feed reports and per-animal profit come in Phase 7 (spec 7.6).
+- **How to check it manually:**
+  1. Run `php artisan db:seed --class=DemoSeeder` (local), log in as owner.
+  2. Herd → Health → Treatments: add ₹800 for a cow with "Also record as expense" → Expenses shows one ₹800 Health → Medicine row; edit to ₹900 (reason) → the same row becomes ₹900.
+  3. Herd → Breeding: AI on a cow dated 01-01-2027 → expected calving 08-10-2027. Record a calving → the calf appears under Animals with its mother; the mother's lactation goes up by 1.
+  4. Herd → Feed: add an item, opening 500 kg, consumption 80 → stock 420; a purchase shows up under Expenses (Feed).
+  5. Run `php artisan reminders:daily` → bell icon shows due vaccinations, low feed, expected calvings.
+  6. Milk production: a cow treated in the last days shows a red "Withdrawal till …" badge.
 
 ---
 

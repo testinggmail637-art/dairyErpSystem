@@ -11,14 +11,18 @@ use App\Models\Farm;
 use App\Models\Farmer;
 use App\Models\FarmerPayment;
 use App\Models\FarmerPaymentCycle;
+use App\Models\FeedItem;
+use App\Models\FeedTransaction;
 use App\Models\MilkCollection;
 use App\Models\MilkProductionRecord;
 use App\Models\MilkStockMovement;
 use App\Models\PaymentAllocation;
+use App\Models\Treatment;
 use App\Models\User;
 use App\Models\Vendor;
 use App\Models\VendorPayment;
 use App\Services\CustomerBalanceService;
+use App\Services\FeedService;
 use App\Services\MilkStockService;
 use App\Support\Money;
 use Database\Seeders\DatabaseSeeder;
@@ -77,6 +81,15 @@ it('seeds a year of demo expenses, vendors, payments and users, once', function 
         ->and(FarmerPayment::allFarms()->where('net_payable', '<', 0)->count())->toBe(0)
         // a cycle's gross = the accepted milk linked to it
         ->and(Money::round2((string) FarmerPayment::allFarms()->sum('gross_amount')))->toBe(Money::round2((string) (clone $accepted)->whereNotNull('farmer_payment_id')->sum('amount')));
+
+    // Phase 5: feed with stock never below zero, purchases as expenses, treatments (some under withdrawal now)
+    $feedStock = app(FeedService::class)->stock();
+    expect(FeedItem::allFarms()->count())->toBe(4)
+        ->and(collect($feedStock)->every(fn ($s) => ! Money::isNegative($s)))->toBeTrue()
+        ->and(FeedTransaction::allFarms()->where('type', 'purchase')->whereNull('expense_id')->count())->toBe(0)
+        ->and(FeedTransaction::allFarms()->where('type', 'consumption')->count())->toBeGreaterThan(1400)
+        ->and(Treatment::allFarms()->count())->toBe(25)
+        ->and(Treatment::allFarms()->where('milk_withdrawal_until', '>=', today()->toDateString())->count())->toBeGreaterThanOrEqual(3);
 
     $count = $expenses->count();
     $deliveries = Delivery::allFarms()->count();
