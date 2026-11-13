@@ -159,6 +159,8 @@ Route::middleware(['auth', 'active', 'farm'])->group(function () {
             Route::put('{animal}', [AnimalController::class, 'update'])->middleware('can:animals.manage')->name('animals.update');
             Route::delete('{animal}', [AnimalController::class, 'destroy'])->middleware('can:animals.manage')->name('animals.destroy');
             Route::post('{animal}/change', [AnimalController::class, 'change'])->middleware('can:animals.manage')->name('animals.change');
+            Route::post('{animal}/dry-off', [AnimalController::class, 'dryOff'])->middleware('can:breeding.manage')->name('animals.dry-off');
+            Route::post('{animal}/mark-heifer', [AnimalController::class, 'markHeifer'])->middleware('can:breeding.manage')->name('animals.mark-heifer');
         });
     });
 

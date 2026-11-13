@@ -306,6 +306,7 @@ class DashboardService
             'active' => (int) $counts->sum(),
             'milking' => (int) ($counts[LifecycleStage::Milking->value] ?? 0),
             'stages' => $stages,
+            'heifer_suggestions' => app(AnimalService::class)->heiferSuggestions(),
         ];
     }
 
