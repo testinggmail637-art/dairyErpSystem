@@ -5,6 +5,19 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+## [0.5.0] - 2026-11-13 — Phase 5: Health, Breeding, Feed
+
+### Added
+- Phase 5 · Task 5.1: treatments — Herd → Health → Treatments: list (last 90 days, animal filter, "under milk withdrawal now"), add / edit / delete with reason; "Also record as expense" keeps exactly one Health → Medicine expense (section HERD, the animal) that follows edits and is removed with the treatment. Permissions `health.view`, `health.manage`.
+- Phase 5 · Task 5.2: vaccine types (FMD, HS, BQ, Brucellosis, Theileriosis, Deworming + own; interval days) and vaccinations for one or many animals; next due = typed date or given + interval; "next dose" filter (overdue / due in 30 days); one expense per vaccinated animal.
+- Phase 5 · Task 5.3: breeding events (heat, AI, natural service, pregnancy check, abortion) with expected calving date (cow / buffalo gestation days from settings), pregnant badge, heifer ↔ pregnant heifer, expected calvings card; animal page Health and Breeding tabs. Permission `breeding.manage`.
+- Phase 5 · Task 5.4: calvings — mother becomes milking and lactation + 1; a live calf is created with mother, type, breed, sire; undo with reason.
+- Phase 5 · Task 5.5: Dry off and Mark as heifer quick actions (status history), dashboard suggestion for female calves over 12 months.
+- Phase 5 · Task 5.6: feed items (unit, reorder level) and entries (opening, purchase, consumption, adjustments); stock screen with average cost (90 days) and value; a purchase keeps one Feed expense (paid or credit with vendor), consumption none; stock never below zero. Permissions `feed.view`, `feed.manage`.
+- Phase 5 · Task 5.7: `reminders:daily` (07:00) — one bell notification per kind to users with its permission: due vaccinations, expected calvings, low feed, yesterday's milk drops, overdue customer bills.
+- Phase 5 · Task 5.8: milk withdrawal warning — red badge on the milk grid, alert on the entry form and a flag in the milking animal search for animals under treatment withdrawal.
+- Phase 5 · Task 5.9: Phase 5 acceptance tests (`tests/Feature/Phase5AcceptanceTest.php`); DemoSeeder Phase 5 part (`DemoHerdCareSeeder`: feed, treatments, vaccinations, breeding).
+
 ## [0.4.0] - 2026-11-12 — Phase 4: Farmers & Collection Center
 
 ### Added

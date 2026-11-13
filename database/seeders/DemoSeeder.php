@@ -14,6 +14,7 @@ use App\Models\ExpenseCategory;
 use App\Models\Farm;
 use App\Models\Farmer;
 use App\Models\FarmerPaymentCycle;
+use App\Models\FeedItem;
 use App\Models\MilkCollection;
 use App\Models\MilkProductionRecord;
 use App\Models\MilkStockMovement;
@@ -109,6 +110,12 @@ class DemoSeeder extends Seeder
             $this->command?->warn('Phase 4 demo data (farmers, collections, payment cycles) already exists — skipped.');
         } else {
             (new DemoCollectionSeeder)->run($farm, $users[0]);
+        }
+
+        if (FeedItem::query()->exists()) {
+            $this->command?->warn('Phase 5 demo data (feed, treatments, vaccinations, breeding) already exists — skipped.');
+        } else {
+            (new DemoHerdCareSeeder)->run($farm, $users[count($users) - 1]);
         }
 
         $this->command?->info(sprintf('Demo data: %d expenses, %d vendor payments, %d animals, %d milk entries, %d stock movements, %d customers, %d deliveries, %d bills, %d farmers, %d collections, %d payment cycles.',
