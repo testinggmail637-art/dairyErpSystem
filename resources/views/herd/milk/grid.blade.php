@@ -91,6 +91,11 @@
                                 <td>
                                     <span class="fw-semibold">{{ $animal->tag_no }}</span>
                                     @if ($animal->name)<span class="text-body-secondary">· {{ $animal->name }}</span>@endif
+                                    @isset($withdrawals[$animal->id])
+                                        <span class="badge text-bg-danger ms-1" title="{{ __('Milk from this animal should not be sold (treatment withdrawal).') }}">
+                                            <i class="bi bi-exclamation-triangle me-1"></i>{{ __('Withdrawal till :date', ['date' => fmt_date($withdrawals[$animal->id])]) }}
+                                        </span>
+                                    @endisset
                                     <div class="small text-body-secondary">
                                         {{ $animal->breed?->name ?? $typeEnum->label() }}
                                         @if ($animal->lifecycle_stage !== \App\Enums\LifecycleStage::Milking || $animal->status !== \App\Enums\AnimalStatus::Active)

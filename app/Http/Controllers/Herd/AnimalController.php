@@ -199,10 +199,16 @@ class AnimalController extends Controller
             ->orderBy('tag_no')
             ->simplePaginate(20, ['id', 'tag_no', 'name', 'status'], 'page', max(1, $request->integer('page', 1)));
 
+        // Milk entry search flags animals under milk withdrawal today (spec Phase 5).
+        $withdrawals = $request->boolean('milking')
+            ? app(MilkProductionService::class)->withdrawals($animals->getCollection()->modelKeys(), today()->toDateString())
+            : [];
+
         return response()->json([
             'results' => $animals->getCollection()->map(fn (Animal $a) => [
                 'id' => $a->id,
-                'text' => $a->label().($a->status === AnimalStatus::Active ? '' : ' ('.$a->status->label().')'),
+                'text' => $a->label().($a->status === AnimalStatus::Active ? '' : ' ('.$a->status->label().')')
+                    .(isset($withdrawals[$a->id]) ? ' — '.__('milk withdrawal till :date', ['date' => fmt_date($withdrawals[$a->id])]) : ''),
             ])->values(),
             'pagination' => ['more' => $animals->hasMorePages()],
         ]);

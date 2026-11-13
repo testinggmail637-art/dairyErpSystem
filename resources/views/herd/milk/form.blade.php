@@ -28,6 +28,11 @@
                                        :placeholder="__('Search by tag or name')" select2 required group-class="mb-0"
                                        :data-ajax-url="route('animals.search', ['milking' => 1])"
                                        :help="__('Only active milking females are listed.')" />
+                        @if ($withdrawalUntil)
+                            <div class="alert alert-danger py-2 mt-2 mb-0 small" role="alert">
+                                <i class="bi bi-exclamation-triangle me-1"></i>{{ __('This animal is under milk withdrawal till :date — its milk should not be sold.', ['date' => fmt_date($withdrawalUntil)]) }}
+                            </div>
+                        @endif
                     </div>
                     <div class="col-12 col-md-4">
                         <x-form.quantity name="quantity_litre" :label="__('Litres')" :value="$record->quantity_litre" required group-class="mb-0" />

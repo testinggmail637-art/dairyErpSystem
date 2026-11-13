@@ -5,6 +5,7 @@ namespace App\Services;
 use App\Enums\MilkShift;
 use App\Models\Animal;
 use App\Models\MilkProductionRecord;
+use App\Models\Treatment;
 use App\Support\Money;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\UniqueConstraintViolationException;
@@ -85,6 +86,29 @@ class MilkProductionService
             });
 
         return $hints;
+    }
+
+    /**
+     * Animals under milk withdrawal on $date (a treatment on/before $date whose withdrawal runs to $date or later).
+     *
+     * @param  list<int>  $animalIds
+     * @return array<int, string> animal id => last withdrawal date (Y-m-d)
+     */
+    public function withdrawals(array $animalIds, string $date): array
+    {
+        if ($animalIds === []) {
+            return [];
+        }
+
+        return Treatment::query()->toBase()
+            ->whereIn('animal_id', $animalIds)
+            ->where('milk_withdrawal_until', '>=', $date)
+            ->where('treatment_date', '<=', $date)
+            ->groupBy('animal_id')
+            ->selectRaw('animal_id, MAX(milk_withdrawal_until) AS until')
+            ->pluck('until', 'animal_id')
+            ->mapWithKeys(fn ($until, $id) => [(int) $id => (string) $until])
+            ->all();
     }
 
     /**

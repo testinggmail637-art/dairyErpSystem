@@ -45,6 +45,7 @@ class MilkProductionController extends Controller
             'animals' => $animals,
             'entries' => $this->milk->entriesFor($date, $shift, $ids),
             'hints' => $this->milk->lastEntries($ids, $shift, $date),
+            'withdrawals' => $this->milk->withdrawals($ids, $date),
             'canCreate' => $request->user()->can('create', MilkProductionRecord::class),
             'alerts' => $this->alerts->alerts($date, $shift),
         ]);
@@ -123,13 +124,16 @@ class MilkProductionController extends Controller
     {
         $animal = $request->integer('animal_id') ? Animal::query()->milking()->find($request->integer('animal_id')) : null;
 
+        $date = $this->dateFrom($request->query('date'));
+
         return view('herd.milk.form', [
             'record' => new MilkProductionRecord([
-                'production_date' => $this->dateFrom($request->query('date')),
+                'production_date' => $date,
                 'shift' => MilkShift::tryFrom((string) $request->query('shift')) ?? MilkShift::current(),
                 'animal_id' => $animal?->id,
             ]),
             'selectedAnimal' => $this->animalOption(old('animal_id', $animal?->id)),
+            'withdrawalUntil' => $this->withdrawalUntil(old('animal_id', $animal?->id), $date),
         ]);
     }
 
@@ -148,6 +152,7 @@ class MilkProductionController extends Controller
         return view('herd.milk.form', [
             'record' => $record,
             'selectedAnimal' => $this->animalOption(old('animal_id', $record->animal_id)),
+            'withdrawalUntil' => $this->withdrawalUntil(old('animal_id', $record->animal_id), $record->production_date->toDateString()),
         ]);
     }
 
@@ -193,5 +198,10 @@ class MilkProductionController extends Controller
         $animal = $animalId ? Animal::withTrashed()->find((int) $animalId, ['id', 'tag_no', 'name']) : null;
 
         return $animal ? [$animal->id => $animal->label()] : [];
+    }
+
+    private function withdrawalUntil(mixed $animalId, string $date): ?string
+    {
+        return $animalId ? ($this->milk->withdrawals([(int) $animalId], $date)[(int) $animalId] ?? null) : null;
     }
 }
