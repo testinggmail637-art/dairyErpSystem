@@ -8,6 +8,10 @@ use App\Models\Customer;
 use App\Models\Delivery;
 use App\Models\Expense;
 use App\Models\Farm;
+use App\Models\Farmer;
+use App\Models\FarmerPayment;
+use App\Models\FarmerPaymentCycle;
+use App\Models\MilkCollection;
 use App\Models\MilkProductionRecord;
 use App\Models\MilkStockMovement;
 use App\Models\PaymentAllocation;
@@ -27,6 +31,8 @@ it('seeds a year of demo expenses, vendors, payments and users, once', function 
     $farm = Farm::where('code', 'MDF')->firstOrFail();
     $expenses = Expense::allFarms()->where('farm_id', $farm->id);
     $delivered = Delivery::allFarms()->where('farm_id', $farm->id)->where('status', 'delivered')->where('delivered_qty', '>', 0);
+    $accepted = MilkCollection::allFarms()->where('farm_id', $farm->id)->where('quality_status', 'accepted');
+    $movements = fn () => MilkProductionRecord::allFarms()->count() + $delivered->count() + $accepted->count();
 
     expect(Vendor::allFarms()->where('notes', DemoSeeder::MARK)->count())->toBe(25)
         ->and($expenses->count())->toBeGreaterThan(2000)
@@ -41,8 +47,8 @@ it('seeds a year of demo expenses, vendors, payments and users, once', function 
         ->and(AnimalStatusHistory::allFarms()->count())->toBe(90) // 3 starting rows per animal
         ->and(MilkProductionRecord::allFarms()->count())->toBeGreaterThan(14000) // a year, 2 shifts, ~20 animals
         ->and(MilkProductionRecord::allFarms()->max('quantity_litre'))->toBeLessThanOrEqual('60.00')
-        // every entry and every delivered row has its movement: own-farm stock = milk produced − milk delivered
-        ->and(MilkStockMovement::allFarms()->count())->toBe(MilkProductionRecord::allFarms()->count() + $delivered->count())
+        // every entry, delivered row and accepted collection has its movement: own-farm stock = milk produced − milk delivered
+        ->and(MilkStockMovement::allFarms()->count())->toBe($movements())
         ->and(app(MilkStockService::class)->balance(MilkSource::OwnFarm))->toBe(Money::sub(
             (string) MilkProductionRecord::allFarms()->sum('quantity_litre'), (string) $delivered->sum('delivered_qty')))
         ->and(Money::isNegative(app(MilkStockService::class)->balance(MilkSource::OwnFarm)))->toBeFalse();
@@ -61,12 +67,24 @@ it('seeds a year of demo expenses, vendors, payments and users, once', function 
     $last = (clone $bills)->latest('bill_date')->first();
     expect(app(CustomerBalanceService::class)->balanceAsOf($last->customer, $last->bill_date->toDateString()))->toBe($last->closing_balance);
 
+    // Phase 4: farmers, a year of collections in collection stock, cycles (paid, one finalized unpaid, one draft)
+    $cycles = FarmerPaymentCycle::allFarms()->where('farm_id', $farm->id);
+    expect(Farmer::allFarms()->where('notes', DemoSeeder::MARK)->count())->toBe(60)
+        ->and($accepted->count())->toBeGreaterThan(30000)
+        ->and(app(MilkStockService::class)->balance(MilkSource::Collection))->toBe(Money::round2((string) $accepted->sum('quantity_litre')))
+        ->and((clone $cycles)->where('status', 'draft')->count())->toBe(1)
+        ->and(FarmerPayment::allFarms()->where('status', 'pending')->whereHas('cycle', fn ($q) => $q->where('status', 'finalized'))->count())->toBe(60)
+        ->and(FarmerPayment::allFarms()->where('net_payable', '<', 0)->count())->toBe(0)
+        // a cycle's gross = the accepted milk linked to it
+        ->and(Money::round2((string) FarmerPayment::allFarms()->sum('gross_amount')))->toBe(Money::round2((string) (clone $accepted)->whereNotNull('farmer_payment_id')->sum('amount')));
+
     $count = $expenses->count();
     $deliveries = Delivery::allFarms()->count();
     $this->seed(DemoSeeder::class); // second run is skipped
     expect(Expense::allFarms()->count())->toBe($count)
         ->and(Delivery::allFarms()->count())->toBe($deliveries)
-        ->and(MilkStockMovement::allFarms()->count())->toBe(MilkProductionRecord::allFarms()->count() + $delivered->count());
+        ->and(MilkStockMovement::allFarms()->count())->toBe($movements())
+        ->and(FarmerPaymentCycle::allFarms()->count())->toBe($cycles->count());
 });
 
 it('refuses to run in production', function () {
