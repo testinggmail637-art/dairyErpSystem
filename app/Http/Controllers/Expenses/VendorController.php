@@ -107,6 +107,8 @@ class VendorController extends Controller
      */
     public function search(Request $request): JsonResponse
     {
+        abort_unless($request->user()->canAny(['vendors.view', 'feed.manage']), 403); // feed purchases on credit need a vendor
+
         $page = max(1, $request->integer('page', 1));
 
         $vendors = Vendor::query()->active()
