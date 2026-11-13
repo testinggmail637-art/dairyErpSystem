@@ -40,6 +40,7 @@ Keep this file short. Update it in the same commit when you add a new **shared**
   (ledger balance as of a date, payments / adjustments between dates), `PaymentAllocationService::allocate($customerId)`
   (rebuild FIFO after any money change), `CustomerLedgerService` (running-balance ledger — copy for farmer / party ledgers).
 - **Bulk job + bell notification** pattern: `app/Jobs/GenerateBills.php` + `Notifications/BillsGeneratedNotification.php`.
+- **Daily reminder lines** `Services/DailyReminderService::lines()` → `reminders:daily` (one bell notification per kind, by permission) — add new reminder kinds there.
 - **Customer remote search** `route('customers.search')` for Select2 boxes.
 - **AJAX lists** `Controller::listView($request, $view, $data)` + `@fragment('results')` + `data-ajax-list` (see CLAUDE.md).
 - **Blade components** `resources/views/components/`: `data-table`, `confirm-form`, `money`,

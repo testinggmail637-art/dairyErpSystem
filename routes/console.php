@@ -20,6 +20,8 @@ Schedule::command('deliveries:generate --scheduled')->everyFiveMinutes()->withou
 
 // Loan instalments / card bills / interest debits / renewals (spec 7.4A): bell notifications to users with loans.view.
 Schedule::command('loans:reminders')->dailyAt('08:00')->withoutOverlapping()->onOneServer();
+// Vaccinations / calvings / low feed / milk drops / overdue bills (spec Phase 5): bell notifications by permission.
+Schedule::command('reminders:daily')->dailyAt('07:00')->withoutOverlapping()->onOneServer();
 
 // Queued export files (storage/app/private/exports/{user}/) are kept 3 days.
 Schedule::call(function () {
