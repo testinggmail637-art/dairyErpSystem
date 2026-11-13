@@ -8,11 +8,11 @@
 | Item | Value |
 |---|---|
 | Current phase | Phase 5 — Health, Breeding, Feed (🟡 in progress) |
-| Last completed task | 5.1 — Treatments (linked expense, withdrawal date) |
-| Next task | 5.2 — Vaccine types + vaccinations (single & bulk) |
-| Overall progress | 67 / 97 tasks (69%) |
-| Tests passing | 649 |
-| Last updated (IST) | 2026-11-13 (task/5.1-treatments) |
+| Last completed task | 5.2 — Vaccine types + vaccinations (single & bulk) |
+| Next task | 5.3 — Breeding events + expected calving date |
+| Overall progress | 68 / 97 tasks (70%) |
+| Tests passing | 655 |
+| Last updated (IST) | 2026-11-13 (task/5.2-vaccinations) |
 
 ## Phase overview
 
@@ -354,7 +354,7 @@ Status legend: ⬜ Not started · 🟡 In progress · ✅ Done · ⏸ On hold
 
 ### Checklist
 - [x] 5.1 Treatments (with linked expense, withdrawal date)
-- [ ] 5.2 Vaccine types + vaccinations (single & bulk)
+- [x] 5.2 Vaccine types + vaccinations (single & bulk)
 - [ ] 5.3 Breeding events + expected calving date
 - [ ] 5.4 Calvings (calf creation, lifecycle + lactation updates)
 - [ ] 5.5 Dry-off action + heifer suggestion
