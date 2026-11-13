@@ -19,6 +19,7 @@ use App\Http\Controllers\Farm\FarmSwitchController;
 use App\Http\Controllers\Herd\AnimalBreedController;
 use App\Http\Controllers\Herd\AnimalController;
 use App\Http\Controllers\Herd\MilkProductionController;
+use App\Http\Controllers\Herd\TreatmentController;
 use App\Http\Controllers\HomeController;
 use App\Http\Controllers\Loans\LoanActionController;
 use App\Http\Controllers\Loans\LoanController;
@@ -154,6 +155,14 @@ Route::middleware(['auth', 'active', 'farm'])->group(function () {
             Route::put('{animal}', [AnimalController::class, 'update'])->middleware('can:animals.manage')->name('animals.update');
             Route::delete('{animal}', [AnimalController::class, 'destroy'])->middleware('can:animals.manage')->name('animals.destroy');
             Route::post('{animal}/change', [AnimalController::class, 'change'])->middleware('can:animals.manage')->name('animals.change');
+        });
+    });
+
+    // Herd → Health: health.view to see, health.manage to add / change / delete
+    Route::prefix('health')->name('health.')->group(function () {
+        Route::get('treatments', [TreatmentController::class, 'index'])->middleware('can:health.view')->name('treatments.index');
+        Route::middleware('can:health.manage')->group(function () {
+            Route::resource('treatments', TreatmentController::class)->except(['index', 'show']);
         });
     });
 
