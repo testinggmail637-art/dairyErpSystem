@@ -2,7 +2,9 @@
 
 namespace App\Services;
 
+use App\Enums\AnimalGender;
 use App\Enums\AnimalStatus;
+use App\Enums\LifecycleStage;
 use App\Models\Animal;
 use App\Support\AnimalPhotoStorage;
 use App\Support\CurrentFarm;
@@ -80,6 +82,38 @@ class AnimalService
         });
 
         return $animal;
+    }
+
+    /**
+     * Herd quick actions (spec Phase 5): dry off a milking female, or mark a female calf as heifer. Only from
+     * that stage, only for active females; the status history records it like any stage change.
+     */
+    public function quickStage(Animal $animal, LifecycleStage $to, string $changedOn): Animal
+    {
+        $from = match ($to) {
+            LifecycleStage::Dry => LifecycleStage::Milking,
+            LifecycleStage::Heifer => LifecycleStage::Calf,
+            default => throw new DomainException(__('This stage is not a quick action.')),
+        };
+
+        if ($animal->gender !== AnimalGender::Female || $animal->status !== AnimalStatus::Active || $animal->lifecycle_stage !== $from) {
+            throw new DomainException(__(':tag is not an active :stage female.', ['tag' => $animal->tag_no, 'stage' => mb_strtolower($from->label())]));
+        }
+
+        return $this->change($animal, 'lifecycle_stage', $to->value, $changedOn);
+    }
+
+    /** Female calves older than 12 months — dashboard suggestion "mark as heifer" (no automatic change). */
+    public function heiferSuggestions(int $limit = 10): array
+    {
+        $query = Animal::query()->where('status', AnimalStatus::Active->value)->where('gender', AnimalGender::Female->value)
+            ->where('lifecycle_stage', LifecycleStage::Calf->value)->where('date_of_birth', '<=', today()->subMonths(12)->toDateString());
+
+        return [
+            'count' => (clone $query)->count(),
+            'animals' => $query->orderBy('date_of_birth')->limit($limit)->get(['id', 'tag_no', 'name', 'date_of_birth'])
+                ->map(fn (Animal $a) => ['id' => $a->id, 'label' => $a->label(), 'date_of_birth' => $a->date_of_birth->toDateString()])->all(),
+        ];
     }
 
     /** Soft delete — refused while the animal has transactions (spec). The photo stays with the deleted record. */

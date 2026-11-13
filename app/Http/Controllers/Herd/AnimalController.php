@@ -12,6 +12,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\Herd\AnimalChangeRequest;
 use App\Http\Requests\Herd\AnimalRequest;
 use App\Http\Requests\Herd\DeleteAnimalRequest;
+use App\Http\Requests\Herd\QuickStageRequest;
 use App\Models\Activity;
 use App\Models\Animal;
 use App\Models\AnimalBreed;
@@ -21,6 +22,7 @@ use App\Models\Expense;
 use App\Models\Treatment;
 use App\Services\AnimalService;
 use App\Services\BreedingService;
+use App\Services\DashboardService;
 use App\Services\MilkProductionService;
 use DomainException;
 use Illuminate\Http\JsonResponse;
@@ -143,6 +145,29 @@ class AnimalController extends Controller
         };
 
         return redirect()->route('animals.show', $animal)->with('success', __(':field of :tag changed.', ['field' => $label, 'tag' => $animal->tag_no]));
+    }
+
+    public function dryOff(QuickStageRequest $request, Animal $animal): RedirectResponse
+    {
+        return $this->quickStage($request, $animal, LifecycleStage::Dry, __(':tag dried off.', ['tag' => $animal->tag_no]));
+    }
+
+    public function markHeifer(QuickStageRequest $request, Animal $animal): RedirectResponse
+    {
+        return $this->quickStage($request, $animal, LifecycleStage::Heifer, __(':tag marked as heifer.', ['tag' => $animal->tag_no]));
+    }
+
+    private function quickStage(QuickStageRequest $request, Animal $animal, LifecycleStage $to, string $message): RedirectResponse
+    {
+        try {
+            $this->animals->quickStage($animal, $to, $request->validated('changed_on'));
+        } catch (DomainException $e) {
+            return back()->with('error', $e->getMessage());
+        }
+
+        DashboardService::forget($animal->farm_id);
+
+        return back()->with('success', $message);
     }
 
     public function destroy(DeleteAnimalRequest $request, Animal $animal): RedirectResponse

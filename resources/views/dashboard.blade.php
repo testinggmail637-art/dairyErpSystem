@@ -355,6 +355,27 @@
             @endif
         </div>
     @endif
+
+    {{-- Suggestion (spec Phase 5): female calves over 12 months — the stage is never changed automatically --}}
+    @if ($canHerd && $herd['heifer_suggestions']['count'])
+        <div class="card mt-3">
+            <div class="card-header"><i class="bi bi-lightbulb me-1"></i>{{ trans_choice(':count female calf is over 12 months — mark as heifer?|:count female calves are over 12 months — mark as heifers?', $herd['heifer_suggestions']['count']) }}</div>
+            <ul class="list-group list-group-flush">
+                @foreach ($herd['heifer_suggestions']['animals'] as $calf)
+                    <li class="list-group-item d-flex justify-content-between align-items-center gap-2">
+                        <span><a href="{{ route('animals.show', $calf['id']) }}">{{ $calf['label'] }}</a>
+                            <span class="small text-body-secondary">{{ __('born :date', ['date' => fmt_date($calf['date_of_birth'])]) }}</span></span>
+                        @can('breeding.manage')
+                            <form method="POST" action="{{ route('animals.mark-heifer', $calf['id']) }}">
+                                @csrf
+                                <button type="submit" class="btn btn-outline-primary btn-sm">{{ __('Mark as heifer') }}</button>
+                            </form>
+                        @endcan
+                    </li>
+                @endforeach
+            </ul>
+        </div>
+    @endif
 @endsection
 
 @push('scripts')

@@ -51,6 +51,22 @@
                         </button>
                     </div>
                 @endif
+                @php
+                    $quick = $animal->gender === \App\Enums\AnimalGender::Female && $animal->status === \App\Enums\AnimalStatus::Active
+                        ? match ($animal->lifecycle_stage) {
+                            \App\Enums\LifecycleStage::Milking => ['animals.dry-off', __('Dry off'), 'bi-moon'],
+                            \App\Enums\LifecycleStage::Calf => ['animals.mark-heifer', __('Mark as heifer'), 'bi-arrow-up-circle'],
+                            default => null,
+                        } : null;
+                @endphp
+                @if ($quick && auth()->user()->can('breeding.manage'))
+                    <form method="POST" action="{{ route($quick[0], $animal) }}" class="d-flex gap-2 mt-2">
+                        @csrf
+                        <input type="date" name="changed_on" value="{{ today()->toDateString() }}" max="{{ today()->toDateString() }}"
+                               class="form-control form-control-sm" aria-label="{{ __('Date') }}" required>
+                        <button type="submit" class="btn btn-outline-primary btn-sm text-nowrap"><i class="bi {{ $quick[2] }} me-1"></i>{{ $quick[1] }}</button>
+                    </form>
+                @endif
             </div>
         </div>
     </div>
