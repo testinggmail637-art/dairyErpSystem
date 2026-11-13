@@ -19,6 +19,7 @@ use App\Http\Controllers\Farm\FarmSwitchController;
 use App\Http\Controllers\Herd\AnimalBreedController;
 use App\Http\Controllers\Herd\AnimalController;
 use App\Http\Controllers\Herd\BreedingEventController;
+use App\Http\Controllers\Herd\CalvingController;
 use App\Http\Controllers\Herd\MilkProductionController;
 use App\Http\Controllers\Herd\TreatmentController;
 use App\Http\Controllers\Herd\VaccinationController;
@@ -162,7 +163,10 @@ Route::middleware(['auth', 'active', 'farm'])->group(function () {
     });
 
     // Herd → Breeding: breeding.manage for everything
-    Route::resource('breeding', BreedingEventController::class)->except('show')->middleware('can:breeding.manage');
+    Route::middleware('can:breeding.manage')->group(function () {
+        Route::resource('breeding/calvings', CalvingController::class)->only(['index', 'create', 'store', 'destroy'])->names('breeding.calvings');
+        Route::resource('breeding', BreedingEventController::class)->except('show');
+    });
 
     // Herd → Health: health.view to see, health.manage to add / change / delete
     Route::prefix('health')->name('health.')->group(function () {

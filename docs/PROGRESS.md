@@ -8,11 +8,11 @@
 | Item | Value |
 |---|---|
 | Current phase | Phase 5 — Health, Breeding, Feed (🟡 in progress) |
-| Last completed task | 5.3 — Breeding events + expected calving date |
-| Next task | 5.4 — Calvings (calf creation, lifecycle + lactation updates) |
-| Overall progress | 69 / 97 tasks (71%) |
-| Tests passing | 660 |
-| Last updated (IST) | 2026-11-13 (task/5.3-breeding-events) |
+| Last completed task | 5.4 — Calvings (calf creation, lifecycle + lactation updates) |
+| Next task | 5.5 — Dry-off action + heifer suggestion |
+| Overall progress | 70 / 97 tasks (72%) |
+| Tests passing | 664 |
+| Last updated (IST) | 2026-11-13 (task/5.4-calvings) |
 
 ## Phase overview
 
@@ -356,7 +356,7 @@ Status legend: ⬜ Not started · 🟡 In progress · ✅ Done · ⏸ On hold
 - [x] 5.1 Treatments (with linked expense, withdrawal date)
 - [x] 5.2 Vaccine types + vaccinations (single & bulk)
 - [x] 5.3 Breeding events + expected calving date
-- [ ] 5.4 Calvings (calf creation, lifecycle + lactation updates)
+- [x] 5.4 Calvings (calf creation, lifecycle + lactation updates)
 - [ ] 5.5 Dry-off action + heifer suggestion
 - [ ] 5.6 Feed items + feed transactions (purchase creates expense) + stock screen
 - [ ] 5.7 Reminders command + in-app notifications (bell)

@@ -81,7 +81,7 @@ class BreedingService
             ->select(['e.id', 'e.animal_id', 'e.event_type', 'e.expected_calving_date'])->orderBy('e.expected_calving_date');
     }
 
-    /** Each animal's latest service / check / abortion of this farm (no later one exists). */
+    /** Each animal's latest service / check / abortion of this farm (no later one exists), not ended by a calving since. */
     private function latestPregnancyEvents(): Builder
     {
         return DB::table('breeding_events as e')
@@ -90,7 +90,9 @@ class BreedingService
             ->whereNotExists(fn ($later) => $later->from('breeding_events as l')
                 ->whereColumn('l.animal_id', 'e.animal_id')->whereIn('l.event_type', BreedingEvent::PREGNANCY_EVENTS)
                 ->where(fn ($q) => $q->whereColumn('l.event_date', '>', 'e.event_date')
-                    ->orWhere(fn ($q) => $q->whereColumn('l.event_date', 'e.event_date')->whereColumn('l.id', '>', 'e.id'))));
+                    ->orWhere(fn ($q) => $q->whereColumn('l.event_date', 'e.event_date')->whereColumn('l.id', '>', 'e.id'))))
+            ->whereNotExists(fn ($calved) => $calved->from('calvings as c')
+                ->whereColumn('c.mother_id', 'e.animal_id')->whereColumn('c.calving_date', '>=', 'e.event_date'));
     }
 
     /**
