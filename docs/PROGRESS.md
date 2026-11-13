@@ -7,12 +7,12 @@
 
 | Item | Value |
 |---|---|
-| Current phase | Phase 5 — Health, Breeding, Feed (⬜ next) |
-| Last completed task | 4.9 — Phase 4 acceptance tests + README / CHANGELOG (Phase 4 done) |
-| Next task | 5.1 — Treatments (with linked expense, withdrawal date) |
-| Overall progress | 66 / 97 tasks (68%) |
-| Tests passing | 645 |
-| Last updated (IST) | 2026-11-13 (task/4.9-phase-4-acceptance) |
+| Current phase | Phase 5 — Health, Breeding, Feed (🟡 in progress) |
+| Last completed task | 5.1 — Treatments (linked expense, withdrawal date) |
+| Next task | 5.2 — Vaccine types + vaccinations (single & bulk) |
+| Overall progress | 67 / 97 tasks (69%) |
+| Tests passing | 649 |
+| Last updated (IST) | 2026-11-13 (task/5.1-treatments) |
 
 ## Phase overview
 
@@ -24,7 +24,7 @@
 | 3 | Customers, Delivery, Billing, Payments | ✅ Done | 2026-10-29 | 2026-11-06 | `phase-3-done` |
 | 3A | Loans, Overdraft & Credit Cards (added 2026-11-05) | ✅ Done | 2026-11-06 | 2026-11-09 | `phase-3a-done` |
 | 4 | Farmers & Collection Center | ✅ Done | 2026-11-09 | 2026-11-12 | `phase-4-done` |
-| 5 | Health, Breeding, Feed | ⬜ Not started | | | |
+| 5 | Health, Breeding, Feed | 🟡 In progress | 2026-11-13 | | |
 | 6 | Animal Trading & Staff | ⬜ Not started | | | |
 | 7 | Dashboard & Reports | ⬜ Not started | | | |
 | 8 | Integrations (only on explicit instruction) | ⏸ Not planned | | | |
@@ -353,7 +353,7 @@ Status legend: ⬜ Not started · 🟡 In progress · ✅ Done · ⏸ On hold
 ## Phase 5 — Health, Breeding, Feed
 
 ### Checklist
-- [ ] 5.1 Treatments (with linked expense, withdrawal date)
+- [x] 5.1 Treatments (with linked expense, withdrawal date)
 - [ ] 5.2 Vaccine types + vaccinations (single & bulk)
 - [ ] 5.3 Breeding events + expected calving date
 - [ ] 5.4 Calvings (calf creation, lifecycle + lactation updates)
