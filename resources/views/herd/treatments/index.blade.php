@@ -9,6 +9,7 @@
 @endsection
 
 @section('content')
+@include('herd.health._tabs')
 <div class="card">
     <div class="card-body border-bottom">
         <form method="GET" action="{{ route('health.treatments.index') }}" class="row g-2 align-items-end" data-allow-resubmit data-ajax-list="#treatment-list">

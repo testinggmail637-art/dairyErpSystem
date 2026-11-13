@@ -8,6 +8,7 @@ use App\Models\Farm;
 use App\Models\PaymentMode;
 use App\Models\Product;
 use App\Models\Section;
+use App\Models\VaccineType;
 use Illuminate\Database\Seeder;
 
 /**
@@ -24,6 +25,7 @@ class FarmMasterDataSeeder extends Seeder
             ExpenseCategory::seedDefaultsFor($farm);
             AnimalBreed::seedDefaultsFor($farm);
             Product::seedDefaultsFor($farm);
+            VaccineType::seedDefaultsFor($farm);
         });
     }
 }

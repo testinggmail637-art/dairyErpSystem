@@ -20,6 +20,8 @@ use App\Http\Controllers\Herd\AnimalBreedController;
 use App\Http\Controllers\Herd\AnimalController;
 use App\Http\Controllers\Herd\MilkProductionController;
 use App\Http\Controllers\Herd\TreatmentController;
+use App\Http\Controllers\Herd\VaccinationController;
+use App\Http\Controllers\Herd\VaccineTypeController;
 use App\Http\Controllers\HomeController;
 use App\Http\Controllers\Loans\LoanActionController;
 use App\Http\Controllers\Loans\LoanController;
@@ -160,9 +162,16 @@ Route::middleware(['auth', 'active', 'farm'])->group(function () {
 
     // Herd → Health: health.view to see, health.manage to add / change / delete
     Route::prefix('health')->name('health.')->group(function () {
-        Route::get('treatments', [TreatmentController::class, 'index'])->middleware('can:health.view')->name('treatments.index');
+        Route::middleware('can:health.view')->group(function () {
+            Route::get('treatments', [TreatmentController::class, 'index'])->name('treatments.index');
+            Route::get('vaccinations', [VaccinationController::class, 'index'])->name('vaccinations.index');
+            Route::get('vaccines', [VaccineTypeController::class, 'index'])->name('vaccine-types.index');
+        });
         Route::middleware('can:health.manage')->group(function () {
             Route::resource('treatments', TreatmentController::class)->except(['index', 'show']);
+            Route::resource('vaccinations', VaccinationController::class)->except(['index', 'show']);
+            Route::resource('vaccines', VaccineTypeController::class)->only(['store', 'edit', 'update', 'destroy'])
+                ->parameters(['vaccines' => 'vaccine_type'])->names('vaccine-types');
         });
     });
 

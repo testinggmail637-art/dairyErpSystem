@@ -2,10 +2,6 @@
 
 namespace App\Services;
 
-use App\Models\Expense;
-use App\Models\ExpenseCategory;
-use App\Models\PaymentMode;
-use App\Models\Section;
 use App\Models\Treatment;
 use App\Support\Money;
 use Illuminate\Support\Facades\DB;
@@ -18,6 +14,8 @@ use Illuminate\Support\Facades\DB;
  */
 class TreatmentService
 {
+    public function __construct(private readonly HealthExpenseService $expenses) {}
+
     /** @param  array<string, mixed>  $data  validated TreatmentRequest */
     public function create(array $data): Treatment
     {
@@ -58,36 +56,16 @@ class TreatmentService
     /** @param  array<string, mixed>  $data */
     private function syncExpense(Treatment $treatment, array $data): void
     {
-        $expense = $treatment->expense;
-
-        if (! ($data['record_as_expense'] ?? false) || Money::compare((string) $treatment->cost, '0') <= 0) {
-            if ($expense) {
-                $treatment->update(['expense_id' => null]);
-                $expense->delete();
-            }
-
-            return;
-        }
-
-        $health = ExpenseCategory::query()->whereNull('parent_id')->where('name', 'Health')->firstOrFail();
-        $expense ??= (new Expense)->forceFill(['source_type' => $treatment->getMorphClass(), 'source_id' => $treatment->getKey()]);
         $animal = $treatment->animal()->first(['id', 'tag_no', 'name']);
-
-        $expense->fill([
-            'expense_date' => $treatment->treatment_date->toDateString(),
-            'amount' => $treatment->cost,
-            'category_id' => $health->id,
-            'subcategory_id' => $health->children()->where('name', 'Medicine')->value('id'),
-            'section_id' => Section::query()->where('code', 'HERD')->value('id'),
-            'animal_id' => $treatment->animal_id,
-            'is_credit' => false,
-            'payment_mode_id' => $data['payment_mode_id'] ?? PaymentMode::query()->where('code', 'CASH')->value('id'),
-            'paid_to_text' => $treatment->vet_name,
+        $expense = $this->expenses->sync($treatment, $treatment->expense, [
+            'record' => (bool) ($data['record_as_expense'] ?? false), 'cost' => (string) $treatment->cost,
+            'date' => $treatment->treatment_date->toDateString(), 'subcategory' => 'Medicine', 'animal_id' => $treatment->animal_id,
+            'payment_mode_id' => $data['payment_mode_id'] ?? null, 'payee' => $treatment->vet_name,
             'note' => __('Treatment of :animal: :diagnosis', ['animal' => $animal->label(), 'diagnosis' => $treatment->diagnosis]),
-        ])->save();
+        ]);
 
-        if ($treatment->expense_id !== $expense->id) {
-            $treatment->update(['expense_id' => $expense->id]);
+        if ($treatment->expense_id !== $expense?->id) {
+            $treatment->update(['expense_id' => $expense?->id]);
         }
     }
 

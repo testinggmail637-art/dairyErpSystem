@@ -32,7 +32,7 @@ Keep this file short. Update it in the same commit when you add a new **shared**
 - **Financial year** `app/Support/FinancialYear.php`. **Permissions list** `app/Support/Permissions.php`. **Menu** `app/Support/Menu.php`.
 - **Exports** `app/Support/Exporter.php::download()` (queues big ones), `app/Reports/ReportTable.php` (report table + PDF/Excel).
 - **Loans at a glance** `Services/LoanOverviewService.php` (`overview()` for dashboard cards, `reminders()` for `loans:reminders`); OD / card balances in `Services/RevolvingAccountService.php`.
-- **Linked expense from a source record** (one expense per source, changed only via the source): `Services/TreatmentService::syncExpense` (Health → Medicine, HERD) — copy for feed purchases; Finance ones via `FinanceExpenseService::sync`.
+- **Linked expense from a source record** (one expense per source, changed only via the source): `Services/HealthExpenseService::sync` (Health → subcategory, HERD, animal; used by treatments, vaccinations) — copy the idea for feed purchases; Finance ones via `FinanceExpenseService::sync`.
 - **Farmer milk rate** `Services/RateChartService.php` — `resolve(farmer, milkType, date)` then `calculate(chart, fat, snf)` → rate + below-standard flag (copy the rate onto the row).
 - **Farmer money** `Services/FarmerPaymentService.php` — cycles / statements, `outstandingAdvances(ids)`, `balance(farmer)`, `cycleOn(date)` (a date inside a cycle is closed for collections).
 - **Milk stock** models moving milk implement `app/Contracts/MovesMilkStock.php`; ledger in `Services/MilkStockService.php`.
