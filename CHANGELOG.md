@@ -5,6 +5,19 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+## [0.4.0] - 2026-11-12 — Phase 4: Farmers & Collection Center
+
+### Added
+- Phase 4 · Task 4.1: farmers — Collection → Farmers: list (search code / name / phone / village, AJAX), add / edit / delete (soft; not when they have milk), auto code F-001, bank account / IFSC / UPI, opening balance (+ = we owe the farmer), default milk, remote search for Select2 boxes. Permissions: `farmers.view`, `farmers.manage`, `rate_charts.manage`, `collections.view / create / edit`, `farmer_payments.view / manage`, `farmer_advances.manage`.
+- Phase 4 · Task 4.2: rate charts — fixed, fat rate, fat + SNF rate and slab charts (non-overlapping fat / SNF rows), minimum fat / SNF (below standard), effective from / to, one default per milk type on a date, a farmer's own chart; rate preview calculator; edits with reason; a chart in use cannot be deleted.
+- Phase 4 · Task 4.3: collection entry screen — date + shift (morning before 2 PM), farmer code autocomplete, litres / fat / SNF / CLR, live rate and amount, Enter to move and save, Esc to clear; below-standard milk asks Accept at this rate or Reject; rejected milk ₹0 and no stock; one entry per farmer, date, shift and milk; idempotent client_uuid; accepted milk adds to collection stock; shift totals (litres, fat / SNF by litres, amount).
+- Phase 4 · Task 4.4: collection list (filters, totals of the whole set, AJAX) and edit / delete with reason; operators change only their own entries on the same day; amounts re-priced from the chart in force on the date; stock follows; entries in a payment statement are locked for everyone.
+- Phase 4 · Task 4.5: farmer advances (date, amount, mode, reference, note), outstanding advance per farmer; delete with reason, refused once the advance is recovered in a finalized statement.
+- Phase 4 · Task 4.6: farmer payment cycles FPAY/2026-27/0001 — create for a date range (default: the next 10 days), a draft statement per farmer (gross, avg fat / SNF, advance deduction = min(outstanding, gross)), bonus / deductions, delete draft (unlinks milk), finalize, mark paid (date, mode, reference) one by one or all in cash, undo with reason; cycles never overlap and their period is closed for milk entries; farmer balance.
+- Phase 4 · Task 4.7: statement PDF per farmer per cycle (day / shift rows, totals, bonus, deductions, net); bank sheet Excel for a finalized cycle (unpaid farmers, account / IFSC / UPI, net; account numbers kept as text).
+- Phase 4 · Task 4.8: Reports → Milk collection — daily collection by shift, farmer-wise collection (litre-weighted fat / SNF, amount, avg rate, rejected litres), rejected milk (screen, Excel, PDF). The dairy plant reconciliation report (Phase 3) covers the B2B part.
+- Phase 4 · Task 4.9: Phase 4 acceptance tests (`tests/Feature/Phase4AcceptanceTest.php`); DemoSeeder Phase 4 part (`DemoCollectionSeeder`: 60 farmers, 2 rate charts, a year of collections, advances, 36 payment cycles).
+
 ## [0.3.1] - 2026-11-09 — Phase 3A: Loans, Overdraft & Credit Cards
 
 ### Added

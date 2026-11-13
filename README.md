@@ -19,7 +19,7 @@ cow/buffalo buying & selling, expenses, loans & overdraft, staff, and profit rep
 | 2 | Animals, Milk Production, Milk Stock | ✅ Done (v0.2.0) |
 | 3 | Customers, Delivery, Billing, Payments | ✅ Done (v0.3.0) |
 | 3A | Loans, Overdraft & Credit Cards | ✅ Done (v0.3.1) |
-| 4 | Farmers & Collection Center | ⬜ Not started |
+| 4 | Farmers & Collection Center | ✅ Done (v0.4.0) |
 | 5 | Health, Breeding, Feed | ⬜ Not started |
 | 6 | Animal Trading & Staff | ⬜ Not started |
 | 7 | Dashboard & Reports | ⬜ Not started |
@@ -59,11 +59,11 @@ _TODO: for each module, list the working features in plain language once its pha
   advance); adjustments (discounts / extra charges); customer ledger with running balance (Excel / PDF); sales
   reports (customer-, route-, product-wise, dairy plant reconciliation).
 - **Loans, overdraft & credit cards** ✅ — loans and overdrafts with EMI schedule (reducing / flat / interest-only), all loan types (personal, business, dairy / NABARD, vehicle, gold, private, card EMI, OD, cash credit, KCC, credit card), monthly / quarterly / half-yearly / yearly instalments, moratorium, broken-period interest, bullet repayment, rate per year or month, processing fee as expense; payments (split oldest instalment first, editable to the bank's, interest → expense, paid x / y, outstanding), bank charges, prepayment (lower EMI or finish earlier), rate change (EMI or period), close / re-open; OD / CC / KCC entries (withdrawal within the limit, repayment, interest debited, charges, subvention) with running balance and interest estimate; credit cards (card chosen on expenses, statement / due date, bill payment, interest + GST and fees, "part paid — interest is running" warning); daily reminders; dashboard loan cards; Expenses "Loan" filter with "Loan principal repaid" and "Total cash paid out" beside the expense total; reports — loan summary, instalments due, interest & principal per loan / type / financial year, loan statement, monthly payments by type (screen, Excel, PDF).
-- **Collection center** — _TODO_
+- **Collection center** ✅ — farmers (auto code F-001, bank / UPI details, opening balance, own rate chart, remote search); rate charts by fixed rate, fat rate, fat + SNF rate or fat / SNF slabs, with minimum fat / SNF, one default per milk on a date and a rate preview calculator; fast keyboard-only collection entry (farmer code, litres, fat, SNF → live rate and amount, Enter saves; below-standard milk asks Accept at this rate or Reject; shift totals below); collection list with filters and totals, edit / delete with reason (operators: own entries, same day); accepted milk goes into collection stock, rejected milk does not; farmer advances; 10-day payment cycles (draft statements with bonus / advance / other deductions, finalize, pay one by one or all in cash, undo with reason; collections of a cycle are locked); statement PDF per farmer; bank sheet Excel; reports — daily collection by shift, farmer-wise collection (litre-weighted fat / SNF), rejected milk.
 - **Health, breeding & feed** — _TODO_
 - **Animal trading** — _TODO_
 - **Staff & salary** — _TODO_
-- **Dashboard & reports** 🟡 — dashboard cards and charts for milk, stock, herd, expenses and vendor payable (cached 5 min, permission-aware); expense and milk production reports. Remaining cards and reports come with Phases 3–7.
+- **Dashboard & reports** 🟡 — dashboard cards and charts for milk, stock, herd, expenses and vendor payable (cached 5 min, permission-aware); expense, milk production, sales, loan and milk collection reports. Remaining cards and reports come with Phases 5–7.
 - **Admin panel** ✅ — login by email or mobile (inactive users blocked, even mid-session); users with roles and
   farms, owner-role protection; roles with a permission matrix; farm settings; sections and payment modes; audit log
   (who changed what, old → new, reason); **Appearance** (logo, colours, fonts, light/dark/auto theme, login page, PDF
@@ -122,7 +122,9 @@ http://localhost/<folder>/public (set `APP_URL` to the same). Tests: keep `APP_U
 Demo users and a year of demo data come from `php artisan db:seed --class=DemoSeeder` (local only — it refuses to run
 in production and skips itself if the demo data already exists). Phase 1 data: 25 vendors, ~2,700 expenses over the
 last 12 months, month-end vendor payments. Phase 2: 30 animals and a year of milk. Phase 3: 4 routes, 88 customers
-(85 home, 2 hotels, 1 dairy plant), subscriptions, ~41,000 deliveries, finalized monthly bills and payments. Later
+(85 home, 2 hotels, 1 dairy plant), subscriptions, ~41,000 deliveries, finalized monthly bills and payments. Phase 4:
+60 farmers (40 cow, 20 buffalo), a fat + SNF chart for cow and a fat chart for buffalo, ~41,500 collections, 30 advances
+and 36 ten-day payment cycles (older ones paid; the last three: paid, finalized but unpaid, draft). Later
 phases add their own demo data.
 
 ---

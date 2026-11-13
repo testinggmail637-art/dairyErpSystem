@@ -7,12 +7,12 @@
 
 | Item | Value |
 |---|---|
-| Current phase | Phase 4 — Farmers & Collection Center (🟡 in progress) |
-| Last completed task | 4.8 — Collection reports (+ B2B dairy plant reconciliation, from 3.13) |
-| Next task | 4.9 — Phase 4 acceptance tests + README/CHANGELOG |
-| Overall progress | 65 / 97 tasks (67%) |
-| Tests passing | 640 |
-| Last updated (IST) | 2026-11-12 (task/4.8-collection-reports) |
+| Current phase | Phase 5 — Health, Breeding, Feed (⬜ next) |
+| Last completed task | 4.9 — Phase 4 acceptance tests + README / CHANGELOG (Phase 4 done) |
+| Next task | 5.1 — Treatments (with linked expense, withdrawal date) |
+| Overall progress | 66 / 97 tasks (68%) |
+| Tests passing | 645 |
+| Last updated (IST) | 2026-11-13 (task/4.9-phase-4-acceptance) |
 
 ## Phase overview
 
@@ -23,7 +23,7 @@
 | 2 | Animals, Milk Production, Milk Stock | ✅ Done | 2026-10-19 | 2026-10-28 | `phase-2-done` |
 | 3 | Customers, Delivery, Billing, Payments | ✅ Done | 2026-10-29 | 2026-11-06 | `phase-3-done` |
 | 3A | Loans, Overdraft & Credit Cards (added 2026-11-05) | ✅ Done | 2026-11-06 | 2026-11-09 | `phase-3a-done` |
-| 4 | Farmers & Collection Center | 🟡 In progress | 2026-11-09 | | |
+| 4 | Farmers & Collection Center | ✅ Done | 2026-11-09 | 2026-11-12 | `phase-4-done` |
 | 5 | Health, Breeding, Feed | ⬜ Not started | | | |
 | 6 | Animal Trading & Staff | ⬜ Not started | | | |
 | 7 | Dashboard & Reports | ⬜ Not started | | | |
@@ -327,18 +327,26 @@ Status legend: ⬜ Not started · 🟡 In progress · ✅ Done · ⏸ On hold
 - [x] 4.6 Payment cycles: create, draft edit, finalize, mark paid
 - [x] 4.7 Farmer statement PDF + bank sheet Excel
 - [x] 4.8 Collection reports + B2B dairy plant reconciliation report
-- [ ] 4.9 Phase 4 acceptance tests pass + README/CHANGELOG updated
+- [x] 4.9 Phase 4 acceptance tests pass + README/CHANGELOG updated
 
 ### Phase log
-- **Completed on:** _TODO_
-- **What was built (plain language):** _TODO_
-- **Screens / URLs added:** _TODO_
-- **Tables / migrations added:** _TODO_
-- **Services / commands / jobs added:** _TODO_
-- **Tests added (count, all passing?):** _TODO_
-- **Decisions taken:** _TODO_
-- **Known issues / pending:** _TODO_
-- **How to check it manually:** _TODO_
+- **Completed on:** 2026-11-12
+- **What was built (plain language):** The collection center now runs in the app. Farmers are kept with their bank / UPI details. Milk prices come from rate charts (fixed rate, by fat, by fat + SNF, or fat / SNF slabs) with minimum fat / SNF. The operator enters milk on a fast keyboard-only screen (farmer code → litres → fat → SNF → Enter); the rate and amount are worked out and copied onto the entry, so later chart changes never change old milk. Below-standard milk is only saved after the operator chooses accept or reject; rejected milk is ₹0 and does not go into stock; accepted milk goes into the collection stock of its milk type. Advances given to farmers are recorded. Every 10 days (setting) a payment cycle makes a statement per farmer (milk amount, bonus, advance recovered, other deductions, net); after review it is finalized and paid (one by one, or all in cash). Milk in a cycle is locked and cycles never overlap. Each farmer gets a statement PDF; the bank sheet Excel lists who still has to be paid. Reports show daily collection by shift, farmer-wise collection with average fat / SNF, and rejected milk.
+- **Screens / URLs added:** `/farmers` (+ add / edit / show, `/farmers/search`), `/rate-charts` (+ preview calculator), `/collections` (entry screen), `/collections/list` (+ edit), `/farmer-advances`, `/farmer-payments` (cycles) and `/farmer-payments/{id}` (statements, finalize, pay, bank sheet), `/farmer-statements/{id}/edit`, `/farmer-statements/{id}/pdf`, `/reports/collection/{daily|farmers|rejected}`.
+- **Tables / migrations added:** `farmers`, `rate_charts`, `rate_chart_slabs`, `milk_collections`, `farmer_advances`, `farmer_payment_cycles`, `farmer_payments` (5 migrations, 2026_11_10_100000 … 140000).
+- **Services / commands / jobs added:** `FarmerService`, `RateChartService` (resolve + calculate), `CollectionService` (create / update / delete with stock), `FarmerAdvanceService`, `FarmerPaymentService` (cycles, statements, finalize, pay, balance, statement PDF, bank sheet), `CollectionReportService`; `FarmerBankSheetExport`; `DemoCollectionSeeder`.
+- **Tests added (count, all passing?):** 40 Phase 4 tests (farmers 5, rate charts 5, collection entry 6, collection edit 5, advances 4, payment cycles 7, collection reports 3, Phase 4 acceptance 5); full suite 645 passing.
+- **Decisions taken:** [DECISIONS #162–#170](DECISIONS.md) (farmer codes and bank details, rate rounding and slabs, entry flow and rejected rows, edit rules, advances, cycle linking and closed periods, statement PDF and bank sheet, report contents, demo data).
+- **Known issues / pending:** Performance with the demo year (41,586 collections, 60 farmers, 36 cycles), measured locally: lists 45–185 ms, cycle page 89 ms, statement PDF 356 ms, bank sheet 114 ms, full-year collection reports 255–488 ms, milk stock 284 ms. The full-year *daily collection* Excel export takes ~1.2 s (≈730 rows, column auto-size); exports above 5,000 rows are already queued, smaller ones download directly. Farmer payables / party balances reports and the collection margin come in Phase 7 (spec 7.6).
+- **How to check it manually:**
+  1. Run `php artisan db:seed --class=DemoSeeder` (local), log in as owner.
+  2. Collection → Rate charts: open "Cow fat + SNF", try the preview with fat 4.1 / SNF 8.7 → ₹45.66.
+  3. Collection → Collection entry: type a farmer code, 20 L, fat 4.1, SNF 8.7, Enter — the row appears in the shift totals; try fat 3.0 to see Accept / Reject.
+  4. Milk stock: the collection stock of cow milk went up by 20 L.
+  5. Collection → Farmer payments: open the draft cycle, edit a farmer's bonus, finalize, then "Mark all paid (cash)".
+  6. On a finalized cycle: click a farmer's PDF icon (statement) and "Bank sheet" (Excel).
+  7. Collection list: an entry inside a cycle shows a lock and cannot be edited.
+  8. Reports → Milk collection: daily by shift, farmer-wise, rejected milk — try Excel and PDF.
 
 ---
 

@@ -12,6 +12,9 @@ use App\Models\Delivery;
 use App\Models\Expense;
 use App\Models\ExpenseCategory;
 use App\Models\Farm;
+use App\Models\Farmer;
+use App\Models\FarmerPaymentCycle;
+use App\Models\MilkCollection;
 use App\Models\MilkProductionRecord;
 use App\Models\MilkStockMovement;
 use App\Models\PaymentMode;
@@ -30,6 +33,7 @@ use RuntimeException;
  * Grows phase by phase. Phase 1: demo users, vendors, ~2,700 expenses (paid and credit), vendor payments.
  * Phase 2: 30 animals (milking cows and buffaloes, dry, heifers, calves with mothers, a bull) and a year of milk.
  * Phase 3: routes, customers, subscriptions, a year of deliveries, monthly bills and payments (DemoSalesSeeder).
+ * Phase 4: 60 farmers, rate charts, a year of milk collection, advances and 10-day payment cycles (DemoCollectionSeeder).
  * Rows are bulk-inserted so the seeder finishes in seconds; amounts are built as strings (never floats).
  *
  *   php artisan db:seed --class=DemoSeeder
@@ -101,9 +105,16 @@ class DemoSeeder extends Seeder
             (new DemoSalesSeeder)->run($farm, $deliveryUser, $users[0]);
         }
 
-        $this->command?->info(sprintf('Demo data: %d expenses, %d vendor payments, %d animals, %d milk entries, %d stock movements, %d customers, %d deliveries, %d bills.',
+        if (Farmer::query()->where('notes', self::MARK)->exists()) {
+            $this->command?->warn('Phase 4 demo data (farmers, collections, payment cycles) already exists — skipped.');
+        } else {
+            (new DemoCollectionSeeder)->run($farm, $users[0]);
+        }
+
+        $this->command?->info(sprintf('Demo data: %d expenses, %d vendor payments, %d animals, %d milk entries, %d stock movements, %d customers, %d deliveries, %d bills, %d farmers, %d collections, %d payment cycles.',
             Expense::query()->count(), VendorPayment::query()->count(), Animal::query()->count(), MilkProductionRecord::query()->count(),
-            MilkStockMovement::query()->count(), Customer::query()->count(), Delivery::query()->count(), Bill::query()->count()));
+            MilkStockMovement::query()->count(), Customer::query()->count(), Delivery::query()->count(), Bill::query()->count(),
+            Farmer::query()->count(), MilkCollection::query()->count(), FarmerPaymentCycle::query()->count()));
     }
 
     /**
