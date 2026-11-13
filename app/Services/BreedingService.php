@@ -10,6 +10,7 @@ use App\Models\Animal;
 use App\Models\BreedingEvent;
 use App\Support\CurrentFarm;
 use Carbon\Carbon;
+use Illuminate\Database\Query\Builder;
 use Illuminate\Support\Facades\DB;
 
 /**
@@ -72,7 +73,7 @@ class BreedingService
      * Expected calvings between two dates: animals whose latest pregnancy event (a service, or a positive check) carries
      * an expected calving date in the range. One row per animal: {animal_id, event_type, expected_calving_date}.
      *
-     * @return \Illuminate\Database\Query\Builder
+     * @return Builder
      */
     public function expectedCalvings(string $from, string $to)
     {
@@ -81,7 +82,7 @@ class BreedingService
     }
 
     /** Each animal's latest service / check / abortion of this farm (no later one exists). */
-    private function latestPregnancyEvents(): \Illuminate\Database\Query\Builder
+    private function latestPregnancyEvents(): Builder
     {
         return DB::table('breeding_events as e')
             ->where('e.farm_id', $this->currentFarm->id())
