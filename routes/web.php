@@ -55,6 +55,7 @@ use App\Http\Controllers\Settings\RoleController;
 use App\Http\Controllers\Settings\SectionController;
 use App\Http\Controllers\Settings\UserController;
 use App\Http\Controllers\Trading\AnimalPurchaseController;
+use App\Http\Controllers\Trading\AnimalSaleController;
 use App\Http\Controllers\Trading\PartyController;
 use App\Models\CustomerPayment;
 use App\Models\Expense;
@@ -423,6 +424,11 @@ Route::middleware(['auth', 'active', 'farm'])->group(function () {
     Route::post('animal-purchases', [AnimalPurchaseController::class, 'store'])->middleware('can:animal_trading.manage')->name('animal-purchases.store');
     Route::get('animal-purchases/{animalPurchase}', [AnimalPurchaseController::class, 'show'])->whereNumber('animalPurchase')->middleware('can:animal_trading.view')->name('animal-purchases.show');
     Route::delete('animal-purchases/{animalPurchase}', [AnimalPurchaseController::class, 'destroy'])->whereNumber('animalPurchase')->middleware('can:animal_trading.manage')->name('animal-purchases.destroy');
+    Route::get('animal-sales', [AnimalSaleController::class, 'index'])->middleware('can:animal_trading.view')->name('animal-sales.index');
+    Route::get('animal-sales/create', [AnimalSaleController::class, 'create'])->middleware('can:animal_trading.manage')->name('animal-sales.create');
+    Route::post('animal-sales', [AnimalSaleController::class, 'store'])->middleware('can:animal_trading.manage')->name('animal-sales.store');
+    Route::get('animal-sales/{animalSale}', [AnimalSaleController::class, 'show'])->whereNumber('animalSale')->middleware('can:animal_trading.view')->name('animal-sales.show');
+    Route::post('animal-sales/{animalSale}/cancel', [AnimalSaleController::class, 'cancel'])->whereNumber('animalSale')->middleware('can:animal_trading.manage')->name('animal-sales.cancel');
     Route::resource('parties', PartyController::class)->except(['index', 'show'])->middleware('can:animal_trading.manage');
 
     Route::get('vendors', [VendorController::class, 'index'])->middleware('can:vendors.view')->name('vendors.index');

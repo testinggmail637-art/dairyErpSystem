@@ -6,6 +6,7 @@ use App\Enums\PartyType;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Trading\PartyRequest;
 use App\Models\AnimalPurchase;
+use App\Models\AnimalSale;
 use App\Models\Party;
 use App\Services\PartyService;
 use Illuminate\Http\JsonResponse;
@@ -85,8 +86,8 @@ class PartyController extends Controller
 
     public function destroy(Party $party): RedirectResponse
     {
-        if (AnimalPurchase::query()->where('party_id', $party->id)->exists()) {
-            return back()->with('error', __('Party :name has purchases and cannot be deleted. Mark it inactive instead.', ['name' => $party->name]));
+        if (AnimalPurchase::query()->where('party_id', $party->id)->exists() || AnimalSale::query()->where('party_id', $party->id)->exists()) {
+            return back()->with('error', __('Party :name has purchases or sales and cannot be deleted. Mark it inactive instead.', ['name' => $party->name]));
         }
 
         $party->delete();
