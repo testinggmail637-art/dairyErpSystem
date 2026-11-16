@@ -275,3 +275,21 @@ Front-end files have no build step; `asset_v()` adds the file's modification tim
 | Backups not created at 02:00 | Cron entry missing (section 6); see `docs/BACKUP_RESTORE.md` |
 | Jobs stuck | Queue worker not running; `php artisan queue:failed` |
 | Uploads give 413 | Raise `client_max_body_size` (Nginx) and `upload_max_filesize` / `post_max_size` (PHP) |
+
+## 11. Shared hosting (Hostinger)
+
+On shared hosting the repo is deployed into `public_html`, so the project root is the web root.
+The root `.htaccess` rewrites every request into `public/` (Laravel's own `public/.htaccess` takes over
+from there), which also keeps `.env`, `app/`, `vendor/` unreachable from the browser.
+Without it the site returns **403 Forbidden** (no `index.php` in the root).
+
+First-time setup over SSH, inside `public_html`:
+
+```bash
+cp .env.example .env    # set APP_ENV=production, APP_DEBUG=false, APP_URL, DB_* (hPanel → Databases)
+php artisan key:generate
+php artisan migrate --seed --force
+php artisan storage:link
+php artisan package:discover   # composer's post-autoload-dump no longer runs it
+php artisan optimize
+```
