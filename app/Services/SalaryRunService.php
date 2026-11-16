@@ -128,6 +128,8 @@ class SalaryRunService
     /** Records that a finalized slip was paid; the slip's expense takes the payment mode. */
     public function pay(SalarySlip $slip, string $paidOn, int $paymentModeId): void
     {
+        $slip->loadMissing(['run', 'expense']);
+
         if (! $slip->run->isFinalized()) {
             throw new DomainException(__('Finalize the salary run before marking salaries paid.'));
         }

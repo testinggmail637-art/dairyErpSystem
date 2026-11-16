@@ -5,6 +5,26 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+## [0.6.0] - 2026-11-17 — Phase 6: Animal Trading & Staff
+
+### Added
+- Phase 6 · Task 6.1: parties — Trading → Parties: buyers / sellers / both, phone, village, signed opening balance (+ they owe us); list with search and filters, add / edit, soft delete (not once they have purchases, sales or payments). Permissions `animal_trading.view`, `animal_trading.manage`.
+- Phase 6 · Task 6.2: animal purchases — party, date, transport / commission / other costs, one row per animal created inline (tag, type, breed, gender, approx. age in months → estimated birth date, stage, own herd / resale, price); costs shared by price (last row absorbs rounding); delete with reason only while the animals have no other records.
+- Phase 6 · Task 6.3: animal sales — active animals only, selling costs, net amount; animals become sold (history kept, out of milk entry); cancel with reason makes them active again; "Sell" button on the animal page.
+- Phase 6 · Task 6.4: party payments (paid / received, installments, optional link to a purchase or sale, idempotent), optional first payment on the purchase form, paid / due on purchase and sale pages, party balance on the list and party ledger with running balance.
+- Phase 6 · Task 6.5: sale receipt PDF (buyer, animals, price, selling costs, net, received, balance due).
+- Phase 6 · Task 6.6: estimated P&L per animal (P&L tab on the animal page) and Reports → Animal trading summary (resale animals: purchase cost, days held, costs, sale, profit).
+- Phase 6 · Task 6.7: staff members (designation, monthly salary, joining / leaving date, optional login user; audit-logged edits with reason; no delete). Permissions `staff.view`, `staff.manage`, `attendance.manage`, `salary.manage`.
+- Phase 6 · Task 6.8: daily attendance for all staff on one screen (present / absent / half day / leave / holiday, note, "All present").
+- Phase 6 · Task 6.9: staff advances (not expenses; idempotent; delete with reason, not once recovered).
+- Phase 6 · Task 6.10: monthly salary runs — draft slips from attendance (paid days = present + holiday + ½ half day; new farm setting "Leave is paid"), bonus / deductions with reason, advance recovered by default, recalculate, finalize → one Labour › Salary expense per staff member and the month's attendance locked, mark paid, salary slip PDF.
+- Phase 6 · Task 6.11: Reports → Staff — attendance register (month grid) and salary register (finalized slips), Excel / PDF.
+- Phase 6 · Task 6.12: Phase 6 acceptance tests (`tests/Feature/Phase6AcceptanceTest.php`); DemoSeeder Phase 6 part (`DemoTradingStaffSeeder`).
+
+### Fixed
+- Animals with milk or feed entries could be soft-deleted (they now count as "has records").
+- Flaky tests: random staff designation / user name matching a search.
+
 ## [0.5.0] - 2026-11-13 — Phase 5: Health, Breeding, Feed
 
 ### Added

@@ -7,12 +7,12 @@
 
 | Item | Value |
 |---|---|
-| Current phase | Phase 6 — Animal Trading & Staff (🟡 in progress) |
-| Last completed task | 6.11 — Attendance & salary registers |
-| Next task | 6.12 — Phase 6 acceptance tests + README/CHANGELOG |
-| Overall progress | 86 / 97 tasks (89%) |
-| Tests passing | 730 |
-| Last updated (IST) | 2026-11-17 (task/6.11-staff-registers) |
+| Current phase | Phase 7 — Dashboard & Reports (⬜ not started) |
+| Last completed task | 6.12 — Phase 6 acceptance tests + README/CHANGELOG (Phase 6 done) |
+| Next task | 7.1 — Dashboard cards (operational + financial, permission-aware) |
+| Overall progress | 87 / 97 tasks (90%) |
+| Tests passing | 734 |
+| Last updated (IST) | 2026-11-17 (task/6.12-phase6-acceptance) |
 
 ## Phase overview
 
@@ -25,7 +25,7 @@
 | 3A | Loans, Overdraft & Credit Cards (added 2026-11-05) | ✅ Done | 2026-11-06 | 2026-11-09 | `phase-3a-done` |
 | 4 | Farmers & Collection Center | ✅ Done | 2026-11-09 | 2026-11-12 | `phase-4-done` |
 | 5 | Health, Breeding, Feed | ✅ Done | 2026-11-13 | 2026-11-13 | `phase-5-done` |
-| 6 | Animal Trading & Staff | 🟡 In progress | 2026-11-14 | | |
+| 6 | Animal Trading & Staff | ✅ Done | 2026-11-14 | 2026-11-17 | `phase-6-done` |
 | 7 | Dashboard & Reports | ⬜ Not started | | | |
 | 8 | Integrations (only on explicit instruction) | ⏸ Not planned | | | |
 
@@ -396,18 +396,24 @@ Status legend: ⬜ Not started · 🟡 In progress · ✅ Done · ⏸ On hold
 - [x] 6.9 Staff advances
 - [x] 6.10 Salary runs (draft → finalize → expenses) + salary slips
 - [x] 6.11 Attendance & salary registers
-- [ ] 6.12 Phase 6 acceptance tests pass + README/CHANGELOG updated
+- [x] 6.12 Phase 6 acceptance tests pass + README/CHANGELOG updated
 
 ### Phase log
-- **Completed on:** _TODO_
-- **What was built (plain language):** _TODO_
-- **Screens / URLs added:** _TODO_
-- **Tables / migrations added:** _TODO_
-- **Services / commands / jobs added:** _TODO_
-- **Tests added (count, all passing?):** _TODO_
-- **Decisions taken:** _TODO_
-- **Known issues / pending:** _TODO_
-- **How to check it manually:** _TODO_
+- **Completed on:** 2026-11-17
+- **What was built (plain language):** Buying and selling animals and paying staff are now in the app. **Parties** (traders) have an opening balance and a ledger. A **purchase** creates the animals right on the form and spreads transport / commission / other costs over them by price; a first payment can be entered with it. A **sale** takes only active animals, marks them sold (they leave milk entry but keep their history) and can be cancelled with a reason. **Payments** to or from a party can be made in installments and linked to a purchase or sale; every party shows what they owe us or we owe them. A sale has a **receipt PDF**. Each animal has an **estimated profit / loss** (cost of buying + its expenses + feed it ate vs. what it sold for, plus milk value for own-herd animals) and there is a **trading summary** report. **Staff** have a monthly salary; **attendance** is marked for everyone on one screen; **advances** are recovered from salary. A **salary run** per month works out each slip from attendance, takes bonus and deductions, and on **finalize** books one salary expense per person and locks that month's attendance; slips are marked paid and printed. **Attendance and salary registers** are under Reports.
+- **Screens / URLs added:** `/parties` (+ `/parties/{id}/ledger`), `/animal-purchases`, `/animal-sales` (+ receipt PDF), `/animal-payments`, animal page P&L tab and Sell button, `/reports/trading/summary`, `/staff`, `/attendance`, `/staff-advances`, `/salary-runs` (+ slip edit, slip PDF), `/reports/staff/attendance`, `/reports/staff/salary`; Settings → Farm → Staff "Leave is paid".
+- **Tables / migrations added:** `parties`, `animal_purchases` + `animal_purchase_items`, `animal_sales` + `animal_sale_items`, `animal_payments`, `staff_members`, `attendances`, `staff_advances`, `salary_runs` + `salary_slips` (2026_11_14_100000 … 2026_11_17_130000).
+- **Services / commands / jobs added:** `PartyService`, `AnimalPurchaseService` (cost allocation), `AnimalSaleService`, `AnimalPaymentService`, `PartyLedgerService`, `AnimalPnlService`, `AttendanceService`, `StaffAdvanceService`, `SalaryRunService`, `StaffReportService`; `DemoTradingStaffSeeder` (Phase 6 demo data).
+- **Tests added (count, all passing?):** ~50 Phase 6 tests (parties, purchases, sales, payments + ledger, receipt, P&L, staff, attendance, advances, salary runs, registers, Phase 6 acceptance 4) + Phase 6 checks in the DemoSeeder test; full suite 734 passing.
+- **Decisions taken:** [DECISIONS #180–#191](DECISIONS.md) (parties, purchase allocation and delete rule, sale cancel, payments and balance, receipt, P&L rates, staff, attendance, advances, salary run rules and "Leave is paid", registers, demo data).
+- **Known issues / pending:** Performance measured locally on the demo year + Phase 6 data (`php artisan serve`, debug on): all 15 Phase 6 screens 395–600 ms (parties 531, party ledger 487, purchases 458, purchase 520, sales 455, sale 504, payments 421, animal page with P&L 600, trading summary 476, staff 412, attendance 468, advances 467, salary runs 395, attendance register 472, salary register 556). Salary expenses all go to section OFFICE (no per-staff section field). Party ledger export, receivables / party balance report and the dashboard cards for trading / staff come in Phase 7.
+- **How to check it manually:**
+  1. Run `php artisan migrate` and `php artisan db:seed --class=DemoSeeder` (local), log in as owner.
+  2. Trading → Purchases → New purchase: 2 cows at 30,000 and 20,000 with 1,000 transport → the purchase page shows 600 / 400 share of costs.
+  3. Open one of them → **Sell** → it becomes Sold and no longer appears in milk entry search; its **P&L** tab shows the estimated profit.
+  4. Trading → Payments: record an installment for the sale; Parties shows the new balance; click it for the ledger.
+  5. Staff → Attendance: mark today; Staff → Salary Runs: create this month → slips from attendance; Finalize → salary expenses appear under Expenses.
+  6. Reports → Staff → Attendance register / Salary register; Reports → Animal trading → Trading summary.
 
 ---
 

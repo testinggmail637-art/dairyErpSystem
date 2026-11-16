@@ -2,7 +2,11 @@
 
 use App\Enums\MilkSource;
 use App\Models\Animal;
+use App\Models\AnimalPayment;
+use App\Models\AnimalPurchase;
+use App\Models\AnimalSale;
 use App\Models\AnimalStatusHistory;
+use App\Models\Attendance;
 use App\Models\Bill;
 use App\Models\Customer;
 use App\Models\Delivery;
@@ -16,7 +20,11 @@ use App\Models\FeedTransaction;
 use App\Models\MilkCollection;
 use App\Models\MilkProductionRecord;
 use App\Models\MilkStockMovement;
+use App\Models\Party;
 use App\Models\PaymentAllocation;
+use App\Models\SalaryRun;
+use App\Models\SalarySlip;
+use App\Models\StaffMember;
 use App\Models\Treatment;
 use App\Models\User;
 use App\Models\Vendor;
@@ -45,10 +53,11 @@ it('seeds a year of demo expenses, vendors, payments and users, once', function 
         ->and((clone $expenses)->min('expense_date'))->toBeGreaterThanOrEqual(now()->subYear()->toDateString())
         ->and(VendorPayment::allFarms()->count())->toBeGreaterThan(100)
         ->and(User::where('email', 'accountant@dairy.test')->first()->hasRole('accountant'))->toBeTrue()
-        ->and(Animal::allFarms()->where('farm_id', $farm->id)->count())->toBe(30)
-        ->and(Animal::allFarms()->where('farm_id', $farm->id)->milking()->count())->toBe(20)
+        // Phase 2 herd (marked); Phase 6 purchases add 3 more animals
+        ->and(Animal::allFarms()->where('farm_id', $farm->id)->where('notes', DemoSeeder::MARK)->count())->toBe(30)
+        ->and(Animal::allFarms()->where('farm_id', $farm->id)->where('notes', DemoSeeder::MARK)->milking()->count())->toBe(20)
         ->and(Animal::allFarms()->whereNotNull('mother_id')->count())->toBe(3)
-        ->and(AnimalStatusHistory::allFarms()->count())->toBe(90) // 3 starting rows per animal
+        ->and(AnimalStatusHistory::allFarms()->whereIn('animal_id', Animal::allFarms()->where('notes', DemoSeeder::MARK)->select('id'))->count())->toBe(90) // 3 starting rows per animal
         ->and(MilkProductionRecord::allFarms()->count())->toBeGreaterThan(14000) // a year, 2 shifts, ~20 animals
         ->and(MilkProductionRecord::allFarms()->max('quantity_litre'))->toBeLessThanOrEqual('60.00')
         // every entry, delivered row and accepted collection has its movement: own-farm stock = milk produced − milk delivered
@@ -91,7 +100,17 @@ it('seeds a year of demo expenses, vendors, payments and users, once', function 
         ->and(Treatment::allFarms()->count())->toBe(25)
         ->and(Treatment::allFarms()->where('milk_withdrawal_until', '>=', today()->toDateString())->count())->toBeGreaterThanOrEqual(3);
 
-    $count = $expenses->count();
+    // Phase 6: trading (purchases, a sale, payments), staff with attendance, last month's salary finalized as expenses
+    expect(Party::allFarms()->count())->toBe(3)
+        ->and(AnimalPurchase::allFarms()->count())->toBe(2)
+        ->and(AnimalSale::allFarms()->count())->toBe(1)
+        ->and(AnimalPayment::allFarms()->count())->toBe(3)
+        ->and(StaffMember::allFarms()->count())->toBe(4)
+        ->and(Attendance::allFarms()->count())->toBeGreaterThan(100)
+        ->and(SalaryRun::allFarms()->where('status', 'finalized')->count())->toBe(1)
+        ->and(Expense::allFarms()->where('source_type', (new SalarySlip)->getMorphClass())->count())->toBe(4);
+
+    $count = Expense::allFarms()->count();
     $deliveries = Delivery::allFarms()->count();
     $this->seed(DemoSeeder::class); // second run is skipped
     expect(Expense::allFarms()->count())->toBe($count)
