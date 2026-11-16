@@ -106,6 +106,13 @@ class AppearanceService
             'sidebar_text' => '#4A3418', 'topbar_bg' => '#FFFDF8', 'body_bg' => '#F6EFE2', 'card_bg' => '#FFFFFF',
             'theme_mode' => 'light',
         ],
+        'olive_gold' => [
+            'label' => 'Olive & Gold', 'description' => 'Deep olive sidebar, antique-gold accents',
+            'primary_color' => '#8E6D32', 'secondary_color' => '#6E6B5A', 'success_color' => '#4F7A3A',
+            'danger_color' => '#B03A2E', 'warning_color' => '#C99A3E', 'sidebar_bg' => '#3A3F2C',
+            'sidebar_text' => '#EDE6D3', 'topbar_bg' => '#FBF8F2', 'body_bg' => '#F3EEE4', 'card_bg' => '#FFFDF9',
+            'theme_mode' => 'light',
+        ],
         'teal_breeze' => [
             'label' => 'Teal Breeze', 'description' => 'Calm teal, deep sea sidebar',
             'primary_color' => '#0F766E', 'secondary_color' => '#5B6B73', 'success_color' => '#15803D',
