@@ -96,6 +96,7 @@ return [
         'items' => [
             ['label' => 'Staff Members', 'route' => 'staff.index', 'active' => 'staff.*', 'permission' => 'staff.view'],
             ['label' => 'Attendance', 'route' => 'attendance.index', 'active' => 'attendance.*', 'permission' => 'attendance.manage'],
+            ['label' => 'Advances', 'route' => 'staff-advances.index', 'active' => 'staff-advances.*', 'permission' => 'salary.manage'],
         ],
     ],
 
