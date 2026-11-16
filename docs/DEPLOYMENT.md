@@ -293,3 +293,18 @@ php artisan storage:link
 php artisan package:discover   # composer's post-autoload-dump no longer runs it
 php artisan optimize
 ```
+
+### Deploying updates (GitHub Actions)
+
+Hostinger's own Git deploy cannot run commands after a pull, so updates go through
+`.github/workflows/deploy.yml` (Actions → **Deploy to Hostinger** → Run workflow). Over SSH it runs:
+`artisan down` → `git reset --hard origin/main` → `composer install --no-dev` → `package:discover` →
+`migrate --force` → `optimize:clear` + `optimize` → `artisan up` (also on failure). It stops if `.env` is missing.
+
+One-time setup:
+1. `ssh-keygen -t ed25519 -f hostinger_deploy -N ""`. Add `hostinger_deploy.pub` in hPanel → Advanced → SSH Access → SSH keys.
+2. GitHub repo → Settings → Secrets and variables → Actions: `SSH_HOST`, `SSH_PORT` (usually `65002`),
+   `SSH_USER`, `SSH_KEY` (content of the **private** `hostinger_deploy` file).
+3. The server's `public_html` must be a git checkout whose `origin` can be fetched from (Hostinger's Git deploy
+   creates one with its deploy key).
+4. Turn Hostinger's Auto-deployment off and don't use its Redeploy button, so only one deploy path runs.
