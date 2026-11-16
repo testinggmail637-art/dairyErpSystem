@@ -434,6 +434,7 @@ Route::middleware(['auth', 'active', 'farm'])->group(function () {
     Route::get('animal-sales/create', [AnimalSaleController::class, 'create'])->middleware('can:animal_trading.manage')->name('animal-sales.create');
     Route::post('animal-sales', [AnimalSaleController::class, 'store'])->middleware('can:animal_trading.manage')->name('animal-sales.store');
     Route::get('animal-sales/{animalSale}', [AnimalSaleController::class, 'show'])->whereNumber('animalSale')->middleware('can:animal_trading.view')->name('animal-sales.show');
+    Route::get('animal-sales/{animalSale}/receipt', [AnimalSaleController::class, 'receipt'])->whereNumber('animalSale')->middleware('can:animal_trading.view')->name('animal-sales.receipt');
     Route::post('animal-sales/{animalSale}/cancel', [AnimalSaleController::class, 'cancel'])->whereNumber('animalSale')->middleware('can:animal_trading.manage')->name('animal-sales.cancel');
     Route::resource('parties', PartyController::class)->except(['index', 'show'])->middleware('can:animal_trading.manage');
 

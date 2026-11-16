@@ -4,6 +4,7 @@
 
 @section('page-actions')
     <a href="{{ route('animal-sales.index') }}" class="btn btn-outline-secondary btn-sm"><i class="bi bi-arrow-left me-1"></i>{{ __('Back to sales') }}</a>
+    <a href="{{ route('animal-sales.receipt', $sale) }}" target="_blank" rel="noopener" class="btn btn-outline-primary btn-sm"><i class="bi bi-file-earmark-pdf me-1"></i>{{ __('Receipt PDF') }}</a>
     @if (! $sale->isCancelled())
         @can('animal_trading.manage')
             <x-confirm-form :action="route('animal-sales.cancel', $sale)" method="POST" reason :label="__('Cancel sale')" icon="bi-x-circle"
