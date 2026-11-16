@@ -54,6 +54,7 @@ use App\Http\Controllers\Settings\PaymentModeController;
 use App\Http\Controllers\Settings\RoleController;
 use App\Http\Controllers\Settings\SectionController;
 use App\Http\Controllers\Settings\UserController;
+use App\Http\Controllers\Trading\PartyController;
 use App\Models\CustomerPayment;
 use App\Models\Expense;
 use App\Models\MilkProductionRecord;
@@ -412,6 +413,10 @@ Route::middleware(['auth', 'active', 'farm'])->group(function () {
         Route::get('loans', [LoanController::class, 'index'])->name('loans.index');
         Route::get('loans/{loan}', [LoanController::class, 'show'])->whereNumber('loan')->name('loans.show');
     });
+
+    // Animal trading parties (spec Phase 6)
+    Route::get('parties', [PartyController::class, 'index'])->middleware('can:animal_trading.view')->name('parties.index');
+    Route::resource('parties', PartyController::class)->except(['index', 'show'])->middleware('can:animal_trading.manage');
 
     Route::get('vendors', [VendorController::class, 'index'])->middleware('can:vendors.view')->name('vendors.index');
     Route::get('vendors/search', [VendorController::class, 'search'])->name('vendors.search'); // vendors.view or feed.manage, checked in the controller

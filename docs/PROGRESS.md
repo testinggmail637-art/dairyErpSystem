@@ -7,12 +7,12 @@
 
 | Item | Value |
 |---|---|
-| Current phase | Phase 5 — Health, Breeding, Feed (✅ done; tag `phase-5-done` after this PR is merged) |
-| Last completed task | 5.9 — Phase 5 acceptance tests + demo data + README/CHANGELOG |
-| Next task | 6.1 — Parties (buyers/sellers) CRUD |
-| Overall progress | 75 / 97 tasks (77%) |
-| Tests passing | 681 |
-| Last updated (IST) | 2026-11-13 (task/5.9-phase5-acceptance) |
+| Current phase | Phase 6 — Animal Trading & Staff (🟡 in progress) |
+| Last completed task | 6.1 — Parties (buyers/sellers) CRUD |
+| Next task | 6.2 — Animal purchase with inline animal creation + cost allocation |
+| Overall progress | 76 / 97 tasks (78%) |
+| Tests passing | 685 |
+| Last updated (IST) | 2026-11-14 (task/6.1-parties) |
 
 ## Phase overview
 
@@ -25,7 +25,7 @@
 | 3A | Loans, Overdraft & Credit Cards (added 2026-11-05) | ✅ Done | 2026-11-06 | 2026-11-09 | `phase-3a-done` |
 | 4 | Farmers & Collection Center | ✅ Done | 2026-11-09 | 2026-11-12 | `phase-4-done` |
 | 5 | Health, Breeding, Feed | ✅ Done | 2026-11-13 | 2026-11-13 | `phase-5-done` |
-| 6 | Animal Trading & Staff | ⬜ Not started | | | |
+| 6 | Animal Trading & Staff | 🟡 In progress | 2026-11-14 | | |
 | 7 | Dashboard & Reports | ⬜ Not started | | | |
 | 8 | Integrations (only on explicit instruction) | ⏸ Not planned | | | |
 
@@ -385,7 +385,7 @@ Status legend: ⬜ Not started · 🟡 In progress · ✅ Done · ⏸ On hold
 ## Phase 6 — Animal Trading & Staff
 
 ### Checklist
-- [ ] 6.1 Parties (buyers/sellers) CRUD
+- [x] 6.1 Parties (buyers/sellers) CRUD
 - [ ] 6.2 Animal purchase with inline animal creation + cost allocation
 - [ ] 6.3 Animal sale (status update) + cancel
 - [ ] 6.4 Animal payments / installments + party ledger
