@@ -293,3 +293,14 @@ php artisan storage:link
 php artisan package:discover   # composer's post-autoload-dump no longer runs it
 php artisan optimize
 ```
+
+### After every Redeploy (manual, over SSH inside `public_html`)
+
+Hostinger's Git deploy only pulls the code, so run these yourself after each Redeploy:
+
+```bash
+php artisan package:discover   # composer's post-autoload-dump no longer runs it
+php artisan migrate --force
+php artisan optimize:clear
+php artisan optimize
+```
