@@ -203,6 +203,9 @@ class Animal extends Model
             __('vaccinations') => AnimalVaccination::query()->where('animal_id', $this->id)->count(),
             __('breeding events') => BreedingEvent::query()->where('animal_id', $this->id)->count(),
             __('calvings') => Calving::query()->where('mother_id', $this->id)->count(),
+            __('milk entries') => MilkProductionRecord::query()->where('animal_id', $this->id)->count(),
+            __('feed entries') => FeedTransaction::query()->where('animal_id', $this->id)->count(),
+            __('purchases') => AnimalPurchaseItem::query()->where('animal_id', $this->id)->count(),
         ]);
     }
 }
