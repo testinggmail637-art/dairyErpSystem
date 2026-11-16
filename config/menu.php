@@ -93,9 +93,10 @@ return [
     [
         'label' => 'Staff',
         'icon' => 'bi-people',
-        'route' => 'staff.index',
-        'active' => 'staff.*',
-        'permission' => 'staff.view',
+        'items' => [
+            ['label' => 'Staff Members', 'route' => 'staff.index', 'active' => 'staff.*', 'permission' => 'staff.view'],
+            ['label' => 'Attendance', 'route' => 'attendance.index', 'active' => 'attendance.*', 'permission' => 'attendance.manage'],
+        ],
     ],
 
     [

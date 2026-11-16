@@ -55,6 +55,7 @@ use App\Http\Controllers\Settings\PaymentModeController;
 use App\Http\Controllers\Settings\RoleController;
 use App\Http\Controllers\Settings\SectionController;
 use App\Http\Controllers\Settings\UserController;
+use App\Http\Controllers\Staff\AttendanceController;
 use App\Http\Controllers\Staff\StaffMemberController;
 use App\Http\Controllers\Trading\AnimalPaymentController;
 use App\Http\Controllers\Trading\AnimalPurchaseController;
@@ -444,6 +445,8 @@ Route::middleware(['auth', 'active', 'farm'])->group(function () {
 
     // Staff (spec Phase 6)
     Route::get('staff', [StaffMemberController::class, 'index'])->middleware('can:staff.view')->name('staff.index');
+    Route::get('attendance', [AttendanceController::class, 'index'])->middleware('can:attendance.manage')->name('attendance.index');
+    Route::post('attendance', [AttendanceController::class, 'store'])->middleware('can:attendance.manage')->name('attendance.store');
     Route::resource('staff', StaffMemberController::class)->only(['create', 'store', 'edit', 'update'])->whereNumber('staff')->middleware('can:staff.manage');
 
     Route::get('vendors', [VendorController::class, 'index'])->middleware('can:vendors.view')->name('vendors.index');

@@ -8,11 +8,11 @@
 | Item | Value |
 |---|---|
 | Current phase | Phase 6 — Animal Trading & Staff (🟡 in progress) |
-| Last completed task | 6.7 — Staff members CRUD |
-| Next task | 6.8 — Attendance (bulk screen) |
-| Overall progress | 82 / 97 tasks (85%) |
-| Tests passing | 714 |
-| Last updated (IST) | 2026-11-17 (task/6.7-staff-members) |
+| Last completed task | 6.8 — Attendance (bulk screen) |
+| Next task | 6.9 — Staff advances |
+| Overall progress | 83 / 97 tasks (86%) |
+| Tests passing | 718 |
+| Last updated (IST) | 2026-11-17 (task/6.8-attendance) |
 
 ## Phase overview
 
@@ -392,7 +392,7 @@ Status legend: ⬜ Not started · 🟡 In progress · ✅ Done · ⏸ On hold
 - [x] 6.5 Sale receipt PDF
 - [x] 6.6 Animal P&L + trading summary report
 - [x] 6.7 Staff members CRUD
-- [ ] 6.8 Attendance (bulk screen)
+- [x] 6.8 Attendance (bulk screen)
 - [ ] 6.9 Staff advances
 - [ ] 6.10 Salary runs (draft → finalize → expenses) + salary slips
 - [ ] 6.11 Attendance & salary registers
