@@ -54,6 +54,7 @@ use App\Http\Controllers\Settings\PaymentModeController;
 use App\Http\Controllers\Settings\RoleController;
 use App\Http\Controllers\Settings\SectionController;
 use App\Http\Controllers\Settings\UserController;
+use App\Http\Controllers\Trading\AnimalPurchaseController;
 use App\Http\Controllers\Trading\PartyController;
 use App\Models\CustomerPayment;
 use App\Models\Expense;
@@ -416,6 +417,12 @@ Route::middleware(['auth', 'active', 'farm'])->group(function () {
 
     // Animal trading parties (spec Phase 6)
     Route::get('parties', [PartyController::class, 'index'])->middleware('can:animal_trading.view')->name('parties.index');
+    Route::get('parties/search', [PartyController::class, 'search'])->middleware('can:animal_trading.view')->name('parties.search');
+    Route::get('animal-purchases', [AnimalPurchaseController::class, 'index'])->middleware('can:animal_trading.view')->name('animal-purchases.index');
+    Route::get('animal-purchases/create', [AnimalPurchaseController::class, 'create'])->middleware('can:animal_trading.manage')->name('animal-purchases.create');
+    Route::post('animal-purchases', [AnimalPurchaseController::class, 'store'])->middleware('can:animal_trading.manage')->name('animal-purchases.store');
+    Route::get('animal-purchases/{animalPurchase}', [AnimalPurchaseController::class, 'show'])->whereNumber('animalPurchase')->middleware('can:animal_trading.view')->name('animal-purchases.show');
+    Route::delete('animal-purchases/{animalPurchase}', [AnimalPurchaseController::class, 'destroy'])->whereNumber('animalPurchase')->middleware('can:animal_trading.manage')->name('animal-purchases.destroy');
     Route::resource('parties', PartyController::class)->except(['index', 'show'])->middleware('can:animal_trading.manage');
 
     Route::get('vendors', [VendorController::class, 'index'])->middleware('can:vendors.view')->name('vendors.index');

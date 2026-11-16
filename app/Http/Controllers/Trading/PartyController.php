@@ -5,8 +5,10 @@ namespace App\Http\Controllers\Trading;
 use App\Enums\PartyType;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Trading\PartyRequest;
+use App\Models\AnimalPurchase;
 use App\Models\Party;
 use App\Services\PartyService;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
@@ -36,6 +38,27 @@ class PartyController extends Controller
         return $this->listView($request, 'trading.parties.index', compact('parties', 'filters'));
     }
 
+    /** Select2 remote search: active parties, `type=seller|buyer` keeps those who sell / buy (plus "both"). */
+    public function search(Request $request): JsonResponse
+    {
+        $type = PartyType::tryFrom((string) $request->query('type'));
+
+        $parties = Party::query()
+            ->where('is_active', true)
+            ->when($type && $type !== PartyType::Both, fn ($q) => $q->whereIn('party_type', [$type->value, PartyType::Both->value]))
+            ->search($request->query('q'))
+            ->orderBy('name')
+            ->simplePaginate(20, ['id', 'name', 'village'], 'page', max(1, $request->integer('page', 1)));
+
+        return response()->json([
+            'results' => $parties->getCollection()->map(fn (Party $p) => [
+                'id' => $p->id,
+                'text' => $p->village ? "{$p->name} · {$p->village}" : $p->name,
+            ])->values(),
+            'pagination' => ['more' => $parties->hasMorePages()],
+        ]);
+    }
+
     public function create(): View
     {
         return view('trading.parties.form', ['party' => new Party(['party_type' => PartyType::Both, 'is_active' => true, 'opening_balance' => '0.00'])]);
@@ -62,6 +85,10 @@ class PartyController extends Controller
 
     public function destroy(Party $party): RedirectResponse
     {
+        if (AnimalPurchase::query()->where('party_id', $party->id)->exists()) {
+            return back()->with('error', __('Party :name has purchases and cannot be deleted. Mark it inactive instead.', ['name' => $party->name]));
+        }
+
         $party->delete();
 
         return redirect()->route('parties.index')->with('success', __('Party :name deleted.', ['name' => $party->name]));
