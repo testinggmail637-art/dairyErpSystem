@@ -20,6 +20,7 @@ use App\Models\AnimalVaccination;
 use App\Models\BreedingEvent;
 use App\Models\Expense;
 use App\Models\Treatment;
+use App\Services\AnimalPnlService;
 use App\Services\AnimalService;
 use App\Services\BreedingService;
 use App\Services\DashboardService;
@@ -112,6 +113,7 @@ class AnimalController extends Controller
             'breedingEvents' => request()->user()->can('breeding.manage') ? BreedingEvent::query()->where('animal_id', $animal->id)
                 ->latest('event_date')->latest('id')->limit(20)->get() : null,
             'isPregnant' => $animal->gender === AnimalGender::Female && app(BreedingService::class)->isPregnant($animal),
+            'pnl' => request()->user()->can('animal_trading.view') ? app(AnimalPnlService::class)->forAnimal($animal) : null,
             'statusHistory' => $animal->statusHistories()->with('changer:id,name')
                 ->latest('changed_on')->latest('id')->limit(50)->get(),
             'history' => Activity::query()
