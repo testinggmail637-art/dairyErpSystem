@@ -32,6 +32,10 @@ class ReportController extends Controller
                 __('Animal trading') => collect(TradingReportController::catalogue())
                     ->map(fn ($r, $key) => $r + ['url' => route('reports.trading', $key)])
                     ->all(),
+            ] : []) + (auth()->user()->can('staff.view') ? [
+                __('Staff') => collect(StaffReportController::catalogue(auth()->user()->can('salary.manage')))
+                    ->map(fn ($r, $key) => $r + ['url' => route('reports.staff', $key)])
+                    ->all(),
             ] : []),
         ]);
     }

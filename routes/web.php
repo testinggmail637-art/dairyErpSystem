@@ -38,6 +38,7 @@ use App\Http\Controllers\Reports\LoanReportController;
 use App\Http\Controllers\Reports\MilkReportController;
 use App\Http\Controllers\Reports\ReportController;
 use App\Http\Controllers\Reports\SalesReportController;
+use App\Http\Controllers\Reports\StaffReportController;
 use App\Http\Controllers\Reports\TradingReportController;
 use App\Http\Controllers\Sales\BillController;
 use App\Http\Controllers\Sales\CustomerController;
@@ -383,6 +384,8 @@ Route::middleware(['auth', 'active', 'farm'])->group(function () {
             ->whereIn('report', LoanReportService::REPORTS)->name('reports.loans');
         Route::get('trading/{report}', [TradingReportController::class, 'show'])->middleware('can:animal_trading.view')
             ->whereIn('report', TradingReportController::REPORTS)->name('reports.trading');
+        Route::get('staff/{report}', [StaffReportController::class, 'show'])->middleware('can:staff.view')
+            ->whereIn('report', StaffReportController::REPORTS)->name('reports.staff');
     });
 
     // Download a queued (large) export file made for the logged-in user
