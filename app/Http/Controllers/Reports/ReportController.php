@@ -28,6 +28,10 @@ class ReportController extends Controller
                 __('Loans') => collect(LoanReportController::catalogue())
                     ->map(fn ($r, $key) => $r + ['url' => route('reports.loans', $key)])
                     ->all(),
+            ] : []) + (auth()->user()->can('animal_trading.view') ? [
+                __('Animal trading') => collect(TradingReportController::catalogue())
+                    ->map(fn ($r, $key) => $r + ['url' => route('reports.trading', $key)])
+                    ->all(),
             ] : []),
         ]);
     }

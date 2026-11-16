@@ -77,7 +77,7 @@
     <div class="col-12 col-lg-8 col-xl-9">
         <ul class="nav nav-tabs" role="tablist">
             @foreach (['details' => __('Details'), 'milk' => __('Milk'), 'health' => __('Health'), 'breeding' => __('Breeding'),
-                       'expenses' => __('Expenses'), 'history' => __('History')] as $key => $label)
+                       'expenses' => __('Expenses')] + ($pnl ? ['pnl' => __('P&L')] : []) + ['history' => __('History')] as $key => $label)
                 <li class="nav-item" role="presentation">
                     <button class="nav-link @if ($loop->first) active @endif" id="tab-{{ $key }}" data-bs-toggle="tab"
                             data-bs-target="#pane-{{ $key }}" type="button" role="tab" aria-controls="pane-{{ $key }}"
@@ -263,6 +263,41 @@
                     </div>
                 @endif
             </div>
+
+            {{-- Estimated profit & loss (spec Phase 6), only for users who see trading --}}
+            @if ($pnl)
+                <div class="tab-pane fade card-body" id="pane-pnl" role="tabpanel" aria-labelledby="tab-pnl" tabindex="0">
+                    <h3 class="h6">{{ __('Estimated profit & loss') }} <span class="badge text-bg-warning ms-1">{{ __('Estimated') }}</span></h3>
+                    <table class="table table-sm align-middle mb-2">
+                        <tbody>
+                            <tr><td>{{ $pnl['base_label'] }}</td><td class="text-end"><x-money :value="$pnl['base_cost']" /></td></tr>
+                            <tr><td>{{ __('Expenses booked to this animal (health, breeding, other)') }}</td><td class="text-end"><x-money :value="$pnl['expenses']" /></td></tr>
+                            <tr><td>{{ __('Feed recorded for this animal × average feed cost') }}</td><td class="text-end"><x-money :value="$pnl['feed_cost']" /></td></tr>
+                            <tr class="fw-semibold"><td>{{ __('Total cost') }}</td><td class="text-end"><x-money :value="$pnl['total_cost']" /></td></tr>
+                            @if ($pnl['sale'])
+                                <tr><td>{{ __('Sale :no on :date', ['no' => $pnl['sale']['no'], 'date' => fmt_date($pnl['sale']['date'])]) }}
+                                    @unless (\App\Support\Money::isZero($pnl['sale']['selling_share']))
+                                        <span class="small text-body-secondary">({{ __('price') }} {{ inr($pnl['sale']['price']) }} − {{ __('selling costs') }} {{ inr($pnl['sale']['selling_share']) }})</span>
+                                    @endunless
+                                </td><td class="text-end"><x-money :value="$pnl['sale']['income']" /></td></tr>
+                            @endif
+                            @if ($animal->ownership_type === \App\Enums\OwnershipType::OwnHerd)
+                                <tr><td>{{ __('Milk value (:litres L × average selling rate of the month)', ['litres' => fmt_qty($pnl['milk_litres'])]) }}</td>
+                                    <td class="text-end"><x-money :value="$pnl['milk_value']" /></td></tr>
+                            @endif
+                            <tr class="fw-semibold"><td>{{ __('Total income') }}</td><td class="text-end"><x-money :value="$pnl['income']" /></td></tr>
+                            <tr class="fw-bold fs-6 {{ \App\Support\Money::isNegative($pnl['profit']) ? 'text-danger' : 'text-success' }}">
+                                <td>{{ \App\Support\Money::isNegative($pnl['profit']) ? __('Estimated loss') : __('Estimated profit') }}</td>
+                                <td class="text-end"><x-money :value="$pnl['profit']" /></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                    <p class="small text-body-secondary mb-0">
+                        @if ($pnl['holding_days'] !== null){{ __('Held :days days.', ['days' => $pnl['holding_days']]) }} @endif
+                        {{ __('An estimate from the records entered: feed and milk value use average rates.') }}
+                    </p>
+                </div>
+            @endif
 
             {{-- History: status / stage / ownership timeline, then every change from the audit log --}}
             <div class="tab-pane fade" id="pane-history" role="tabpanel" aria-labelledby="tab-history" tabindex="0">
