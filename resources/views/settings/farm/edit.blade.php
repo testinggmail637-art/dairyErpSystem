@@ -22,6 +22,7 @@
         ],
         __('Staff') => [
             'staff_same_day_edit_only' => [__('Staff can edit own entries on the same day only'), __('Users without the edit permission can change their own entries only on the day they were made.'), 'switch', null],
+            'salary_paid_leave' => [__('Leave is paid'), __('Count "Leave" days as paid days in salary runs. Off: leave is unpaid.'), 'switch', null],
         ],
     ];
 @endphp

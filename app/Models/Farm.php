@@ -32,6 +32,7 @@ class Farm extends Model
         'vaccination_reminder_days' => 7,
         'calving_reminder_days' => 15,
         'staff_same_day_edit_only' => true,
+        'salary_paid_leave' => false, // spec Phase 6: leave is unpaid unless this is on
         'bill_due_days' => 7,
         'delivery_sheet_generate_time' => '04:00',
     ];

@@ -85,7 +85,9 @@
                 </tbody>
             </table>
         </div>
-        @if ($staff->isNotEmpty())
+        @if ($locked)
+            <div class="card-footer text-body-secondary"><i class="bi bi-lock me-1"></i>{{ __('Salary for this month is finalized, so its attendance can no longer change.') }}</div>
+        @elseif ($staff->isNotEmpty())
             <div class="card-footer">
                 <button type="submit" class="btn btn-primary"><i class="bi bi-check2 me-1"></i>{{ __('Save attendance') }}</button>
             </div>

@@ -4,6 +4,7 @@ namespace App\Services;
 
 use App\Models\Attendance;
 use App\Models\StaffMember;
+use DomainException;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Support\Facades\DB;
 
@@ -43,6 +44,10 @@ class AttendanceService
      */
     public function saveDay(string $date, array $rows): int
     {
+        if (app(SalaryRunService::class)->isMonthLocked($date)) {
+            throw new DomainException(__('Salary for this month is finalized, so its attendance can no longer change.'));
+        }
+
         $allowed = $this->staffOn($date)->modelKeys();
 
         return DB::transaction(function () use ($date, $rows, $allowed) {

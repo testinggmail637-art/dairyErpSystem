@@ -56,6 +56,7 @@ use App\Http\Controllers\Settings\RoleController;
 use App\Http\Controllers\Settings\SectionController;
 use App\Http\Controllers\Settings\UserController;
 use App\Http\Controllers\Staff\AttendanceController;
+use App\Http\Controllers\Staff\SalaryRunController;
 use App\Http\Controllers\Staff\StaffAdvanceController;
 use App\Http\Controllers\Staff\StaffMemberController;
 use App\Http\Controllers\Trading\AnimalPaymentController;
@@ -448,6 +449,18 @@ Route::middleware(['auth', 'active', 'farm'])->group(function () {
     Route::get('staff', [StaffMemberController::class, 'index'])->middleware('can:staff.view')->name('staff.index');
     Route::resource('staff-advances', StaffAdvanceController::class)->only(['index', 'create', 'store', 'destroy'])
         ->parameters(['staff-advances' => 'staffAdvance'])->whereNumber('staffAdvance')->middleware('can:salary.manage');
+    Route::middleware('can:salary.manage')->group(function () {
+        Route::get('salary-runs', [SalaryRunController::class, 'index'])->name('salary-runs.index');
+        Route::post('salary-runs', [SalaryRunController::class, 'store'])->name('salary-runs.store');
+        Route::get('salary-runs/{salaryRun}', [SalaryRunController::class, 'show'])->whereNumber('salaryRun')->name('salary-runs.show');
+        Route::post('salary-runs/{salaryRun}/recalculate', [SalaryRunController::class, 'recalculate'])->whereNumber('salaryRun')->name('salary-runs.recalculate');
+        Route::post('salary-runs/{salaryRun}/finalize', [SalaryRunController::class, 'finalize'])->whereNumber('salaryRun')->name('salary-runs.finalize');
+        Route::delete('salary-runs/{salaryRun}', [SalaryRunController::class, 'destroy'])->whereNumber('salaryRun')->name('salary-runs.destroy');
+        Route::get('salary-slips/{salarySlip}/edit', [SalaryRunController::class, 'editSlip'])->whereNumber('salarySlip')->name('salary-slips.edit');
+        Route::put('salary-slips/{salarySlip}', [SalaryRunController::class, 'updateSlip'])->whereNumber('salarySlip')->name('salary-slips.update');
+        Route::post('salary-slips/{salarySlip}/pay', [SalaryRunController::class, 'paySlip'])->whereNumber('salarySlip')->name('salary-slips.pay');
+        Route::get('salary-slips/{salarySlip}/pdf', [SalaryRunController::class, 'slipPdf'])->whereNumber('salarySlip')->name('salary-slips.pdf');
+    });
     Route::get('attendance', [AttendanceController::class, 'index'])->middleware('can:attendance.manage')->name('attendance.index');
     Route::post('attendance', [AttendanceController::class, 'store'])->middleware('can:attendance.manage')->name('attendance.store');
     Route::resource('staff', StaffMemberController::class)->only(['create', 'store', 'edit', 'update'])->whereNumber('staff')->middleware('can:staff.manage');
