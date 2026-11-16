@@ -31,13 +31,12 @@ it('shows only menu items the user is allowed to see', function () {
 });
 
 it('hides menu items whose module is not built yet even when permitted', function () {
-    Gate::define('animal_trading.view', fn () => true);
-    Gate::define('staff.view', fn () => true); // staff arrives in task 6.7
+    Gate::define('staff.view', fn () => true);
+    config(['menu' => [...config('menu'), ['label' => 'Not Built Yet', 'icon' => 'bi-box', 'route' => 'not-built.index', 'active' => 'not-built.*', 'permission' => 'staff.view']]]);
 
     $this->actingAs(User::factory()->forFarm()->create())->get(route('profile.edit'))
-        ->assertSee('>Purchases<', false)
-        ->assertSee('>Sales<', false)
-        ->assertDontSee('<span>Staff</span>', false);
+        ->assertSee('<span>Staff</span>', false)
+        ->assertDontSee('Not Built Yet');
 });
 
 it('marks the current page as active', function () {
