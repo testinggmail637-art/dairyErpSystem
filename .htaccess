@@ -1,0 +1,6 @@
+# Shared hosting (Hostinger): the project root is the web root, so send every
+# request into public/. This also keeps .env, app/, vendor/ etc. unreachable.
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+    RewriteRule ^(.*)$ public/$1 [L]
+</IfModule>
