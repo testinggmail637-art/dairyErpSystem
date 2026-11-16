@@ -2,8 +2,10 @@
 
 namespace App\Services;
 
+use App\Enums\SalaryRunStatus;
 use App\Models\StaffAdvance;
 use App\Support\Money;
+use DomainException;
 use Illuminate\Database\UniqueConstraintViolationException;
 use Illuminate\Support\Facades\DB;
 
@@ -31,15 +33,23 @@ class StaffAdvanceService
         }
     }
 
-    /** Wrong entries are deleted with a reason (audit-logged) and entered again. */
+    /**
+     * Wrong entries are deleted with a reason (audit-logged) and entered again — not once salary has already recovered
+     * part of it (the outstanding would go below zero).
+     */
     public function delete(StaffAdvance $advance): void
     {
+        $outstanding = $this->outstanding([$advance->staff_member_id])[$advance->staff_member_id];
+
+        if (Money::isNegative(Money::sub($outstanding, $advance->amount))) {
+            throw new DomainException(__('This advance has already been recovered through a finalized salary run and cannot be deleted.'));
+        }
+
         DB::transaction(fn () => $advance->delete());
     }
 
     /**
-     * Advance still to recover per staff member: Σ advances − Σ advance deductions of finalized salary slips
-     * (salary runs arrive in Task 6.10).
+     * Advance still to recover per staff member: Σ advances − Σ advance deductions of finalized salary slips.
      *
      * @param  list<int>  $staffIds
      * @return array<int, string> staff id => outstanding
@@ -53,6 +63,12 @@ class StaffAdvanceService
         $given = DB::table('staff_advances')->whereIn('staff_member_id', $staffIds)
             ->groupBy('staff_member_id')->pluck(DB::raw('SUM(amount)'), 'staff_member_id');
 
-        return collect($staffIds)->mapWithKeys(fn ($id) => [$id => Money::round2((string) ($given[$id] ?? 0))])->all();
+        $recovered = DB::table('salary_slips as s')->join('salary_runs as r', 'r.id', '=', 's.salary_run_id')
+            ->whereIn('s.staff_member_id', $staffIds)->where('r.status', SalaryRunStatus::Finalized->value)
+            ->groupBy('s.staff_member_id')
+            ->selectRaw('s.staff_member_id AS staff_id, SUM(s.advance_deduction) AS recovered')
+            ->pluck('recovered', 'staff_id');
+
+        return collect($staffIds)->mapWithKeys(fn ($id) => [$id => Money::sub((string) ($given[$id] ?? 0), (string) ($recovered[$id] ?? 0))])->all();
     }
 }

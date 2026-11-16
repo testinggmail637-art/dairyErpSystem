@@ -10,6 +10,7 @@ use App\Models\StaffAdvance;
 use App\Models\StaffMember;
 use App\Services\StaffAdvanceService;
 use App\Support\Format;
+use DomainException;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
@@ -67,7 +68,11 @@ class StaffAdvanceController extends Controller
 
     public function destroy(DeleteStaffAdvanceRequest $request, StaffAdvance $staffAdvance): RedirectResponse
     {
-        $this->advances->delete($staffAdvance);
+        try {
+            $this->advances->delete($staffAdvance);
+        } catch (DomainException $e) {
+            return back()->with('error', $e->getMessage());
+        }
 
         return back()->with('success', __('Advance deleted.'));
     }

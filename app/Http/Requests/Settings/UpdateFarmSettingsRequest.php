@@ -20,6 +20,7 @@ class UpdateFarmSettingsRequest extends FormRequest
         'vaccination_reminder_days' => ['required', 'integer', 'between:0,60'],
         'calving_reminder_days' => ['required', 'integer', 'between:0,60'],
         'staff_same_day_edit_only' => ['boolean'],
+        'salary_paid_leave' => ['boolean'],
         'bill_due_days' => ['required', 'integer', 'between:0,90'],
         'delivery_sheet_generate_time' => ['required', 'date_format:H:i'],
     ];
@@ -33,7 +34,7 @@ class UpdateFarmSettingsRequest extends FormRequest
     {
         $settings = (array) $this->input('settings', []);
 
-        foreach (['allow_negative_milk_stock', 'staff_same_day_edit_only'] as $key) {
+        foreach (['allow_negative_milk_stock', 'staff_same_day_edit_only', 'salary_paid_leave'] as $key) {
             $settings[$key] = filter_var($settings[$key] ?? false, FILTER_VALIDATE_BOOLEAN);
         }
 
