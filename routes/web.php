@@ -55,6 +55,7 @@ use App\Http\Controllers\Settings\PaymentModeController;
 use App\Http\Controllers\Settings\RoleController;
 use App\Http\Controllers\Settings\SectionController;
 use App\Http\Controllers\Settings\UserController;
+use App\Http\Controllers\Staff\StaffMemberController;
 use App\Http\Controllers\Trading\AnimalPaymentController;
 use App\Http\Controllers\Trading\AnimalPurchaseController;
 use App\Http\Controllers\Trading\AnimalSaleController;
@@ -440,6 +441,10 @@ Route::middleware(['auth', 'active', 'farm'])->group(function () {
     Route::get('animal-sales/{animalSale}/receipt', [AnimalSaleController::class, 'receipt'])->whereNumber('animalSale')->middleware('can:animal_trading.view')->name('animal-sales.receipt');
     Route::post('animal-sales/{animalSale}/cancel', [AnimalSaleController::class, 'cancel'])->whereNumber('animalSale')->middleware('can:animal_trading.manage')->name('animal-sales.cancel');
     Route::resource('parties', PartyController::class)->except(['index', 'show'])->middleware('can:animal_trading.manage');
+
+    // Staff (spec Phase 6)
+    Route::get('staff', [StaffMemberController::class, 'index'])->middleware('can:staff.view')->name('staff.index');
+    Route::resource('staff', StaffMemberController::class)->only(['create', 'store', 'edit', 'update'])->whereNumber('staff')->middleware('can:staff.manage');
 
     Route::get('vendors', [VendorController::class, 'index'])->middleware('can:vendors.view')->name('vendors.index');
     Route::get('vendors/search', [VendorController::class, 'search'])->name('vendors.search'); // vendors.view or feed.manage, checked in the controller
