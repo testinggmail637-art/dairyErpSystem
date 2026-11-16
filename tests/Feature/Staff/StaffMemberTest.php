@@ -49,7 +49,7 @@ it('validates dates, phone and the linked login user (this farm, once)', functio
 it('lists active staff by default with search / status filters and a flat query count; only staff.manage changes', function () {
     StaffMember::factory()->create(['farm_id' => $this->farm->id, 'name' => 'Raju Pawar', 'designation' => 'Milker',
         'user_id' => User::factory()->forFarm($this->farm)->create()->id]);
-    StaffMember::factory()->create(['farm_id' => $this->farm->id, 'name' => 'Sunil More', 'is_active' => false, 'leaving_date' => '2026-10-31']);
+    StaffMember::factory()->create(['farm_id' => $this->farm->id, 'name' => 'Sunil More', 'designation' => 'Driver', 'is_active' => false, 'leaving_date' => '2026-10-31']);
     StaffMember::factory()->create(['name' => 'Other Farm Worker']);
 
     $this->actingAs($this->accountant)->get(route('staff.index'))->assertOk()
