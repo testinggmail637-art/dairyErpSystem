@@ -187,7 +187,7 @@ class AnimalController extends Controller
      */
     public function search(Request $request): JsonResponse
     {
-        abort_unless($request->user()->canAny(['animals.view', 'expenses.view', 'expenses.create', 'expenses.edit', 'milk_production.create', 'milk_production.view']), 403);
+        abort_unless($request->user()->canAny(['animals.view', 'expenses.view', 'expenses.create', 'expenses.edit', 'milk_production.create', 'milk_production.view', 'animal_trading.manage']), 403);
 
         $animals = Animal::query()
             ->search($request->query('q'))

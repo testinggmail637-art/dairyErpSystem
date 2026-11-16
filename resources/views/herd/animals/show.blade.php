@@ -9,6 +9,9 @@
     @if ($canManage)
         <a href="{{ route('animals.edit', $animal) }}" class="btn btn-primary btn-sm"><i class="bi bi-pencil me-1"></i>{{ __('Edit') }}</a>
     @endif
+    @if ($animal->status === \App\Enums\AnimalStatus::Active && auth()->user()->can('animal_trading.manage'))
+        <a href="{{ route('animal-sales.create', ['animal_id' => $animal->id]) }}" class="btn btn-outline-primary btn-sm"><i class="bi bi-cash-coin me-1"></i>{{ __('Sell') }}</a>
+    @endif
 @endsection
 
 @section('content')

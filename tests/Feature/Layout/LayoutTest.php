@@ -31,12 +31,13 @@ it('shows only menu items the user is allowed to see', function () {
 });
 
 it('hides menu items whose module is not built yet even when permitted', function () {
-    Gate::define('animal_trading.view', fn () => true); // animal sales arrive in task 6.3
+    Gate::define('animal_trading.view', fn () => true);
+    Gate::define('staff.view', fn () => true); // staff arrives in task 6.7
 
     $this->actingAs(User::factory()->forFarm()->create())->get(route('profile.edit'))
-        ->assertSee('>Parties<', false)
         ->assertSee('>Purchases<', false)
-        ->assertDontSee('>Sales<', false);
+        ->assertSee('>Sales<', false)
+        ->assertDontSee('<span>Staff</span>', false);
 });
 
 it('marks the current page as active', function () {

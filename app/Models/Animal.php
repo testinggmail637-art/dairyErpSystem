@@ -206,6 +206,7 @@ class Animal extends Model
             __('milk entries') => MilkProductionRecord::query()->where('animal_id', $this->id)->count(),
             __('feed entries') => FeedTransaction::query()->where('animal_id', $this->id)->count(),
             __('purchases') => AnimalPurchaseItem::query()->where('animal_id', $this->id)->count(),
+            __('sales') => AnimalSaleItem::query()->where('animal_id', $this->id)->count(),
         ]);
     }
 }
