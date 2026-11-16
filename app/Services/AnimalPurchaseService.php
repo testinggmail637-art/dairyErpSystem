@@ -5,6 +5,7 @@ namespace App\Services;
 use App\Enums\AnimalSource;
 use App\Enums\AnimalStatus;
 use App\Enums\DocumentType;
+use App\Enums\PaymentDirection;
 use App\Models\Animal;
 use App\Models\AnimalPurchase;
 use App\Support\Money;
@@ -88,6 +89,17 @@ class AnimalPurchaseService
                 ]);
             }
 
+            if (($data['initial_payment'] ?? null) !== null) {
+                $purchase->payments()->create([
+                    'party_id' => $purchase->party_id,
+                    'direction' => PaymentDirection::Paid,
+                    'payment_date' => $purchase->purchase_date->toDateString(),
+                    'amount' => $data['initial_payment'],
+                    'payment_mode_id' => $data['initial_payment_mode_id'],
+                    'reference_no' => $data['initial_reference_no'] ?? null,
+                ]);
+            }
+
             return $purchase;
         });
     }
@@ -99,6 +111,10 @@ class AnimalPurchaseService
     public function delete(AnimalPurchase $purchase): void
     {
         $purchase->loadMissing('items.animal');
+
+        if ($purchase->payments()->exists()) {
+            throw new DomainException(__('This purchase has payments. Delete its payments first.'));
+        }
 
         foreach ($purchase->items as $item) {
             $animal = $item->animal;

@@ -75,6 +75,10 @@ class AnimalSaleService
             throw new DomainException(__('This sale is already cancelled.'));
         }
 
+        if ($sale->payments()->exists()) {
+            throw new DomainException(__('This sale has payments received. Delete those payments first.'));
+        }
+
         DB::transaction(function () use ($sale) {
             $items = $sale->items()->with('animal')->get();
 

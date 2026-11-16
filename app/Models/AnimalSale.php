@@ -58,6 +58,12 @@ class AnimalSale extends Model
         return $this->status === AnimalSaleStatus::Cancelled;
     }
 
+    /** @return HasMany<AnimalPayment, $this> */
+    public function payments(): HasMany
+    {
+        return $this->hasMany(AnimalPayment::class);
+    }
+
     /**
      * Sale number or party name contains the term.
      *

@@ -46,6 +46,12 @@ class AnimalPurchase extends Model
         return $this->hasMany(AnimalPurchaseItem::class);
     }
 
+    /** @return HasMany<AnimalPayment, $this> */
+    public function payments(): HasMany
+    {
+        return $this->hasMany(AnimalPayment::class);
+    }
+
     /**
      * Purchase number or party name contains the term.
      *
