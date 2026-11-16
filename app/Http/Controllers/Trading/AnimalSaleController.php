@@ -71,7 +71,7 @@ class AnimalSaleController extends Controller
 
     public function show(AnimalSale $animalSale): View
     {
-        $animalSale->load(['party', 'items.animal.breed:id,name', 'creator:id,name', 'canceller:id,name']);
+        $animalSale->load(['party', 'items.animal.breed:id,name', 'creator:id,name', 'canceller:id,name', 'payments.paymentMode:id,name']);
 
         return view('trading.sales.show', ['sale' => $animalSale]);
     }

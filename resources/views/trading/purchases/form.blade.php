@@ -114,6 +114,20 @@ $row = function ($i, $r) use ($typeOptions, $genderOptions, $stageOptions, $owne
         </div>
     </div>
 
+    <div class="card mb-3">
+        <div class="card-header fw-semibold"><i class="bi bi-cash me-1"></i>{{ __('Payment now (optional)') }}</div>
+        <div class="card-body">
+            <div class="row g-3">
+                <div class="col-12 col-md-4"><x-form.money name="initial_payment" :label="__('Amount paid to seller')" group-class="mb-0" /></div>
+                <div class="col-12 col-md-4">
+                    <x-form.select name="initial_payment_mode_id" :label="__('Payment mode')" :options="$modes" :placeholder="__('Choose mode')" group-class="mb-0" />
+                </div>
+                <div class="col-12 col-md-4"><x-form.input name="initial_reference_no" :label="__('Reference no.')" maxlength="50" group-class="mb-0" /></div>
+            </div>
+            <p class="form-text mb-0 mt-2">{{ __('Leave empty to pay later. Later installments are recorded under Trading → Payments.') }}</p>
+        </div>
+    </div>
+
     <div class="d-flex gap-2">
         <button type="submit" class="btn btn-primary"><i class="bi bi-check2 me-1"></i>{{ __('Save purchase') }}</button>
         <a href="{{ route('animal-purchases.index') }}" class="btn btn-outline-secondary">{{ __('Cancel') }}</a>

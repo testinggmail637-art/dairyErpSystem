@@ -81,4 +81,5 @@
         </table>
     </div>
 </div>
+@include('trading.partials.payments', ['payments' => $sale->payments, 'total' => $sale->isCancelled() ? '0' : $sale->net_amount, 'createUrl' => $sale->isCancelled() ? null : route('animal-payments.create', ['party_id' => $sale->party_id, 'direction' => 'received', 'animal_sale_id' => $sale->id])])
 @endsection

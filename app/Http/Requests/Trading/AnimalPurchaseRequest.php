@@ -9,6 +9,7 @@ use App\Enums\OwnershipType;
 use App\Enums\PartyType;
 use App\Models\AnimalBreed;
 use App\Support\CurrentFarm;
+use App\Support\Money;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\Validator;
@@ -48,6 +49,8 @@ class AnimalPurchaseRequest extends FormRequest
             'commission' => $clean($this->input('commission')) ?? '0',
             'other_cost' => $clean($this->input('other_cost')) ?? '0',
             'animals' => $rows,
+            'initial_payment' => $clean($this->input('initial_payment')),
+            'initial_reference_no' => trim((string) $this->input('initial_reference_no')) ?: null,
         ]);
     }
 
@@ -79,6 +82,11 @@ class AnimalPurchaseRequest extends FormRequest
             'animals.*.lifecycle_stage' => ['required', Rule::enum(LifecycleStage::class)],
             'animals.*.ownership_type' => ['required', Rule::enum(OwnershipType::class)],
             'animals.*.price' => ['required', 'decimal:0,2', 'min:1', 'max:9999999999.99'],
+            // optional first installment paid to the seller with the purchase
+            'initial_payment' => ['nullable', 'decimal:0,2', 'gt:0', 'max:9999999999.99'],
+            'initial_payment_mode_id' => ['nullable', 'required_with:initial_payment', 'integer',
+                Rule::exists('payment_modes', 'id')->where('farm_id', $farmId)->where('is_active', true)],
+            'initial_reference_no' => ['nullable', 'string', 'max:50'],
         ];
     }
 
@@ -98,6 +106,15 @@ class AnimalPurchaseRequest extends FormRequest
                 if ($gender && ($stage = LifecycleStage::tryFrom((string) $row['lifecycle_stage']))
                     && ! in_array($stage, LifecycleStage::forGender($gender), true)) {
                     $validator->errors()->add("animals.{$i}.lifecycle_stage", __('This stage does not fit the chosen gender.'));
+                }
+            }
+
+            if ($this->input('initial_payment') !== null && $validator->errors()->isEmpty()) {
+                $total = Money::add(Money::sum(array_column((array) $this->input('animals'), 'price')),
+                    $this->input('transport_cost'), $this->input('commission'), $this->input('other_cost'));
+
+                if (Money::compare($this->input('initial_payment'), $total) > 0) {
+                    $validator->errors()->add('initial_payment', __('The payment cannot be more than the purchase total.'));
                 }
             }
         }];

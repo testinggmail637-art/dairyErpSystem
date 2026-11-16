@@ -53,7 +53,7 @@
                     <th>{{ __('Party') }}</th>
                     <th>{{ __('Phone') }}</th>
                     <th>{{ __('Type') }}</th>
-                    <th class="text-end">{{ __('Opening balance') }}</th>
+                    <th class="text-end">{{ __('Balance') }}</th>
                     <th>{{ __('Status') }}</th>
                     @if ($canManage)<th class="text-end">{{ __('Actions') }}</th>@endif
                 </tr>
@@ -67,7 +67,7 @@
                         </td>
                         <td class="text-nowrap">{{ $party->phone ?: '—' }}</td>
                         <td>{{ $party->party_type->label() }}</td>
-                        <td class="text-end"><x-money :value="$party->opening_balance" /></td>
+                        <td class="text-end"><a href="{{ route('parties.ledger', $party) }}" title="{{ __('Ledger') }}"><x-money :value="$balances[$party->id]" /></a></td>
                         <td>
                             @if ($party->is_active)
                                 <span class="badge text-bg-success">{{ __('Active') }}</span>
@@ -103,5 +103,5 @@
     @endfragment
     </div>
 </div>
-<p class="form-text mt-2">{{ __('Opening balance: + they owe us, − we owe them.') }}</p>
+<p class="form-text mt-2">{{ __('Balance: + they owe us, − we owe them. Click it for the ledger.') }}</p>
 @endsection

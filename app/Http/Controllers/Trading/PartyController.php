@@ -5,9 +5,11 @@ namespace App\Http\Controllers\Trading;
 use App\Enums\PartyType;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Trading\PartyRequest;
+use App\Models\AnimalPayment;
 use App\Models\AnimalPurchase;
 use App\Models\AnimalSale;
 use App\Models\Party;
+use App\Services\PartyLedgerService;
 use App\Services\PartyService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
@@ -18,7 +20,10 @@ use Illuminate\View\View;
 /** Trading → Parties: animal traders we buy from / sell to (spec Phase 6). */
 class PartyController extends Controller
 {
-    public function __construct(private readonly PartyService $parties) {}
+    public function __construct(
+        private readonly PartyService $parties,
+        private readonly PartyLedgerService $ledger,
+    ) {}
 
     public function index(Request $request): View|Response
     {
@@ -36,7 +41,28 @@ class PartyController extends Controller
             ->paginate(25)
             ->withQueryString();
 
-        return $this->listView($request, 'trading.parties.index', compact('parties', 'filters'));
+        $balances = $this->ledger->balances($parties->getCollection());
+
+        return $this->listView($request, 'trading.parties.index', compact('parties', 'filters', 'balances'));
+    }
+
+    /** Party ledger: sales, purchases and payments with a running balance (+ = they owe us). */
+    public function ledger(Request $request, Party $party): View|Response
+    {
+        $from = $this->dateFilter($request->query('from'));
+        $to = $this->dateFilter($request->query('to'));
+        $filters = ['from' => $from ?? '', 'to' => $to ?? ''];
+
+        $ledger = $this->ledger->ledger($party, $from, $to, max(1, $request->integer('page', 1)), array_filter($filters));
+
+        return $this->listView($request, 'trading.parties.ledger', compact('party', 'ledger', 'filters') + [
+            'balance' => $this->ledger->balance($party),
+        ]);
+    }
+
+    private function dateFilter(mixed $value): ?string
+    {
+        return is_string($value) && preg_match('/^\d{4}-\d{2}-\d{2}$/', $value) ? $value : null;
     }
 
     /** Select2 remote search: active parties, `type=seller|buyer` keeps those who sell / buy (plus "both"). */
@@ -86,8 +112,9 @@ class PartyController extends Controller
 
     public function destroy(Party $party): RedirectResponse
     {
-        if (AnimalPurchase::query()->where('party_id', $party->id)->exists() || AnimalSale::query()->where('party_id', $party->id)->exists()) {
-            return back()->with('error', __('Party :name has purchases or sales and cannot be deleted. Mark it inactive instead.', ['name' => $party->name]));
+        if (AnimalPurchase::query()->where('party_id', $party->id)->exists() || AnimalSale::query()->where('party_id', $party->id)->exists()
+            || AnimalPayment::query()->where('party_id', $party->id)->exists()) {
+            return back()->with('error', __('Party :name has purchases, sales or payments and cannot be deleted. Mark it inactive instead.', ['name' => $party->name]));
         }
 
         $party->delete();

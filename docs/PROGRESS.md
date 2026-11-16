@@ -8,11 +8,11 @@
 | Item | Value |
 |---|---|
 | Current phase | Phase 6 — Animal Trading & Staff (🟡 in progress) |
-| Last completed task | 6.3 — Animal sale (status update) + cancel |
-| Next task | 6.4 — Payments / installments + party ledger |
-| Overall progress | 78 / 97 tasks (80%) |
-| Tests passing | 699 |
-| Last updated (IST) | 2026-11-16 (task/6.3-animal-sale) |
+| Last completed task | 6.4 — Animal payments / installments + party ledger |
+| Next task | 6.5 — Animal sale receipt PDF |
+| Overall progress | 79 / 97 tasks (81%) |
+| Tests passing | 706 |
+| Last updated (IST) | 2026-11-16 (task/6.4-animal-payments) |
 
 ## Phase overview
 
@@ -388,7 +388,7 @@ Status legend: ⬜ Not started · 🟡 In progress · ✅ Done · ⏸ On hold
 - [x] 6.1 Parties (buyers/sellers) CRUD
 - [x] 6.2 Animal purchase with inline animal creation + cost allocation
 - [x] 6.3 Animal sale (status update) + cancel
-- [ ] 6.4 Animal payments / installments + party ledger
+- [x] 6.4 Animal payments / installments + party ledger
 - [ ] 6.5 Sale receipt PDF
 - [ ] 6.6 Animal P&L + trading summary report
 - [ ] 6.7 Staff members CRUD

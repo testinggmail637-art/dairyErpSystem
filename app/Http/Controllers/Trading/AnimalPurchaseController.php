@@ -11,6 +11,7 @@ use App\Http\Requests\Trading\DeleteAnimalPurchaseRequest;
 use App\Models\AnimalBreed;
 use App\Models\AnimalPurchase;
 use App\Models\Party;
+use App\Models\PaymentMode;
 use App\Services\AnimalPurchaseService;
 use DomainException;
 use Illuminate\Http\RedirectResponse;
@@ -55,6 +56,7 @@ class AnimalPurchaseController extends Controller
                 $g->value => collect(LifecycleStage::forGender($g))->map(fn ($s) => $s->value)->all(),
             ]),
             'ownershipOptions' => OwnershipType::options(),
+            'modes' => PaymentMode::query()->active()->orderBy('name')->pluck('name', 'id')->all(),
         ]);
     }
 
@@ -68,7 +70,7 @@ class AnimalPurchaseController extends Controller
 
     public function show(AnimalPurchase $animalPurchase): View
     {
-        $animalPurchase->load(['party', 'items.animal.breed:id,name', 'creator:id,name']);
+        $animalPurchase->load(['party', 'items.animal.breed:id,name', 'creator:id,name', 'payments.paymentMode:id,name']);
 
         return view('trading.purchases.show', ['purchase' => $animalPurchase]);
     }

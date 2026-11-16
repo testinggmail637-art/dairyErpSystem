@@ -85,6 +85,7 @@ return [
         'items' => [
             ['label' => 'Purchases', 'route' => 'animal-purchases.index', 'active' => 'animal-purchases.*', 'permission' => 'animal_trading.view'],
             ['label' => 'Sales', 'route' => 'animal-sales.index', 'active' => 'animal-sales.*', 'permission' => 'animal_trading.view'],
+            ['label' => 'Payments', 'route' => 'animal-payments.index', 'active' => 'animal-payments.*', 'permission' => 'animal_trading.view'],
             ['label' => 'Parties', 'route' => 'parties.index', 'active' => 'parties.*', 'permission' => 'animal_trading.view'],
         ],
     ],

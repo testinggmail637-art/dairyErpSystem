@@ -81,4 +81,5 @@
         </table>
     </div>
 </div>
+@include('trading.partials.payments', ['payments' => $purchase->payments, 'total' => $purchase->total_amount, 'createUrl' => route('animal-payments.create', ['party_id' => $purchase->party_id, 'direction' => 'paid', 'animal_purchase_id' => $purchase->id])])
 @endsection
