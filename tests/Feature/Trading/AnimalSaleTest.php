@@ -7,6 +7,7 @@ use App\Models\Animal;
 use App\Models\AnimalSale;
 use App\Models\Farm;
 use App\Models\Party;
+use App\Models\PaymentMode;
 use App\Models\User;
 use Illuminate\Support\Facades\DB;
 
@@ -128,4 +129,20 @@ it('opens the sale form with an animal pre-selected from its page', function () 
     $this->actingAs($this->owner)->get(route('animals.show', $this->cow))->assertSee(route('animal-sales.create', ['animal_id' => $this->cow->id]), false);
     $this->get(route('animal-sales.create', ['animal_id' => $this->cow->id]))->assertOk()
         ->assertSee('<option value="'.$this->cow->id.'" selected>', false)->assertSee('animals[__I__][animal_id]', false);
+});
+
+it('renders the sale receipt PDF with animals, totals and payments received; view users may open it', function () {
+    $this->actingAs($this->owner)->post(route('animal-sales.store'), salePayload($this->buyer->id, [['animal_id' => $this->cow->id, 'price' => '45000']]));
+    $sale = AnimalSale::sole();
+    $mode = PaymentMode::factory()->create(['farm_id' => $this->farm->id, 'name' => 'UPI']);
+    $this->post(route('animal-payments.store'), ['party_id' => $this->buyer->id, 'direction' => 'received', 'animal_sale_id' => $sale->id,
+        'payment_date' => '2026-11-13', 'amount' => '40000', 'payment_mode_id' => $mode->id])->assertSessionHasNoErrors();
+
+    $this->get(route('animal-sales.show', $sale))->assertSee(route('animal-sales.receipt', $sale));
+
+    $html = view('pdf.animal-sale-receipt', ['sale' => $sale->load(['party', 'items.animal.breed', 'payments.paymentMode'])])->render();
+    expect($html)->toContain($sale->sale_no)->toContain('Suresh Patil')->toContain('C-1')
+        ->toContain('₹45,000.00')->toContain('₹43,500.00')->toContain('₹40,000.00')->toContain('₹3,500.00'); // price, net, received, due
+
+    $this->actingAs($this->accountant)->get(route('animal-sales.receipt', $sale))->assertOk()->assertHeader('content-type', 'application/pdf');
 });

@@ -10,6 +10,7 @@ use App\Models\Animal;
 use App\Models\AnimalSale;
 use App\Models\Party;
 use App\Services\AnimalSaleService;
+use Barryvdh\DomPDF\Facade\Pdf;
 use DomainException;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -74,6 +75,15 @@ class AnimalSaleController extends Controller
         $animalSale->load(['party', 'items.animal.breed:id,name', 'creator:id,name', 'canceller:id,name', 'payments.paymentMode:id,name']);
 
         return view('trading.sales.show', ['sale' => $animalSale]);
+    }
+
+    /** Sale receipt PDF (spec Phase 6), shown in the browser; always built from the current record. */
+    public function receipt(AnimalSale $animalSale): Response
+    {
+        $animalSale->load(['party', 'items.animal.breed:id,name', 'payments' => fn ($q) => $q->orderBy('payment_date'), 'payments.paymentMode:id,name']);
+
+        return Pdf::loadView('pdf.animal-sale-receipt', ['sale' => $animalSale])
+            ->stream(str_replace('/', '-', $animalSale->sale_no).'.pdf');
     }
 
     public function cancel(CancelAnimalSaleRequest $request, AnimalSale $animalSale): RedirectResponse
