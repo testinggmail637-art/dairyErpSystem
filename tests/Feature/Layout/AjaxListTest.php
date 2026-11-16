@@ -8,7 +8,7 @@ use App\Models\User;
 beforeEach(function () {
     $this->farm = Farm::factory()->create();
     Section::seedDefaultsFor($this->farm);
-    $this->owner = User::factory()->forFarm($this->farm)->withRole(RoleName::Owner)->create();
+    $this->owner = User::factory()->forFarm($this->farm)->withRole(RoleName::Owner)->create(['name' => 'Farm Owner', 'email' => 'owner@ajax.test']);
     User::factory()->forFarm($this->farm)->create(['name' => 'Asha Accountant']);
 });
 

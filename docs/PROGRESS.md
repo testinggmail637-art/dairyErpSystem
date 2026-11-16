@@ -8,11 +8,11 @@
 | Item | Value |
 |---|---|
 | Current phase | Phase 6 — Animal Trading & Staff (🟡 in progress) |
-| Last completed task | 6.10 — Salary runs (draft → finalize → expenses) + salary slips |
-| Next task | 6.11 — Attendance & salary registers |
-| Overall progress | 85 / 97 tasks (88%) |
-| Tests passing | 727 |
-| Last updated (IST) | 2026-11-17 (task/6.10-salary-runs) |
+| Last completed task | 6.11 — Attendance & salary registers |
+| Next task | 6.12 — Phase 6 acceptance tests + README/CHANGELOG |
+| Overall progress | 86 / 97 tasks (89%) |
+| Tests passing | 730 |
+| Last updated (IST) | 2026-11-17 (task/6.11-staff-registers) |
 
 ## Phase overview
 
@@ -395,7 +395,7 @@ Status legend: ⬜ Not started · 🟡 In progress · ✅ Done · ⏸ On hold
 - [x] 6.8 Attendance (bulk screen)
 - [x] 6.9 Staff advances
 - [x] 6.10 Salary runs (draft → finalize → expenses) + salary slips
-- [ ] 6.11 Attendance & salary registers
+- [x] 6.11 Attendance & salary registers
 - [ ] 6.12 Phase 6 acceptance tests pass + README/CHANGELOG updated
 
 ### Phase log
