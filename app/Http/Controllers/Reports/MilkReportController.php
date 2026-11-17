@@ -31,6 +31,7 @@ class MilkReportController extends Controller
             'animals' => $this->reports->animalWise($f['from'], $f['to'], $type),
             'lactations' => $this->reports->lactationWise($f['from'], $f['to'], $type),
             'balance' => $this->reports->balance($f['from'], $f['to'], $type),
+            'forecast' => $this->reports->forecast((int) $f['days'], $type),
         };
 
         return match ($f['format'] ?? null) {
@@ -46,6 +47,7 @@ class MilkReportController extends Controller
                 'filterType' => match ($report) {
                     'daily' => 'date',
                     'monthly' => 'month',
+                    'forecast' => 'days',
                     default => 'range',
                 },
             ]),
@@ -61,6 +63,7 @@ class MilkReportController extends Controller
             'animals' => ['title' => __('Animal-wise milk production'), 'description' => __('Litres and average per day of each animal for any period.'), 'icon' => 'bi-list-ol'],
             'lactations' => ['title' => __('Lactation-wise milk production'), 'description' => __('Each animal\'s milk per lactation: calving date, days in milk, total, average and peak day.'), 'icon' => 'bi-arrow-repeat'],
             'balance' => ['title' => __('Milk balance'), 'description' => __('Opening, milk in and out and closing per stock and milk type; flags days below zero.'), 'icon' => 'bi-clipboard-check'],
+            'forecast' => ['title' => __('Milk forecast'), 'description' => __('Expected milk for the next 7, 30 or 90 days from each milking animal\'s last 14 days; flags dry-off and calving due.'), 'icon' => 'bi-graph-up-arrow'],
         ];
     }
 }
