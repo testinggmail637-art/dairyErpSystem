@@ -3,6 +3,9 @@
 use App\Enums\MilkType;
 use App\Enums\RoleName;
 use App\Models\Animal;
+use App\Models\AnimalPurchase;
+use App\Models\AnimalSale;
+use App\Models\Bill;
 use App\Models\Customer;
 use App\Models\Delivery;
 use App\Models\Expense;
@@ -12,6 +15,7 @@ use App\Models\FeedItem;
 use App\Models\FeedTransaction;
 use App\Models\MilkCollection;
 use App\Models\MilkProductionRecord;
+use App\Models\Party;
 use App\Models\Product;
 use App\Models\Section;
 use App\Models\User;
@@ -122,4 +126,45 @@ it('shows profitability only with the money rights', function () {
 
     $user->givePermissionTo('dashboard.financial');
     $this->get(route('reports.profit', ['report' => 'collection-margin']))->assertOk();
+});
+
+it('sums a management P&L from bills, unbilled milk, animal trades, farmer milk and expenses by category', function () {
+    $customer = Customer::factory()->create($this->f);
+    $bill = fn (string $status, string $total, string $date = '2026-11-01') => Bill::factory()->create(['customer_id' => $customer->id, 'status' => $status, 'total' => $total, 'bill_date' => $date]);
+    $final = $bill('finalized', '1000');
+    $draft = $bill('draft', '777');
+    $bill('finalized', '999', '2026-10-31');                      // before the period
+    $deliver = fn (string $amount, ?int $billId) => Delivery::factory()->create(['customer_id' => $customer->id, 'delivery_date' => '2026-11-03',
+        'status' => 'delivered', 'delivered_qty' => '1', 'amount' => $amount, 'bill_id' => $billId]);
+    $deliver('1000', $final->id);                                  // inside the finalized bill → counted once, as the bill
+    $deliver('300', $draft->id);                                   // draft bill → not yet billed
+    $deliver('200', null);                                         // not billed
+    $party = Party::factory()->create($this->f);
+    AnimalSale::create(['sale_no' => 'S-1', 'party_id' => $party->id, 'sale_date' => '2026-11-05', 'total_price' => '5000', 'selling_costs' => '500', 'net_amount' => '4500', 'status' => 'completed']);
+    AnimalSale::create(['sale_no' => 'S-2', 'party_id' => $party->id, 'sale_date' => '2026-11-05', 'total_price' => '9000', 'net_amount' => '9000', 'status' => 'cancelled']);
+    AnimalPurchase::create(['purchase_no' => 'P-1', 'party_id' => $party->id, 'purchase_date' => '2026-11-06', 'total_animal_price' => '2000', 'total_amount' => '2000']);
+    MilkCollection::factory()->create($this->f + ['collection_date' => '2026-11-04', 'amount' => '1500']);
+    MilkCollection::factory()->create($this->f + ['collection_date' => '2026-11-04', 'amount' => '0', 'quality_status' => 'rejected']);
+    $feed = ExpenseCategory::factory()->create($this->f + ['name' => 'Feed']);
+    ($this->expense)($this->herd, '2026-11-07', '700.00', ['category_id' => $feed->id]);
+
+    $table = app(ProfitReportService::class)->profitAndLoss('2026-11-01', '2026-11-17');
+
+    expect($table->rows)->toBe([
+        ['Income', null, null],
+        ['Milk sales — finalized bills', '1000.00', '16.7'],
+        ['Milk sales — delivered, not yet billed', '500.00', '8.3'],
+        ['Animal sales (net of selling costs)', '4500.00', '75.0'],
+        ['Total income', '6000.00', '100.0'],
+        ['Costs', null, null],
+        ['Milk bought from farmers', '1500.00', '25.0'],
+        ['Expenses — Feed', '700.00', '11.7'],
+        ['Animal purchases', '2000.00', '33.3'],
+        ['Total costs', '4200.00', '70.0'],
+        ['Net profit', '1800.00', '30.0'],
+    ])->and($table->strongRows)->toBe([0, 4, 5, 9, 10]);
+
+    $this->actingAs($this->owner)->get(route('reports.profit', ['report' => 'pnl', 'from' => '2026-11-01']))
+        ->assertOk()->assertSee('Management summary, not statutory accounts.')->assertSee('₹1,800.00');
+    $this->get(route('reports.profit', ['report' => 'pnl', 'format' => 'excel']))->assertOk();
 });

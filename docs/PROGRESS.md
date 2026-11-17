@@ -8,11 +8,11 @@
 | Item | Value |
 |---|---|
 | Current phase | Phase 7 — Dashboard & Reports (🟡 in progress) |
-| Last completed task | 7.5 — Expense matrix, cost per litre, profit per animal, collection center margin |
-| Next task | 7.6 — Simple P&L (management summary) + trading & staff reports |
-| Overall progress | 92 / 97 tasks (95%) |
-| Tests passing | 748 |
-| Last updated (IST) | 2026-11-17 (task/7.5-cost-profit-margin-reports) |
+| Last completed task | 7.6 — Simple P&L (management summary) + trading & staff reports |
+| Next task | 7.7 — Milk forecast (7/30/90 days) |
+| Overall progress | 93 / 97 tasks (96%) |
+| Tests passing | 749 |
+| Last updated (IST) | 2026-11-17 (task/7.6-simple-pnl) |
 
 ## Phase overview
 
@@ -425,7 +425,7 @@ Status legend: ⬜ Not started · 🟡 In progress · ✅ Done · ⏸ On hold
 - [x] 7.3 Milk production, collection, balance/reconciliation reports
 - [x] 7.4 Sales, receivables aging, payables, party balances reports
 - [x] 7.5 Expense matrix, cost per litre, profit per animal, collection center margin
-- [ ] 7.6 Simple P&L (management summary) + trading & staff reports
+- [x] 7.6 Simple P&L (management summary) + trading & staff reports
 - [ ] 7.7 Milk forecast (7/30/90 days)
 - [ ] 7.8 Excel/PDF export on all reports
 - [ ] 7.9 Performance: indexes, eager loading, dashboard cache, DemoSeeder timing check
