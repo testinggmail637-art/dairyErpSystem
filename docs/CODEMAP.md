@@ -18,6 +18,7 @@ Keep this file short. Update it in the same commit when you add a new **shared**
 | Views: list / form / show | `resources/views/expenses/expenses/{index,form,show}.blade.php` |
 | Feature test | `tests/Feature/Expenses/ExpenseTest.php`, edit rules: `ExpenseEditRulesTest.php` |
 | Report (SQL totals + export) | `app/Services/ExpenseReportService.php`, `Controllers/Reports/ExpenseReportController.php` |
+| Customer / farmer / party balances as of a date (SQL) | `app/Services/BalanceReportService.php` |
 | Excel import (chunked, queued) | `app/Services/ExpenseImportService.php`, `app/Imports`, `app/Jobs` |
 
 ## Shared building blocks (use these, don't re-create)
