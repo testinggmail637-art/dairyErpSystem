@@ -28,6 +28,10 @@ class ReportController extends Controller
                 __('Receivables & payables') => collect(BalanceReportController::catalogue(auth()->user()))
                     ->map(fn ($r, $key) => $r + ['url' => route('reports.balances', $key)])
                     ->all(),
+            ] : []) + (auth()->user()->can('dashboard.financial') && auth()->user()->can('expenses.view') ? [
+                __('Profitability') => collect(ProfitReportController::catalogue())
+                    ->map(fn ($r, $key) => $r + ['url' => route('reports.profit', $key)])
+                    ->all(),
             ] : []) + (auth()->user()->can('loans.view') ? [
                 __('Loans') => collect(LoanReportController::catalogue())
                     ->map(fn ($r, $key) => $r + ['url' => route('reports.loans', $key)])

@@ -2,9 +2,10 @@
 
 namespace App\Http\Requests\Reports;
 
+use App\Support\FinancialYear;
 use Illuminate\Foundation\Http\FormRequest;
 
-/** Filters of the expense reports. Defaults: the current month. */
+/** Filters of the expense reports. Defaults: the current month (the month matrices: this financial year). */
 class ExpenseReportRequest extends FormRequest
 {
     public function authorize(): bool
@@ -15,7 +16,7 @@ class ExpenseReportRequest extends FormRequest
     protected function prepareForValidation(): void
     {
         $this->merge([
-            'from' => $this->input('from') ?: now()->startOfMonth()->toDateString(),
+            'from' => $this->input('from') ?: (in_array($this->route('report'), ['category-months', 'sections'], true) ? FinancialYear::start()->toDateString() : now()->startOfMonth()->toDateString()), // matrices: this financial year
             'to' => $this->input('to') ?: now()->toDateString(),
             'month' => $this->input('month') ?: now()->format('Y-m'),
         ]);

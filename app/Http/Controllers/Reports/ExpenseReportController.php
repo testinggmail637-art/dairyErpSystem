@@ -29,6 +29,8 @@ class ExpenseReportController extends Controller
             'monthly' => $this->reports->monthly($f['month']),
             'category' => $this->reports->categoryWise($f['from'], $f['to']),
             'vendors' => $this->reports->vendorOutstanding(),
+            'category-months' => $this->reports->categoryByMonth($f['from'], $f['to']),
+            'sections' => $this->reports->sectionByMonth($f['from'], $f['to']),
         };
 
         return match ($f['format'] ?? null) {
@@ -58,6 +60,8 @@ class ExpenseReportController extends Controller
             'monthly' => ['title' => __('Monthly by category × section'), 'description' => __('One month as a matrix with row and column totals.'), 'icon' => 'bi-grid-3x3'],
             'category' => ['title' => __('Category-wise expenses'), 'description' => __('Categories and subcategories for any period, with share %.'), 'icon' => 'bi-pie-chart'],
             'vendors' => ['title' => __('Vendor outstanding'), 'description' => __('What we owe each vendor today.'), 'icon' => 'bi-shop'],
+            'category-months' => ['title' => __('Expenses by category and month'), 'description' => __('Category × month matrix for up to 24 months, with share %.'), 'icon' => 'bi-table'],
+            'sections' => ['title' => __('Section-wise expenses'), 'description' => __('Herd, collection center, delivery, trading, office … month by month.'), 'icon' => 'bi-diagram-3'],
         ];
     }
 }
