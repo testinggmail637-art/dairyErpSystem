@@ -1,5 +1,6 @@
 /*
- * Dashboard charts: 30-day milk production (cow / buffalo, stacked areas + daily average), 12-month income vs expenses
+ * Dashboard charts: 30-day milk production (cow / buffalo, stacked areas + daily average), 30-day milk in and out
+ * (production / collection / sales lines), 12-month income vs costs
  * (paired bars + profit line), and two doughnuts (herd by stage, this month by category) with a clickable legend.
  * Values arrive as decimal strings from the server; Number() is used only to draw, never to calculate.
  * Colours come from the Appearance CSS variables, so the charts follow the theme and every preset.
@@ -160,6 +161,43 @@
                         grid: { drawTicks: false },
                         ticks: { padding: 8, maxTicksLimit: 6, callback: (v) => v + ' L' },
                     },
+                },
+            },
+        });
+    }
+
+    /* ---------- milk in and out: production vs collection vs sales (litres) ---------- */
+    [el, data] = read('chart-flow');
+    if (el && data) {
+        const colors = { production: theme.primary, collection: theme.warning || theme.secondary, sales: theme.success };
+        new Chart(el, {
+            type: 'line',
+            data: {
+                labels: data.labels,
+                datasets: Object.keys(data.series).map((key) => ({
+                    label: data.names[key],
+                    data: data.series[key].map(Number),
+                    borderColor: resolve(colors[key]),
+                    backgroundColor: alpha(colors[key], 15),
+                    borderWidth: 2,
+                    pointRadius: 0,
+                    pointHoverRadius: 5,
+                    pointHoverBackgroundColor: theme.card,
+                    tension: 0.35,
+                })),
+            },
+            plugins: [hoverLine],
+            options: {
+                interaction: { mode: 'index', intersect: false },
+                plugins: {
+                    legend: { position: 'top', align: 'end', labels: { usePointStyle: true, boxWidth: 8, boxHeight: 8 } },
+                    tooltip: Object.assign({}, tooltip, {
+                        callbacks: { label: (c) => ' ' + c.dataset.label + ': ' + qty(c.parsed.y) + ' L' },
+                    }),
+                },
+                scales: {
+                    x: { grid: { display: false }, ticks: { maxTicksLimit: 10, maxRotation: 0 } },
+                    y: { beginAtZero: true, ticks: { callback: (v) => qty(v) + ' L' } },
                 },
             },
         });

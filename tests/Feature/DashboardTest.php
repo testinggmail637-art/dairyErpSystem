@@ -6,10 +6,11 @@ use App\Enums\MilkSource;
 use App\Enums\MilkType;
 use App\Enums\RoleName;
 use App\Models\Animal;
+use App\Models\Customer;
+use App\Models\Delivery;
 use App\Models\Expense;
 use App\Models\Farm;
 use App\Models\MilkProductionRecord;
-use App\Models\Product;
 use App\Models\User;
 use App\Models\Vendor;
 use App\Models\VendorPayment;
@@ -82,37 +83,12 @@ it('shows charts to the owner and hides financial cards from herd staff', functi
         ->assertSee('chart-production')->assertDontSee('chart-finance')->assertDontSee(__('Vendor payable'));
 });
 
-it('estimates income from own milk × the active default rate and sets it against expenses per month', function () {
-    $cow = Animal::factory()->create(['farm_id' => $this->farm->id]);
-    $buffalo = Animal::factory()->buffalo()->create(['farm_id' => $this->farm->id]);
-    Product::factory()->create(['farm_id' => $this->farm->id, 'milk_type' => MilkType::Cow, 'default_rate' => '60.00']);
-    Product::factory()->buffalo()->create(['farm_id' => $this->farm->id, 'default_rate' => '70.00']);
-    Product::factory()->create(['farm_id' => $this->farm->id, 'milk_type' => MilkType::Cow, 'default_rate' => '99.00', 'is_active' => false]);
-    MilkProductionRecord::factory()->for($cow)->create(['production_date' => '2026-10-28', 'shift' => 'morning', 'quantity_litre' => '20.50']);
-    MilkProductionRecord::factory()->for($buffalo)->create(['production_date' => '2026-10-28', 'shift' => 'morning', 'quantity_litre' => '6.25']);
-    MilkProductionRecord::factory()->for($cow)->create(['production_date' => '2026-09-30', 'shift' => 'morning', 'quantity_litre' => '9.00']);
-    Expense::factory()->create(['farm_id' => $this->farm->id, 'expense_date' => '2026-10-02', 'amount' => '5000.00']);
-    Expense::factory()->create(['farm_id' => $this->farm->id, 'expense_date' => '2026-09-15', 'amount' => '500.00']);
-
-    $finance = app(DashboardService::class)->data()['finance'];
-
-    // Oct: 20.50 × 60 + 6.25 × 70 = 1,667.50 · Sep: 9 × 60 = 540
-    expect(array_slice($finance['labels'], -2))->toBe(['Sep 26', 'Oct 26'])
-        ->and(array_slice($finance['income'], -2))->toBe(['540.00', '1667.50'])
-        ->and(array_slice($finance['expenses'], -2))->toBe(['500.00', '5000.00'])
-        ->and(array_slice($finance['profit'], -2))->toBe(['40.00', '-3332.50'])
-        ->and($finance)->toMatchArray([
-            'total_income' => '2207.50', 'total_expenses' => '5500.00', 'total_profit' => '-3292.50',
-            'rates' => ['cow' => '60.00', 'buffalo' => '70.00'],
-        ]);
-});
-
 it('groups income and expenses by day, Monday weeks and April–March financial years', function () {
-    $cow = Animal::factory()->create(['farm_id' => $this->farm->id]);
-    Product::factory()->create(['farm_id' => $this->farm->id, 'milk_type' => MilkType::Cow, 'default_rate' => '60.00']);
-    MilkProductionRecord::factory()->for($cow)->create(['production_date' => '2026-10-27', 'shift' => 'morning', 'quantity_litre' => '10.00']); // Tuesday
-    MilkProductionRecord::factory()->for($cow)->create(['production_date' => '2026-10-25', 'shift' => 'morning', 'quantity_litre' => '5.00']);  // Sunday, week before
-    MilkProductionRecord::factory()->for($cow)->create(['production_date' => '2026-03-31', 'shift' => 'morning', 'quantity_litre' => '2.00']);  // FY 2025-26
+    $customer = Customer::factory()->create(['farm_id' => $this->farm->id]);
+    $sale = fn (string $date, string $amount) => Delivery::factory()->create(['customer_id' => $customer->id, 'delivery_date' => $date, 'status' => 'delivered', 'delivered_qty' => '1', 'amount' => $amount]);
+    $sale('2026-10-27', '600.00'); // Tuesday
+    $sale('2026-10-25', '300.00'); // Sunday, week before
+    $sale('2026-03-31', '120.00'); // FY 2025-26
     Expense::factory()->create(['farm_id' => $this->farm->id, 'expense_date' => '2026-10-26', 'amount' => '100.00']); // Monday
     Expense::factory()->create(['farm_id' => $this->farm->id, 'expense_date' => '2026-04-01', 'amount' => '50.00']);  // FY 2026-27
 

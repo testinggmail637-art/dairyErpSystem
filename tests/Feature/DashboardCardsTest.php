@@ -42,7 +42,7 @@ it('totals collection, deliveries, sales, receivables, unbilled, farmer payable 
     // deliveries: today 4 L ₹240 (unbilled), earlier this month ₹600 (billed), last month ₹100 (unbilled), pending ignored
     $customer = Customer::factory()->create($f + ['opening_balance' => '1000']);
     $bill = Bill::factory()->create(['customer_id' => $customer->id, 'status' => 'finalized', 'total' => '600']);
-    $d = fn (array $a) => Delivery::factory()->create(['customer_id' => $customer->id, 'status' => 'delivered'] + $a);
+    $d = fn (array $a) => Delivery::factory()->create($a + ['customer_id' => $customer->id, 'status' => 'delivered']);
     $d(['delivery_date' => '2026-11-17', 'delivered_qty' => '4', 'amount' => '240']);
     $d(['delivery_date' => '2026-11-05', 'delivered_qty' => '10', 'amount' => '600', 'bill_id' => $bill->id]);
     $d(['delivery_date' => '2026-10-30', 'delivered_qty' => '2', 'amount' => '100']);
