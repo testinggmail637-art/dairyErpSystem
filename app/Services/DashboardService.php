@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\Enums\AnimalSaleStatus;
 use App\Enums\AnimalStatus;
 use App\Enums\BillStatus;
 use App\Enums\CycleStatus;
@@ -13,6 +14,8 @@ use App\Enums\MilkSource;
 use App\Enums\MilkType;
 use App\Enums\QualityStatus;
 use App\Models\Animal;
+use App\Models\AnimalPurchase;
+use App\Models\AnimalSale;
 use App\Models\Bill;
 use App\Models\Customer;
 use App\Models\CustomerAdjustment;
@@ -26,7 +29,6 @@ use App\Models\MilkCollection;
 use App\Models\MilkProductionRecord;
 use App\Models\MilkStockMovement;
 use App\Models\Party;
-use App\Models\Product;
 use App\Models\VendorPayment;
 use App\Support\CurrentFarm;
 use App\Support\FinancialYear;
@@ -37,7 +39,7 @@ use Illuminate\Support\Facades\DB;
 
 /**
  * Dashboard cards and charts (spec 7.5) for the modules built so far: milk production, milk stock, herd, expenses,
- * income vs expenses (income estimated until sales exist), vendor payable. Every figure is an SQL aggregate; the whole set is cached per farm and day for 5 minutes and
+ * income vs costs and milk in / out charts, vendor payable. Every figure is an SQL aggregate; the whole set is cached per farm and day for 5 minutes and
  * cleared when a milk entry, stock movement, animal, expense, vendor payment or product is written (AppServiceProvider).
  */
 class DashboardService
@@ -95,6 +97,7 @@ class DashboardService
             'alerts' => $this->dropAlerts($today),
             'expenses' => $this->expenses($today),
             'finance' => $this->incomeVsExpenses('month', $today),
+            'flow' => $this->milkFlow($today),
             'vendor_payable' => $this->vendorPayable(),
             'collection' => $this->collectionToday($today),
             'deliveries' => $this->deliveries($today),
@@ -180,52 +183,41 @@ class DashboardService
     }
 
     /**
-     * Income vs expenses per day (30 days), week (12, Monday first), month (12) or financial year (5, April–March) —
-     * spec 7.5. Until sales are recorded (deliveries and bills, Phase 3), income is an **estimate**: own milk produced ×
-     * the current default rate of the active product of that milk type (lowest id). Profit = income − expenses.
-     * Two GROUP BY queries on indexed date ranges; the bucket is computed in SQL.
+     * Income vs costs per day / week / month / year on the Simple P&L basis (spec 7.6 #10), by date of the event:
+     * income = delivered milk (deliveries) + completed animal sales (net of selling costs);
+     * costs = expenses + accepted farmer milk + animal purchases. One GROUP BY query per source on its (farm_id, date) index.
      */
     private function incomeVsExpenses(string $period, Carbon $today): array
     {
         [$from, $bucket, $labels, $subtitle] = $this->buckets($period, $today);
-        $zero = array_fill_keys(array_keys($labels), '0.00');
         $range = [$from->toDateString(), $today->toDateString()];
+        $sum = function ($query, string $dateColumn, string $amountColumn) use ($bucket, $labels, $range): array {
+            $totals = array_fill_keys(array_keys($labels), '0.00');
+            $expr = sprintf($bucket, $dateColumn);
+            $query->toBase()->whereBetween($dateColumn, $range)->groupByRaw($expr)
+                ->selectRaw("{$expr} AS bucket, SUM({$amountColumn}) AS total")->get()
+                ->each(function ($row) use (&$totals) {
+                    if (isset($totals[$row->bucket])) {
+                        $totals[$row->bucket] = Money::round2((string) $row->total);
+                    }
+                });
 
-        $rates = Product::query()->active()->orderBy('id')->get(['milk_type', 'default_rate'])
-            ->unique(fn (Product $p) => $p->milk_type->value)
-            ->mapWithKeys(fn (Product $p) => [$p->milk_type->value => $p->default_rate])
-            ->all();
+            return array_values($totals);
+        };
 
-        $income = $zero;
-        $milkBucket = sprintf($bucket, 'milk_production_records.production_date');
-        MilkProductionRecord::query()->toBase()
-            ->join('animals', 'animals.id', '=', 'milk_production_records.animal_id')
-            ->whereBetween('milk_production_records.production_date', $range)
-            ->groupByRaw("{$milkBucket}, animals.animal_type")
-            ->selectRaw("{$milkBucket} AS bucket, animals.animal_type AS type, SUM(milk_production_records.quantity_litre) AS litres")
-            ->get()
-            ->each(function ($row) use (&$income, $rates) {
-                if (isset($income[$row->bucket])) {
-                    $income[$row->bucket] = Money::add($income[$row->bucket], Money::mul((string) $row->litres, $rates[$row->type] ?? '0'));
-                }
-            });
+        $parts = [
+            'milk_sales' => $sum(Delivery::query()->where('status', DeliveryStatus::Delivered->value), 'delivery_date', 'amount'),
+            'animal_sales' => $sum(AnimalSale::query()->where('status', AnimalSaleStatus::Completed->value), 'sale_date', 'net_amount'),
+            'expense_entries' => $sum(Expense::query(), 'expense_date', 'amount'),
+            'farmer_milk' => $sum(MilkCollection::query()->where('quality_status', QualityStatus::Accepted->value), 'collection_date', 'amount'),
+            'animal_purchases' => $sum(AnimalPurchase::query(), 'purchase_date', 'total_amount'),
+        ];
 
-        $expenses = $zero;
-        $expenseBucket = sprintf($bucket, 'expense_date');
-        Expense::query()->toBase()
-            ->whereBetween('expense_date', $range)
-            ->groupByRaw($expenseBucket)
-            ->selectRaw("{$expenseBucket} AS bucket, SUM(amount) AS total")
-            ->get()
-            ->each(function ($row) use (&$expenses) {
-                if (isset($expenses[$row->bucket])) {
-                    $expenses[$row->bucket] = Money::round2((string) $row->total);
-                }
-            });
-
-        $income = array_values($income);
-        $expenses = array_values($expenses);
+        $add = fn (array ...$series) => array_map(fn (...$values) => Money::sum($values), ...$series);
+        $income = $add($parts['milk_sales'], $parts['animal_sales']);
+        $expenses = $add($parts['expense_entries'], $parts['farmer_milk'], $parts['animal_purchases']);
         $profit = array_map(fn ($in, $out) => Money::sub($in, $out), $income, $expenses);
+        $totals = array_map(fn (array $series) => Money::sum($series), $parts);
         $totalIncome = Money::sum($income);
         $totalExpenses = Money::sum($expenses);
         $totalProfit = Money::sub($totalIncome, $totalExpenses);
@@ -240,8 +232,9 @@ class DashboardService
             'total_income' => $totalIncome,
             'total_expenses' => $totalExpenses,
             'total_profit' => $totalProfit,
-            'display' => ['total_income' => inr($totalIncome), 'total_expenses' => inr($totalExpenses), 'total_profit' => inr($totalProfit)],
-            'rates' => $rates,
+            'parts' => $totals,
+            'display' => ['total_income' => inr($totalIncome), 'total_expenses' => inr($totalExpenses), 'total_profit' => inr($totalProfit)]
+                + array_map(fn (string $amount) => inr($amount), $totals),
         ];
     }
 
@@ -288,6 +281,41 @@ class DashboardService
 
                 return [$from, "DATE_FORMAT(%1\$s, '%%Y-%%m')", $labels, __('Last :n months', ['n' => self::CHART_MONTHS])];
         }
+    }
+
+    /**
+     * Last 30 complete days in litres (spec 7.5 chart): own production, accepted farmer collection, delivered milk.
+     * One GROUP BY per source on its (farm_id, date) index.
+     */
+    private function milkFlow(Carbon $today): array
+    {
+        $from = $today->copy()->subDays(self::CHART_DAYS);
+        $range = [$from->toDateString(), $today->copy()->subDay()->toDateString()];
+        $days = [];
+        for ($d = $from->copy(); $d->lt($today); $d->addDay()) {
+            $days[$d->toDateString()] = '0.00';
+        }
+        $daily = function ($query, string $dateColumn, string $litreColumn) use ($days, $range): array {
+            $query->toBase()->whereBetween($dateColumn, $range)->groupBy($dateColumn)
+                ->selectRaw("{$dateColumn} AS day, SUM({$litreColumn}) AS litres")->get()
+                ->each(function ($row) use (&$days) {
+                    $days[Carbon::parse($row->day)->toDateString()] = Money::round2((string) $row->litres);
+                });
+
+            return array_values($days);
+        };
+
+        $series = [
+            'production' => $daily(MilkProductionRecord::query(), 'production_date', 'quantity_litre'),
+            'collection' => $daily(MilkCollection::query()->where('quality_status', QualityStatus::Accepted->value), 'collection_date', 'quantity_litre'),
+            'sales' => $daily(Delivery::query()->where('status', DeliveryStatus::Delivered->value), 'delivery_date', 'delivered_qty'),
+        ];
+
+        return [
+            'labels' => array_map(fn ($d) => Carbon::parse($d)->format('d M'), array_keys($days)),
+            'series' => $series,
+            'totals' => array_map(fn (array $litres) => Money::sum($litres), $series),
+        ];
     }
 
     /** Today / yesterday / month-to-date litres by milk type, plus the daily series for the last 30 days. */

@@ -285,6 +285,42 @@
         </div>
     @endif
 
+    {{-- Milk in and out: production vs collection vs sales (spec 7.5), each line only with its permission --}}
+    @php
+        $flow = $data['flow'];
+        $flowSeries = array_filter([
+            'production' => $canMilk ? __('Own production') : null,
+            'collection' => auth()->user()->can('collections.view') ? __('Collection') : null,
+            'sales' => auth()->user()->can('deliveries.view') ? __('Sales') : null,
+        ]);
+        $flowChart = ['labels' => $flow['labels'], 'series' => array_intersect_key($flow['series'], $flowSeries), 'names' => $flowSeries];
+    @endphp
+    @if ($flowSeries)
+        <div class="row g-3 mb-3">
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-header chart-head">
+                        <div>
+                            <div class="chart-title"><i class="bi bi-arrow-left-right me-1"></i>{{ __('Milk in and out') }}</div>
+                            <div class="chart-sub">{{ __('Last :n days, litres', ['n' => \App\Services\DashboardService::CHART_DAYS]) }}</div>
+                        </div>
+                        <div class="chart-figures">
+                            @foreach ($flowSeries as $key => $label)
+                                <div><span>{{ $label }}</span><strong>{{ fmt_qty($flow['totals'][$key]) }} L</strong></div>
+                            @endforeach
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <div class="chart-box">
+                            <canvas id="chart-flow" role="img" aria-label="{{ __('Milk produced, collected and sold per day') }}"
+                                    data-chart='@json($flowChart)'></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    @endif
+
     {{-- Expense charts --}}
     @if ($canMoney)
         <div class="row g-3 mb-3">
@@ -293,12 +329,12 @@
                     @php($finance = $data['finance'])
                     <div class="card-header chart-head">
                         <div>
-                            <div class="chart-title"><i class="bi bi-bar-chart me-1"></i>{{ __('Income vs Expenses') }}</div>
+                            <div class="chart-title"><i class="bi bi-bar-chart me-1"></i>{{ __('Income vs Costs') }}</div>
                             <div class="chart-sub" data-finance-text="subtitle">{{ $finance['subtitle'] }}</div>
                         </div>
                         <div class="chart-figures">
-                            <div><span>{{ __('Income (est.)') }}</span><strong class="text-success" data-finance-text="total_income">{{ $finance['display']['total_income'] }}</strong></div>
-                            <div><span>{{ __('Expenses') }}</span><strong data-finance-text="total_expenses">{{ $finance['display']['total_expenses'] }}</strong></div>
+                            <div><span>{{ __('Income') }}</span><strong class="text-success" data-finance-text="total_income">{{ $finance['display']['total_income'] }}</strong></div>
+                            <div><span>{{ __('Costs') }}</span><strong data-finance-text="total_expenses">{{ $finance['display']['total_expenses'] }}</strong></div>
                             <div><span>{{ __('Profit') }}</span><strong class="{{ str_starts_with($finance['total_profit'], '-') ? 'text-danger' : 'text-success' }}" data-finance-text="total_profit">{{ $finance['display']['total_profit'] }}</strong></div>
                         </div>
                     </div>
@@ -312,13 +348,17 @@
                         </div>
                         <div class="chart-box">
                             <canvas id="chart-finance" role="img" aria-label="{{ __('Income and expenses per period') }}"
-                                    data-chart='@json($finance)' data-label-income="{{ __('Income (est.)') }}"
-                                    data-label-expenses="{{ __('Expenses') }}" data-label-profit="{{ __('Profit') }}"></canvas>
+                                    data-chart='@json($finance)' data-label-income="{{ __('Income') }}"
+                                    data-label-expenses="{{ __('Costs') }}" data-label-profit="{{ __('Profit') }}"></canvas>
                         </div>
                         <p class="chart-note mb-0">
                             <i class="bi bi-info-circle me-1"></i>
-                            {{ __('Income is estimated until milk sales are recorded: own milk produced × today\'s default rate') }}
-                            ({{ collect($finance['rates'])->map(fn ($rate, $type) => \App\Enums\MilkType::from($type)->label().' '.inr($rate))->implode(', ') ?: __('no active products') }}).
+                            {{ __('Income') }}: {{ __('milk delivered') }} <span data-finance-text="milk_sales">{{ $finance['display']['milk_sales'] }}</span>
+                            + {{ __('animal sales') }} <span data-finance-text="animal_sales">{{ $finance['display']['animal_sales'] }}</span>.
+                            {{ __('Costs') }}: {{ __('expenses') }} <span data-finance-text="expense_entries">{{ $finance['display']['expense_entries'] }}</span>
+                            + {{ __('farmer milk') }} <span data-finance-text="farmer_milk">{{ $finance['display']['farmer_milk'] }}</span>
+                            + {{ __('animal purchases') }} <span data-finance-text="animal_purchases">{{ $finance['display']['animal_purchases'] }}</span>.
+                            {{ __('Management summary, not statutory accounts.') }}
                         </p>
                     </div>
                 </div>
