@@ -8,11 +8,11 @@
 | Item | Value |
 |---|---|
 | Current phase | Phase 7 — Dashboard & Reports (🟡 in progress) |
-| Last completed task | 7.2 — Dashboard charts (30-day litres, month-wise income vs expenses) |
-| Next task | 7.3 — Milk production, collection, balance/reconciliation reports |
-| Overall progress | 89 / 97 tasks (92%) |
-| Tests passing | 738 |
-| Last updated (IST) | 2026-11-17 (task/7.2-dashboard-charts) |
+| Last completed task | 7.3 — Milk production, collection, balance/reconciliation reports |
+| Next task | 7.4 — Sales, receivables aging, payables, party balances reports |
+| Overall progress | 90 / 97 tasks (93%) |
+| Tests passing | 740 |
+| Last updated (IST) | 2026-11-17 (task/7.3-milk-collection-balance-reports) |
 
 ## Phase overview
 
@@ -422,7 +422,7 @@ Status legend: ⬜ Not started · 🟡 In progress · ✅ Done · ⏸ On hold
 ### Checklist
 - [x] 7.1 Dashboard cards (operational + financial, permission-aware)
 - [x] 7.2 Dashboard charts (30-day litres, month-wise income vs expenses)
-- [ ] 7.3 Milk production, collection, balance/reconciliation reports
+- [x] 7.3 Milk production, collection, balance/reconciliation reports
 - [ ] 7.4 Sales, receivables aging, payables, party balances reports
 - [ ] 7.5 Expense matrix, cost per litre, profit per animal, collection center margin
 - [ ] 7.6 Simple P&L (management summary) + trading & staff reports
