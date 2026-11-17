@@ -3,20 +3,26 @@
 namespace App\Services;
 
 use App\Enums\AnimalType;
+use App\Enums\MilkMovementType;
+use App\Enums\MilkSource;
+use App\Enums\MilkType;
+use App\Models\Calving;
 use App\Models\MilkProductionRecord;
+use App\Models\MilkStockMovement;
 use App\Reports\ReportTable;
 use App\Support\Money;
 use Illuminate\Database\Query\Builder;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\DB;
 
 /**
  * Milk production reports (spec 7.3 / 7.6): daily animal × shift grid with totals by milk type, monthly day-by-day,
- * animal-wise for any period. Figures are SQL aggregates over the farm's milk entries joined to their animal (the milk
+ * animal-wise and lactation-wise for any period, and the milk stock balance per source × type. Figures are SQL aggregates over the farm's milk entries joined to their animal (the milk
  * type is the animal's type); rows are never loaded into PHP.
  */
 class MilkReportService
 {
-    public const REPORTS = ['daily', 'monthly', 'animals'];
+    public const REPORTS = ['daily', 'monthly', 'animals', 'lactations', 'balance'];
 
     /** One day: every animal milked, morning / evening / total, a subtotal per milk type. */
     public function daily(string $date, ?string $milkType = null): ReportTable
@@ -154,6 +160,154 @@ class MilkReportService
             [__('Total (:count)', ['count' => $lines->count()]), '', '', Money::sum($lines->pluck('morning')), Money::sum($lines->pluck('evening')), Money::sum($lines->pluck('total')), ''],
             [__('Average per day = total ÷ days with at least one entry.')],
             emptyText: __('No milk entries in this period.'),
+        );
+    }
+
+    /**
+     * Each animal's milk in the period split by lactation: an entry belongs to the latest calving on or before its date
+     * (correlated subquery on the calvings (mother_id, calving_date) index). Lactation no. = the animal's current
+     * lactation − calvings recorded after that one; entries before any recorded calving belong to the opening lactation.
+     */
+    public function lactationWise(string $from, string $to, ?string $milkType = null): ReportTable
+    {
+        $daily = $this->entries($milkType)
+            ->whereBetween('milk_production_records.production_date', [$from, $to])
+            ->select('milk_production_records.animal_id')
+            ->selectRaw('milk_production_records.production_date AS day')
+            ->selectRaw('(SELECT MAX(c.calving_date) FROM calvings c WHERE c.mother_id = milk_production_records.animal_id AND c.calving_date <= milk_production_records.production_date) AS calved_on')
+            ->selectRaw('SUM(milk_production_records.quantity_litre) AS litres')
+            ->groupBy('milk_production_records.animal_id', 'milk_production_records.production_date', 'calved_on');
+
+        $lines = DB::query()->fromSub($daily, 'd')
+            ->join('animals', 'animals.id', '=', 'd.animal_id')
+            ->groupBy('d.animal_id', 'd.calved_on', 'animals.tag_no', 'animals.name', 'animals.animal_type', 'animals.lactation_number')
+            ->select(['d.animal_id', 'd.calved_on', 'animals.tag_no', 'animals.name', 'animals.animal_type', 'animals.lactation_number'])
+            ->selectRaw('COUNT(*) AS days, SUM(d.litres) AS total, MAX(d.litres) AS peak, MAX(d.day) AS last_day')
+            ->orderBy('animals.tag_no')->orderBy('d.calved_on')
+            ->get();
+
+        $calvings = Calving::query()->whereIn('mother_id', $lines->pluck('animal_id')->unique())
+            ->get(['mother_id', 'calving_date'])->groupBy('mother_id');
+
+        $rows = $lines->map(function ($l) use ($calvings) {
+            $calvedOn = $l->calved_on ? Carbon::parse($l->calved_on)->toDateString() : null;
+            $later = ($calvings[$l->animal_id] ?? collect())
+                ->filter(fn (Calving $c) => $calvedOn === null || $c->calving_date->toDateString() > $calvedOn)->count();
+            $number = (int) $l->lactation_number - $later;
+
+            return [
+                $this->label($l),
+                AnimalType::from($l->animal_type)->label(),
+                $number > 0 ? $number : null,
+                $calvedOn,
+                (int) $l->days,
+                $this->qty($l->total),
+                Money::div((string) $l->total, (string) $l->days),
+                $this->qty($l->peak),
+                $calvedOn ? (int) Carbon::parse($calvedOn)->diffInDays(Carbon::parse($l->last_day)) + 1 : null,
+            ];
+        })->all();
+
+        return new ReportTable(
+            __('Lactation-wise milk production'),
+            $this->period($from, $to).$this->typeSuffix($milkType),
+            [
+                ReportTable::column(__('Animal')),
+                ReportTable::column(__('Type')),
+                ReportTable::column(__('Lactation'), ReportTable::NUMBER),
+                ReportTable::column(__('Calved on'), ReportTable::DATE),
+                ReportTable::column(__('Days milked'), ReportTable::NUMBER),
+                ReportTable::column(__('Total (L)'), ReportTable::QUANTITY),
+                ReportTable::column(__('Avg / day (L)'), ReportTable::QUANTITY),
+                ReportTable::column(__('Peak day (L)'), ReportTable::QUANTITY),
+                ReportTable::column(__('Days in milk'), ReportTable::NUMBER),
+            ],
+            $rows,
+            [__('Total (:count)', ['count' => $lines->count()]), '', '', '', $lines->sum(fn ($l) => (int) $l->days), Money::sum($lines->pluck('total')), '', '', ''],
+            [
+                __('Milk is counted in the lactation that started with the latest calving on or before its date.'),
+                __('Days in milk = calving date to the last entry in the period. Blank = milk before the first calving recorded in the app.'),
+            ],
+            emptyText: __('No milk entries in this period.'),
+        );
+    }
+
+    /**
+     * Milk stock balance per source × milk type for a period (spec 7.6 #3) from the stock ledger: opening, each
+     * movement type, closing, the lowest closing of a day in the period and the days that closed below zero
+     * (running total by an SQL window over the (farm, source, type, date) index).
+     */
+    public function balance(string $from, string $to, ?string $milkType = null): ReportTable
+    {
+        $ledger = fn () => MilkStockMovement::query()->toBase()->when($milkType, fn ($q, $v) => $q->where('milk_type', $v));
+        $key = fn ($r) => $r->stock_source.'.'.$r->milk_type;
+
+        $opening = $ledger()->where('movement_date', '<', $from)->groupBy('stock_source', 'milk_type')
+            ->selectRaw('stock_source, milk_type, SUM(quantity_in) - SUM(quantity_out) AS qty')->get()->keyBy($key);
+
+        $moves = $ledger()->whereBetween('movement_date', [$from, $to])->groupBy('stock_source', 'milk_type', 'movement_type')
+            ->selectRaw('stock_source, milk_type, movement_type, SUM(quantity_in) AS qty_in, SUM(quantity_out) AS qty_out')->get()->groupBy($key);
+
+        $running = $ledger()->where('movement_date', '<=', $to)->groupBy('stock_source', 'milk_type', 'movement_date')
+            ->selectRaw('stock_source, milk_type, movement_date')
+            ->selectRaw('SUM(SUM(quantity_in) - SUM(quantity_out)) OVER (PARTITION BY stock_source, milk_type ORDER BY movement_date) AS closing');
+        $lows = DB::query()->fromSub($running, 'r')->where('movement_date', '>=', $from)->groupBy('stock_source', 'milk_type')
+            ->selectRaw('stock_source, milk_type, MIN(closing) AS lowest, SUM(closing < 0) AS negative_days, MIN(CASE WHEN closing < 0 THEN movement_date END) AS first_negative')
+            ->get()->keyBy($key);
+
+        $types = [MilkMovementType::Production, MilkMovementType::Collection, MilkMovementType::AdjustmentIn, MilkMovementType::Delivery,
+            MilkMovementType::Wastage, MilkMovementType::HomeUse, MilkMovementType::CalfFeeding, MilkMovementType::AdjustmentOut];
+        $rows = [];
+        $strong = [];
+        $notes = [];
+        $sums = array_fill(0, count($types) + 2, '0.00'); // opening, movement types, closing
+        $negativeTotal = 0;
+
+        foreach (MilkSource::cases() as $source) {
+            foreach (MilkType::cases() as $type) {
+                $k = $source->value.'.'.$type->value;
+                if (! isset($opening[$k]) && ! isset($moves[$k])) {
+                    continue;
+                }
+                $byType = ($moves[$k] ?? collect())->keyBy('movement_type');
+                $amounts = array_map(fn (MilkMovementType $t) => $this->qty($t->isIn() ? ($byType[$t->value]->qty_in ?? 0) : ($byType[$t->value]->qty_out ?? 0)), $types);
+                $open = $this->qty($opening[$k]->qty ?? 0);
+                $closing = $open;
+                foreach ($types as $i => $t) {
+                    $closing = $t->isIn() ? Money::add($closing, $amounts[$i]) : Money::sub($closing, $amounts[$i]);
+                }
+                $low = $lows[$k] ?? null;
+                $negativeDays = (int) ($low->negative_days ?? 0);
+                $negativeTotal += $negativeDays;
+
+                foreach ([$open, ...$amounts, $closing] as $i => $v) {
+                    $sums[$i] = Money::add($sums[$i], $v);
+                }
+                if ($negativeDays > 0) {
+                    $strong[] = count($rows);
+                    $notes[] = __('⚠ :stock went below zero on :n day(s), first on :date — check for missing entries.', [
+                        'stock' => $source->label().' · '.$type->label(), 'n' => $negativeDays, 'date' => fmt_date($low->first_negative),
+                    ]);
+                }
+                $rows[] = [$source->label(), $type->label(), $open, ...$amounts, $closing, $low ? $this->qty($low->lowest) : $open, $negativeDays];
+            }
+        }
+
+        $q = fn (string $label) => ReportTable::column($label, ReportTable::QUANTITY);
+
+        return new ReportTable(
+            __('Milk balance'),
+            $this->period($from, $to).$this->typeSuffix($milkType),
+            [
+                ReportTable::column(__('Stock')), ReportTable::column(__('Milk type')), $q(__('Opening (L)')),
+                ...array_map(fn (MilkMovementType $t) => $q($t->label()), $types),
+                $q(__('Closing (L)')), $q(__('Lowest closing (L)')), ReportTable::column(__('Days below zero'), ReportTable::NUMBER),
+            ],
+            $rows,
+            $rows ? [__('Total'), '', ...$sums, '', $negativeTotal] : null,
+            [__('Closing = opening + milk in − milk out, from the milk stock ledger. Lowest closing and days below zero count the days with a movement.'), ...$notes],
+            $strong,
+            emptyText: __('No milk stock movements.'),
         );
     }
 
