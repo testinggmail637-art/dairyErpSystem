@@ -7,12 +7,12 @@
 
 | Item | Value |
 |---|---|
-| Current phase | Phase 7 — Dashboard & Reports (⬜ not started) |
-| Last completed task | 6.12 — Phase 6 acceptance tests + README/CHANGELOG (Phase 6 done) |
-| Next task | 7.1 — Dashboard cards (operational + financial, permission-aware) |
-| Overall progress | 87 / 97 tasks (90%) |
-| Tests passing | 734 |
-| Last updated (IST) | 2026-11-17 (task/6.12-phase6-acceptance) |
+| Current phase | Phase 7 — Dashboard & Reports (🟡 in progress) |
+| Last completed task | 7.1 — Dashboard cards (operational + financial, permission-aware) |
+| Next task | 7.2 — Dashboard charts (30-day litres, month-wise income vs expenses) |
+| Overall progress | 88 / 97 tasks (91%) |
+| Tests passing | 737 |
+| Last updated (IST) | 2026-11-17 (task/7.1-dashboard-cards) |
 
 ## Phase overview
 
@@ -26,7 +26,7 @@
 | 4 | Farmers & Collection Center | ✅ Done | 2026-11-09 | 2026-11-12 | `phase-4-done` |
 | 5 | Health, Breeding, Feed | ✅ Done | 2026-11-13 | 2026-11-13 | `phase-5-done` |
 | 6 | Animal Trading & Staff | ✅ Done | 2026-11-14 | 2026-11-17 | `phase-6-done` |
-| 7 | Dashboard & Reports | ⬜ Not started | | | |
+| 7 | Dashboard & Reports | 🟡 In progress | 2026-11-17 | | |
 | 8 | Integrations (only on explicit instruction) | ⏸ Not planned | | | |
 
 Status legend: ⬜ Not started · 🟡 In progress · ✅ Done · ⏸ On hold
@@ -420,7 +420,7 @@ Status legend: ⬜ Not started · 🟡 In progress · ✅ Done · ⏸ On hold
 ## Phase 7 — Dashboard & Reports
 
 ### Checklist
-- [ ] 7.1 Dashboard cards (operational + financial, permission-aware)
+- [x] 7.1 Dashboard cards (operational + financial, permission-aware)
 - [ ] 7.2 Dashboard charts (30-day litres, month-wise income vs expenses)
 - [ ] 7.3 Milk production, collection, balance/reconciliation reports
 - [ ] 7.4 Sales, receivables aging, payables, party balances reports

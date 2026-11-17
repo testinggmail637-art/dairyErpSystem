@@ -131,6 +131,58 @@
         @endif
     </div>
 
+    {{-- Collection, deliveries, sales and balances (spec 7.5); money cards need dashboard.financial --}}
+    @php
+        $user = auth()->user();
+        $financial = $user->can('dashboard.financial');
+        $cards = array_filter([
+            $user->can('collections.view') ? ['route' => route('collections.list'), 'icon' => 'bi-basket', 'label' => __('Collection today'),
+                'value' => fmt_qty($data['collection']['litres']).' L', 'meta' => $financial ? inr($data['collection']['amount']) : __('Accepted farmer milk')] : null,
+            $user->can('deliveries.view') ? ['route' => route('deliveries.index'), 'icon' => 'bi-truck', 'label' => __('Delivered today'),
+                'value' => fmt_qty($data['deliveries']['today_litres']).' L', 'meta' => $financial ? inr($data['deliveries']['today_amount']) : __('Milk delivered to customers')] : null,
+            $financial && $user->can('deliveries.view') ? ['route' => route('reports.sales', 'customers'), 'icon' => 'bi-graph-up-arrow', 'label' => __('Sales this month'),
+                'value' => inr($data['deliveries']['month_sales']), 'meta' => __('Milk delivered, month to date')] : null,
+            $financial && $user->can('customers.view') ? ['route' => route('customers.index'), 'icon' => 'bi-people', 'label' => __('Customer receivables'),
+                'value' => inr($data['receivables']), 'meta' => __('Unbilled deliveries :amount', ['amount' => inr($data['deliveries']['unbilled'])])] : null,
+            $financial && $user->can('farmer_payments.view') ? ['route' => route('farmer-payments.index'), 'icon' => 'bi-person-vcard', 'label' => __('Farmer payable'),
+                'value' => inr($data['farmer_payable']), 'meta' => __('Finalized statements not yet paid, less advances')] : null,
+            $financial && $user->can('animal_trading.view') ? ['route' => route('parties.index'), 'icon' => 'bi-arrow-left-right', 'label' => __('Party balances'),
+                'value' => inr($data['parties']['receivable']), 'meta' => __('They owe us · we owe :amount', ['amount' => inr($data['parties']['payable'])])] : null,
+        ]);
+        $reminders = array_values(array_filter($data['reminders'], fn ($r) => $user->can($r['permission'])));
+    @endphp
+    @if ($cards)
+        <div class="row g-3 mb-3">
+            @foreach ($cards as $card)
+                <div class="col-sm-6 col-xl-3">
+                    <a href="{{ $card['route'] }}" class="card stat-card h-100 text-decoration-none">
+                        <div class="card-body">
+                            <div class="stat-icon"><i class="bi {{ $card['icon'] }}"></i></div>
+                            <div class="stat-label">{{ $card['label'] }}</div>
+                            <div class="stat-value">{{ $card['value'] }}</div>
+                            <div class="stat-meta">{{ $card['meta'] }}</div>
+                        </div>
+                    </a>
+                </div>
+            @endforeach
+        </div>
+    @endif
+
+    {{-- Reminders (vaccinations due, expected calvings, low feed, overdue bills) — same lines as the daily bell --}}
+    @if ($reminders)
+        <div class="card mb-3">
+            <div class="card-header chart-head"><span class="fw-semibold"><i class="bi bi-bell me-1"></i>{{ __('Needs attention') }}</span></div>
+            <ul class="list-group list-group-flush">
+                @foreach ($reminders as $reminder)
+                    <li class="list-group-item d-flex gap-2 align-items-start">
+                        <i class="bi {{ $reminder['icon'] }} mt-1"></i>
+                        <a href="{{ $reminder['url'] }}" class="text-decoration-none">{{ $reminder['message'] }}</a>
+                    </li>
+                @endforeach
+            </ul>
+        </div>
+    @endif
+
     {{-- Loan cards (spec 7.4A): dashboard.financial + loans.view --}}
     @if ($loans && $loans['loans']->isNotEmpty())
         <div class="row g-3 mb-3">

@@ -3,10 +3,29 @@
 namespace App\Providers;
 
 use App\Models\Animal;
+use App\Models\AnimalPayment;
+use App\Models\AnimalPurchase;
+use App\Models\AnimalSale;
+use App\Models\AnimalVaccination;
+use App\Models\Bill;
+use App\Models\BreedingEvent;
+use App\Models\Calving;
+use App\Models\Customer;
+use App\Models\CustomerAdjustment;
+use App\Models\CustomerPayment;
+use App\Models\Delivery;
 use App\Models\Expense;
 use App\Models\Farm;
+use App\Models\Farmer;
+use App\Models\FarmerAdvance;
+use App\Models\FarmerPayment;
+use App\Models\FarmerPaymentCycle;
+use App\Models\FeedItem;
+use App\Models\FeedTransaction;
+use App\Models\MilkCollection;
 use App\Models\MilkProductionRecord;
 use App\Models\MilkStockMovement;
+use App\Models\Party;
 use App\Models\Product;
 use App\Models\User;
 use App\Models\Vendor;
@@ -52,7 +71,12 @@ class AppServiceProvider extends ServiceProvider
         Paginator::useBootstrapFive();
 
         // Dashboard numbers are cached per farm for 5 minutes; any write to a source table clears them (spec Phase 7).
-        foreach ([Animal::class, Expense::class, MilkProductionRecord::class, MilkStockMovement::class, Product::class, VendorPayment::class, Vendor::class] as $model) {
+        foreach ([Animal::class, Expense::class, MilkProductionRecord::class, MilkStockMovement::class, Product::class, VendorPayment::class, Vendor::class,
+            MilkCollection::class, Delivery::class, Bill::class, Customer::class,
+            CustomerPayment::class, CustomerAdjustment::class, Farmer::class, FarmerAdvance::class,
+            FarmerPayment::class, FarmerPaymentCycle::class, Party::class, AnimalPurchase::class,
+            AnimalSale::class, AnimalPayment::class, AnimalVaccination::class, BreedingEvent::class,
+            Calving::class, FeedItem::class, FeedTransaction::class] as $model) {
             $model::saved(fn (Model $m) => DashboardService::forget($m->farm_id));
             $model::deleted(fn (Model $m) => DashboardService::forget($m->farm_id));
         }

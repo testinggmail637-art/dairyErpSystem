@@ -3,14 +3,29 @@
 namespace App\Services;
 
 use App\Enums\AnimalStatus;
+use App\Enums\BillStatus;
+use App\Enums\CycleStatus;
+use App\Enums\DeliveryStatus;
+use App\Enums\FarmerPaymentStatus;
 use App\Enums\LifecycleStage;
 use App\Enums\MilkMovementType;
 use App\Enums\MilkSource;
 use App\Enums\MilkType;
+use App\Enums\QualityStatus;
 use App\Models\Animal;
+use App\Models\Bill;
+use App\Models\Customer;
+use App\Models\CustomerAdjustment;
+use App\Models\CustomerPayment;
+use App\Models\Delivery;
 use App\Models\Expense;
+use App\Models\Farmer;
+use App\Models\FarmerAdvance;
+use App\Models\FarmerPayment;
+use App\Models\MilkCollection;
 use App\Models\MilkProductionRecord;
 use App\Models\MilkStockMovement;
+use App\Models\Party;
 use App\Models\Product;
 use App\Models\VendorPayment;
 use App\Support\CurrentFarm;
@@ -81,7 +96,87 @@ class DashboardService
             'expenses' => $this->expenses($today),
             'finance' => $this->incomeVsExpenses('month', $today),
             'vendor_payable' => $this->vendorPayable(),
+            'collection' => $this->collectionToday($today),
+            'deliveries' => $this->deliveries($today),
+            'receivables' => $this->customerReceivables(),
+            'farmer_payable' => $this->farmerPayable(),
+            'parties' => $this->partyBalances(),
+            'reminders' => app(DailyReminderService::class)->lines(),
         ];
+    }
+
+    /** Accepted farmer milk collected today: litres and amount. */
+    private function collectionToday(Carbon $today): array
+    {
+        $row = MilkCollection::query()->toBase()
+            ->where('collection_date', $today->toDateString())
+            ->where('quality_status', QualityStatus::Accepted->value)
+            ->selectRaw('COALESCE(SUM(quantity_litre), 0) AS litres, COALESCE(SUM(amount), 0) AS amount')
+            ->first();
+
+        return ['litres' => Money::round2((string) $row->litres), 'amount' => Money::round2((string) $row->amount)];
+    }
+
+    /** Milk delivered today (litres, amount), sales month to date (delivered amount) and delivered-but-unbilled amount. */
+    private function deliveries(Carbon $today): array
+    {
+        // this month only — a range on the (farm_id, delivery_date) index
+        $row = Delivery::query()->toBase()
+            ->whereBetween('delivery_date', [$today->copy()->startOfMonth()->toDateString(), $today->toDateString()])
+            ->where('status', DeliveryStatus::Delivered->value)
+            ->selectRaw('COALESCE(SUM(CASE WHEN delivery_date = ? THEN delivered_qty END), 0) AS today_litres', [$today->toDateString()])
+            ->selectRaw('COALESCE(SUM(CASE WHEN delivery_date = ? THEN amount END), 0) AS today_amount', [$today->toDateString()])
+            ->selectRaw('COALESCE(SUM(amount), 0) AS month_amount')
+            ->first();
+
+        // not yet billed — the (farm_id, bill_id, status) index keeps this to the open rows
+        $unbilled = Delivery::query()->toBase()->whereNull('bill_id')->where('status', DeliveryStatus::Delivered->value)->sum('amount');
+
+        return [
+            'today_litres' => Money::round2((string) $row->today_litres),
+            'today_amount' => Money::round2((string) $row->today_amount),
+            'month_sales' => Money::round2((string) $row->month_amount),
+            'unbilled' => Money::round2((string) $unbilled),
+        ];
+    }
+
+    /** All customers: Σ opening + Σ finalized bills + Σ adjustments − Σ payments (same basis as the customer ledger). */
+    private function customerReceivables(): string
+    {
+        $opening = Customer::query()->toBase()->whereNull('deleted_at')->sum('opening_balance');
+        $bills = Bill::query()->toBase()->where('status', BillStatus::Finalized->value)->sum('total');
+        $adjustments = CustomerAdjustment::query()->toBase()->sum('amount');
+        $payments = CustomerPayment::query()->toBase()->sum('amount');
+
+        return Money::sub(Money::add((string) $opening, (string) $bills, (string) $adjustments), (string) $payments);
+    }
+
+    /**
+     * What we owe all farmers (same basis as FarmerPaymentService::balance): Σ opening + Σ finalized (gross + bonus −
+     * other deduction) − Σ advances − Σ net paid.
+     */
+    private function farmerPayable(): string
+    {
+        $opening = Farmer::query()->toBase()->whereNull('deleted_at')->sum('opening_balance');
+        $finalized = FarmerPayment::query()->toBase()
+            ->join('farmer_payment_cycles as c', 'c.id', '=', 'farmer_payments.farmer_payment_cycle_id')
+            ->where('c.status', CycleStatus::Finalized->value)
+            ->selectRaw('COALESCE(SUM(farmer_payments.gross_amount + farmer_payments.bonus - farmer_payments.other_deduction), 0) AS earned')
+            ->selectRaw('COALESCE(SUM(CASE WHEN farmer_payments.status = ? THEN farmer_payments.net_payable END), 0) AS paid', [FarmerPaymentStatus::Paid->value])
+            ->first();
+        $advances = FarmerAdvance::query()->toBase()->sum('amount');
+
+        return Money::sub(Money::add((string) $opening, (string) $finalized->earned), Money::add((string) $advances, (string) $finalized->paid));
+    }
+
+    /** Animal trading parties: Σ of positive balances (they owe us) and of negative ones (we owe them). */
+    private function partyBalances(): array
+    {
+        $balances = app(PartyLedgerService::class)->balances(Party::query()->get(['id', 'opening_balance']));
+        $receivable = Money::sum(array_filter($balances, fn ($b) => Money::compare($b, '0') > 0));
+        $payable = Money::sum(array_map(fn ($b) => Money::sub('0', $b), array_filter($balances, fn ($b) => Money::isNegative($b))));
+
+        return ['receivable' => $receivable, 'payable' => $payable];
     }
 
     /**
