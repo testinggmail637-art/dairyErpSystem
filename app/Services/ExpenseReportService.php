@@ -9,15 +9,19 @@ use App\Models\Vendor;
 use App\Reports\ReportTable;
 use App\Support\Money;
 use Illuminate\Support\Carbon;
+use Illuminate\Validation\ValidationException;
 
 /**
- * Expense reports (spec 7.1): daily summary, monthly category × section, category-wise for a period, vendor
+ * Expense reports (spec 7.1, 7.6 #6): daily summary, monthly category × section, category-wise for a period, category ×
+ * month and section × month matrices, vendor
  * outstanding. Every figure is a SQL aggregate over the farm-scoped, non-deleted expenses — rows are never
  * loaded into PHP — so a report's totals always equal the sum of the expenses it covers.
  */
 class ExpenseReportService
 {
-    public const REPORTS = ['daily', 'monthly', 'category', 'vendors'];
+    public const REPORTS = ['daily', 'monthly', 'category', 'vendors', 'category-months', 'sections'];
+
+    public const MAX_MONTHS = 24;
 
     public function daily(string $from, string $to): ReportTable
     {
@@ -79,6 +83,61 @@ class ExpenseReportService
             ],
             $rows->all(),
             [__('Total'), ...$columnTotals->all(), Money::sum($cells->pluck('total'))],
+        );
+    }
+
+    /** Category (rows) × month (columns) for a period (spec 7.6 #6). */
+    public function categoryByMonth(string $from, string $to): ReportTable
+    {
+        return $this->byMonth($from, $to, 'category_id', fn (array $ids) => ExpenseCategory::query()->whereIn('id', $ids)->ordered()->pluck('name', 'id'),
+            __('Expenses by category and month'), __('Category'));
+    }
+
+    /** Section (rows) × month (columns) for a period (spec 7.6 #6). */
+    public function sectionByMonth(string $from, string $to): ReportTable
+    {
+        return $this->byMonth($from, $to, 'section_id', fn (array $ids) => Section::query()->whereIn('id', $ids)->orderBy('name')->pluck('name', 'id'),
+            __('Section-wise expenses'), __('Section'));
+    }
+
+    /** One GROUP BY (row, month) query; a column per month of the period (at most 24), row totals and share %. */
+    private function byMonth(string $from, string $to, string $column, \Closure $names, string $title, string $rowLabel): ReportTable
+    {
+        $months = [];
+        for ($m = Carbon::parse($from)->startOfMonth(); $m->lte(Carbon::parse($to)); $m->addMonth()) {
+            $months[$m->format('Y-m')] = $m->format('M y');
+        }
+        if (count($months) > self::MAX_MONTHS) {
+            throw ValidationException::withMessages(['from' => __('Choose a period of at most :n months.', ['n' => self::MAX_MONTHS])]);
+        }
+
+        $cells = Expense::query()->toBase()
+            ->whereBetween('expense_date', [$from, $to])
+            ->groupByRaw("{$column}, DATE_FORMAT(expense_date, '%Y-%m')")
+            ->selectRaw("{$column} AS row_id, DATE_FORMAT(expense_date, '%Y-%m') AS month, SUM(amount) AS total")
+            ->get();
+        $byCell = $cells->keyBy(fn ($c) => $c->row_id.'|'.$c->month);
+        $grand = Money::sum($cells->pluck('total'));
+
+        $rows = $names($cells->pluck('row_id')->unique()->all())->map(function ($name, $id) use ($months, $byCell, $grand) {
+            $amounts = array_map(fn ($month) => Money::round2((string) ($byCell->get($id.'|'.$month)?->total ?? '0')), array_keys($months));
+            $total = Money::sum($amounts);
+
+            return [$name, ...$amounts, $total, Money::isZero($grand) ? '0.0' : Money::round(bcdiv(bcmul($total, '100', 4), $grand, 4), 1)];
+        })->values();
+
+        return new ReportTable(
+            $title,
+            $this->period($from, $to),
+            [
+                ReportTable::column($rowLabel),
+                ...array_map(fn ($label) => ReportTable::column($label, ReportTable::MONEY), array_values($months)),
+                ReportTable::column(__('Total'), ReportTable::MONEY),
+                ReportTable::column(__('Share'), ReportTable::PERCENT),
+            ],
+            $rows->all(),
+            $rows->isEmpty() ? null : [__('Total'), ...array_map(fn ($month) => Money::sum($cells->where('month', $month)->pluck('total')), array_keys($months)), $grand, '100.0'],
+            emptyText: __('No expenses in this period.'),
         );
     }
 

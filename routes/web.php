@@ -37,6 +37,7 @@ use App\Http\Controllers\Reports\CollectionReportController;
 use App\Http\Controllers\Reports\ExpenseReportController;
 use App\Http\Controllers\Reports\LoanReportController;
 use App\Http\Controllers\Reports\MilkReportController;
+use App\Http\Controllers\Reports\ProfitReportController;
 use App\Http\Controllers\Reports\ReportController;
 use App\Http\Controllers\Reports\SalesReportController;
 use App\Http\Controllers\Reports\StaffReportController;
@@ -74,6 +75,7 @@ use App\Services\CollectionReportService;
 use App\Services\ExpenseReportService;
 use App\Services\LoanReportService;
 use App\Services\MilkReportService;
+use App\Services\ProfitReportService;
 use App\Services\SalesReportService;
 use Illuminate\Support\Facades\Route;
 
@@ -382,6 +384,8 @@ Route::middleware(['auth', 'active', 'farm'])->group(function () {
             ->whereIn('report', SalesReportService::REPORTS)->name('reports.sales');
         Route::get('balances/{report}', [BalanceReportController::class, 'show'])
             ->whereIn('report', BalanceReportService::REPORTS)->name('reports.balances');
+        Route::get('profit/{report}', [ProfitReportController::class, 'show'])
+            ->whereIn('report', ProfitReportService::REPORTS)->name('reports.profit');
         Route::get('collection/{report}', [CollectionReportController::class, 'show'])
             ->whereIn('report', CollectionReportService::REPORTS)->name('reports.collection');
         Route::get('loans/{report}', [LoanReportController::class, 'show'])->middleware('can:loans.view')

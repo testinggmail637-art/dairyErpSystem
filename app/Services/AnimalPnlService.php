@@ -134,14 +134,15 @@ class AnimalPnlService
     }
 
     /**
-     * Feed eaten per animal × each item's average purchase cost (all purchases of the item).
+     * Feed eaten per animal (optionally in a date range) × each item's average purchase cost (all purchases of the item).
      *
      * @param  list<int>  $ids
      * @return array<int, string>
      */
-    private function feedCost(array $ids): array
+    public function feedCost(array $ids, ?string $from = null, ?string $to = null): array
     {
         $eaten = DB::table('feed_transactions')->whereIn('animal_id', $ids)->where('type', FeedTransactionType::Consumption->value)
+            ->when($from, fn ($q) => $q->whereBetween('transaction_date', [$from, $to]))
             ->groupBy('animal_id', 'feed_item_id')->get(['animal_id', 'feed_item_id', DB::raw('SUM(quantity) AS qty')]);
 
         if ($eaten->isEmpty()) {
@@ -194,18 +195,19 @@ class AnimalPnlService
 
     /**
      * Own-herd milk: litres per animal and month × the average realized rate of own-farm deliveries of that milk type in
-     * that month; a month without deliveries uses the type's average over all months.
+     * that month; a month without deliveries uses the type's average over all months. Optionally only milk in a date range.
      *
      * @param  Collection<int, Animal>  $animals
      * @return array<int, array{litres: string, value: string}>
      */
-    private function milk(Collection $animals): array
+    public function milk(Collection $animals, ?string $from = null, ?string $to = null): array
     {
         if ($animals->isEmpty()) {
             return [];
         }
 
         $litres = DB::table('milk_production_records')->whereIn('animal_id', $animals->pluck('id')->all())
+            ->when($from, fn ($q) => $q->whereBetween('production_date', [$from, $to]))
             ->groupByRaw("animal_id, DATE_FORMAT(production_date, '%Y-%m')")
             ->get([DB::raw('animal_id'), DB::raw("DATE_FORMAT(production_date, '%Y-%m') AS month"), DB::raw('SUM(quantity_litre) AS litres')]);
 
