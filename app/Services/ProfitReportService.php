@@ -2,12 +2,18 @@
 
 namespace App\Services;
 
+use App\Enums\AnimalSaleStatus;
+use App\Enums\BillStatus;
 use App\Enums\DeliveryStatus;
 use App\Enums\MilkSource;
 use App\Enums\QualityStatus;
 use App\Models\Animal;
+use App\Models\AnimalPurchase;
+use App\Models\AnimalSale;
+use App\Models\Bill;
 use App\Models\Delivery;
 use App\Models\Expense;
+use App\Models\ExpenseCategory;
 use App\Models\MilkCollection;
 use App\Models\MilkProductionRecord;
 use App\Models\Section;
@@ -18,12 +24,12 @@ use Illuminate\Support\Carbon;
 use Illuminate\Validation\ValidationException;
 
 /**
- * Profitability reports (spec 7.6 #7–#9), all estimates for management: cost per litre of own milk, estimated
+ * Profitability reports (spec 7.6 #7–#10), all for management: simple P&L, cost per litre of own milk, estimated
  * contribution per milking animal, collection center margin. Every figure is an SQL sum on indexed date ranges.
  */
 class ProfitReportService
 {
-    public const REPORTS = ['cost-per-litre', 'animals', 'collection-margin'];
+    public const REPORTS = ['pnl', 'cost-per-litre', 'animals', 'collection-margin'];
 
     public const MAX_MONTHS = 24;
 
@@ -163,6 +169,73 @@ class ProfitReportService
             $rows,
             [__('Total'), ...array_map(fn ($i) => Money::sum(array_column($rows, $i)), range(1, 6))],
             [__('Margin = deliveries of collection milk − accepted farmer milk (amount on the collection entry) − Collection Center section expenses, by date. Milk still in stock at the end of a month is not valued.')],
+        );
+    }
+
+    /**
+     * Simple P&L (spec 7.6 #10), a management summary by date of each record: income = finalized bills (bill date) +
+     * delivered milk not in a finalized bill ("direct deliveries", delivery date) + completed animal sales (net);
+     * costs = accepted farmer milk + expenses (by category) + animal purchases. Loan principal is not a cost.
+     */
+    public function profitAndLoss(string $from, string $to): ReportTable
+    {
+        $range = [$from, $to];
+        $bills = (string) Bill::query()->toBase()->where('status', BillStatus::Finalized->value)->whereBetween('bill_date', $range)->sum('total');
+        $direct = (string) Delivery::query()->toBase()
+            ->leftJoin('bills as b', 'b.id', '=', 'deliveries.bill_id')
+            ->where('deliveries.status', DeliveryStatus::Delivered->value)
+            ->whereBetween('deliveries.delivery_date', $range)
+            ->where(fn ($q) => $q->whereNull('deliveries.bill_id')->orWhere('b.status', '!=', BillStatus::Finalized->value))
+            ->sum('deliveries.amount');
+        $animalSales = (string) AnimalSale::query()->toBase()->where('status', AnimalSaleStatus::Completed->value)->whereBetween('sale_date', $range)->sum('net_amount');
+        $farmerMilk = (string) MilkCollection::query()->toBase()->where('quality_status', QualityStatus::Accepted->value)
+            ->whereBetween('collection_date', $range)->sum('amount');
+        $byCategory = Expense::query()->toBase()->whereBetween('expense_date', $range)
+            ->groupBy('category_id')->selectRaw('category_id, SUM(amount) AS total')->pluck('total', 'category_id');
+        $animalPurchases = (string) AnimalPurchase::query()->toBase()->whereBetween('purchase_date', $range)->sum('total_amount');
+
+        $income = [
+            __('Milk sales — finalized bills') => Money::round2($bills),
+            __('Milk sales — delivered, not yet billed') => Money::round2($direct),
+            __('Animal sales (net of selling costs)') => Money::round2($animalSales),
+        ];
+        $costs = [__('Milk bought from farmers') => Money::round2($farmerMilk)];
+        foreach (ExpenseCategory::query()->whereIn('id', $byCategory->keys())->ordered()->pluck('name', 'id') as $id => $name) {
+            $costs[__('Expenses — :category', ['category' => $name])] = Money::round2((string) $byCategory[$id]);
+        }
+        $costs[__('Animal purchases')] = Money::round2($animalPurchases);
+
+        $totalIncome = Money::sum($income);
+        $totalCosts = Money::sum($costs);
+        $share = fn (string $amount) => Money::isZero($totalIncome) ? null : Money::round(bcdiv(bcmul($amount, '100', 4), $totalIncome, 4), 1);
+        $lines = fn (array $items) => array_map(fn ($label, $amount) => [$label, $amount, $share($amount)], array_keys($items), $items);
+
+        $rows = [
+            [__('Income'), null, null],
+            ...$lines($income),
+            [__('Total income'), $totalIncome, $share($totalIncome)],
+            [__('Costs'), null, null],
+            ...$lines($costs),
+            [__('Total costs'), $totalCosts, $share($totalCosts)],
+            [__('Net profit'), $net = Money::sub($totalIncome, $totalCosts), $share($net)],
+        ];
+        $strong = [0, count($income) + 1, count($income) + 2, count($rows) - 2, count($rows) - 1];
+
+        return new ReportTable(
+            __('Profit & loss (management summary)'),
+            $this->period($from, $to),
+            [
+                ReportTable::column(__('Item')),
+                ReportTable::column(__('Amount'), ReportTable::MONEY),
+                ReportTable::column(__('% of income'), ReportTable::PERCENT),
+            ],
+            $rows,
+            null,
+            [
+                __('Management summary, not statutory accounts.'),
+                __('By date of each record: bills by bill date, milk not yet billed by delivery date, farmer milk by collection date. Loan principal repaid is not a cost (loan interest is an expense).'),
+            ],
+            $strong,
         );
     }
 
