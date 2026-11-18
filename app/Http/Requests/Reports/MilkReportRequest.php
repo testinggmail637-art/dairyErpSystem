@@ -3,6 +3,7 @@
 namespace App\Http\Requests\Reports;
 
 use App\Enums\AnimalType;
+use App\Services\MilkReportService;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
@@ -22,6 +23,7 @@ class MilkReportRequest extends FormRequest
             'to' => $this->input('to') ?: today()->toDateString(),
             'month' => $this->input('month') ?: now()->format('Y-m'),
             'milk_type' => $this->input('milk_type') ?: '',
+            'days' => $this->input('days') ?: 30,
         ]);
     }
 
@@ -36,6 +38,7 @@ class MilkReportRequest extends FormRequest
             'to' => ['required', 'date_format:Y-m-d', 'after_or_equal:from'],
             'month' => ['required', 'date_format:Y-m'],
             'milk_type' => ['nullable', 'string', Rule::in(['', ...AnimalType::values()])],
+            'days' => ['required', 'integer', Rule::in(MilkReportService::FORECAST_DAYS)],
             'format' => ['nullable', 'in:excel,pdf'],
         ];
     }

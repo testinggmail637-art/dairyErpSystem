@@ -3,7 +3,7 @@
 @section('title', $table->title)
 
 @php($exportQuery = array_filter(\Illuminate\Support\Arr::only($filters, [
-    ...match ($filterType) { 'month' => ['month'], 'date' => ['date'], 'none' => [], default => ['from', 'to'] },
+    ...match ($filterType) { 'month' => ['month'], 'date' => ['date'], 'days' => ['days'], 'none' => [], default => ['from', 'to'] },
     'milk_type', 'loan_id',
 ])))
 
@@ -23,6 +23,11 @@
                 @elseif ($filterType === 'date')
                     <div class="col-6 col-md-3">
                         <x-form.date name="date" :label="__('Date')" :value="$filters['date']" max="today" group-class="mb-0" class="form-control-sm" />
+                    </div>
+                @elseif ($filterType === 'days')
+                    <div class="col-6 col-md-3">
+                        <x-form.select name="days" :label="__('Next')" :options="collect(\App\Services\MilkReportService::FORECAST_DAYS)->mapWithKeys(fn ($d) => [$d => __(':n days', ['n' => $d])])->all()"
+                                       :selected="$filters['days']" group-class="mb-0" class="form-select-sm" />
                     </div>
                 @else
                     <div class="col-6 col-md-3">

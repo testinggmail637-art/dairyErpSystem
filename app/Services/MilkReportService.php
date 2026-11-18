@@ -6,6 +6,7 @@ use App\Enums\AnimalType;
 use App\Enums\MilkMovementType;
 use App\Enums\MilkSource;
 use App\Enums\MilkType;
+use App\Models\Animal;
 use App\Models\Calving;
 use App\Models\MilkProductionRecord;
 use App\Models\MilkStockMovement;
@@ -22,7 +23,94 @@ use Illuminate\Support\Facades\DB;
  */
 class MilkReportService
 {
-    public const REPORTS = ['daily', 'monthly', 'animals', 'lactations', 'balance'];
+    public const REPORTS = ['daily', 'monthly', 'animals', 'lactations', 'balance', 'forecast'];
+
+    public const FORECAST_DAYS = [7, 30, 90];
+
+    /** Days before the expected calving when a cow is usually dried off (decision #198). */
+    public const DRY_OFF_DAYS_BEFORE_CALVING = 60;
+
+    public function __construct(private readonly BreedingService $breeding) {}
+
+    /**
+     * Milk forecast for the next $days days from today (spec 7.6 #12): each active milking female's average daily
+     * yield over the last 14 complete days (litres ÷ days with an entry) × the days she is expected to milk in the
+     * window — up to her dry-off date (expected calving − 60 days) when that falls inside it. Dry animals are not listed.
+     */
+    public function forecast(int $days, ?string $milkType = null): ReportTable
+    {
+        $start = today();
+        $end = $start->copy()->addDays($days - 1);
+        $baseFrom = $start->copy()->subDays(14)->toDateString();
+        $baseTo = $start->copy()->subDay()->toDateString();
+
+        $animals = Animal::query()->milking()->toBase()
+            ->when($milkType, fn ($q, $v) => $q->where('animals.animal_type', $v))
+            ->leftJoinSub(MilkProductionRecord::query()->toBase()
+                ->whereBetween('production_date', [$baseFrom, $baseTo])
+                ->groupBy('animal_id')
+                ->selectRaw('animal_id, SUM(quantity_litre) AS litres, COUNT(DISTINCT production_date) AS days'), 'm', 'm.animal_id', '=', 'animals.id')
+            ->orderBy('animals.tag_no')
+            ->get(['animals.id', 'animals.tag_no', 'animals.name', 'animals.animal_type', 'm.litres', 'm.days']);
+
+        $calvings = $this->breeding->expectedCalvings($start->toDateString(), $end->copy()->addDays(self::DRY_OFF_DAYS_BEFORE_CALVING)->toDateString())
+            ->whereIn('e.animal_id', $animals->pluck('id'))->get()->keyBy('animal_id');
+
+        $byType = [];
+        $rows = $animals->map(function ($a) use ($start, $end, $days, $calvings, &$byType) {
+            $notes = [];
+            $milkingDays = $days;
+            if ($due = $calvings->get($a->id)?->expected_calving_date) {
+                $dryOff = Carbon::parse($due)->subDays(self::DRY_OFF_DAYS_BEFORE_CALVING);
+                if ($dryOff->lte($end)) {
+                    $milkingDays = max(0, (int) $start->diffInDays($dryOff, false));
+                    $notes[] = __('Dry off due :date', ['date' => fmt_date($dryOff)]);
+                }
+                if (Carbon::parse($due)->lte($end)) {
+                    $notes[] = __('Calving due :date', ['date' => fmt_date($due)]);
+                }
+            }
+            $entryDays = (int) ($a->days ?? 0);
+            if ($entryDays === 0) {
+                $notes[] = __('No milk entries in the last 14 days');
+            }
+            $forecast = $entryDays > 0 ? Money::round2(bcdiv(bcmul((string) $a->litres, (string) $milkingDays, 4), (string) $entryDays, 4)) : '0.00';
+            $byType[$a->animal_type] = Money::add($byType[$a->animal_type] ?? '0', $forecast);
+
+            return [
+                $this->label($a),
+                AnimalType::from($a->animal_type)->label(),
+                $entryDays,
+                $entryDays > 0 ? Money::div((string) $a->litres, (string) $entryDays) : '0.00',
+                $milkingDays,
+                $forecast,
+                implode(' · ', $notes),
+            ];
+        });
+
+        return new ReportTable(
+            __('Milk forecast — next :n days', ['n' => $days]),
+            fmt_date($start).' – '.fmt_date($end).$this->typeSuffix($milkType),
+            [
+                ReportTable::column(__('Animal')),
+                ReportTable::column(__('Type')),
+                ReportTable::column(__('Days with milk (last 14)'), ReportTable::NUMBER),
+                ReportTable::column(__('Avg L/day'), ReportTable::QUANTITY),
+                ReportTable::column(__('Days milking in window'), ReportTable::NUMBER),
+                ReportTable::column(__('Forecast (L)'), ReportTable::QUANTITY),
+                ReportTable::column(__('Note')),
+            ],
+            $rows->all(),
+            $rows->isEmpty() ? null : [__('Total (:n)', ['n' => $rows->count()]), '', '', Money::sum($rows->pluck(3)), '', Money::sum($rows->pluck(5)), ''],
+            [
+                __('Estimate — actual yield depends on health, feed, season, pregnancy.'),
+                ...collect($byType)->map(fn ($l, $type) => AnimalType::from($type)->label().': '.fmt_qty($l).' L')->values()->all(),
+                __('Average = litres of the last 14 days (:from – :to) ÷ days with an entry. Dry off assumed :n days before the expected calving. Dry animals are not listed.',
+                    ['from' => fmt_date($baseFrom), 'to' => fmt_date($baseTo), 'n' => self::DRY_OFF_DAYS_BEFORE_CALVING]),
+            ],
+            emptyText: __('No milking animals.'),
+        );
+    }
 
     /** One day: every animal milked, morning / evening / total, a subtotal per milk type. */
     public function daily(string $date, ?string $milkType = null): ReportTable
