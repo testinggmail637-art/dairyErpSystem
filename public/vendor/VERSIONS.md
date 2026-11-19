@@ -16,3 +16,5 @@ To upgrade: download the same files for the new version, replace them, update th
 | Chart.js | 4.5.0 | `chartjs/chart.umd.min.js` |
 | SweetAlert2 | 11.22.0 | `sweetalert2/sweetalert2.all.min.js` |
 | Fonts (Settings → Appearance): Inter, Roboto, Poppins, Noto Sans | @fontsource/*@5.1.0 (SIL OFL 1.1), latin, weights 400/500/600/700 (Roboto: no 600) | `fonts/fonts.css`, `fonts/<family>/*.woff2` |
+| Website font: Mukta (Hindi + English) | @fontsource/mukta@5.1.0 (SIL OFL 1.1), devanagari + latin, weights 400/600/800 | `fonts/mukta/*.woff2` (font-face in `css/website.css`) |
+| Website icons | bootstrap-icons@1.11.3 SVGs (MIT) | `resources/views/website/icons/*.blade.php` |

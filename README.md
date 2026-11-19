@@ -101,7 +101,7 @@ php artisan db:seed --class=DemoSeeder   # optional demo data
 php artisan serve
 ```
 
-Open http://127.0.0.1:8000 — or, with XAMPP, put the project in `htdocs` and open
+Open http://127.0.0.1:8000 for the public website (Hindi; English at `/en`) and **http://127.0.0.1:8000/admin** for the ERP — or, with XAMPP, put the project in `htdocs` and open
 http://localhost/<folder>/public (set `APP_URL` to the same). Tests: keep `APP_URL=http://localhost` in `.env.testing`.
 
 ### Default login (local only — change immediately)
@@ -134,6 +134,7 @@ reads all of the above; on this year of data a cold dashboard load takes about 0
 |---|---|---|
 | `APP_TIMEZONE` | `Asia/Kolkata` | All dates in IST |
 | `APP_URL` | `http://localhost/dairyErpSystem/public` | Base URL (XAMPP sub-folder locally) |
+| `WEBSITE_FARM_ID` | *(empty)* | Farm shown on the public website (empty = first active farm) |
 | `DB_CONNECTION` | `mysql` (prod) / `mariadb` (XAMPP) | Database driver |
 | `DB_DATABASE` | `dairy_erp` | Main database |
 | `OWNER_NAME`, `OWNER_EMAIL`, `OWNER_PHONE`, `OWNER_PASSWORD` | | First owner user created by seeder |
