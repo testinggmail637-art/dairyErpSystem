@@ -1101,6 +1101,35 @@ eager loading, report queries via SQL aggregation; cache dashboard numbers 5 min
 Acceptance: dashboard loads < 1.5 s with DemoSeeder data (1 year, 30 animals, 50 farmers, 150 customers);
 every report total reconciles with its source tables (feature tests).
 
+### Phase 7A — Public website & lead CRM (added 2026-11-19, version 0.7.1)
+Brief, sitemap, page sections, colours, font and owner's rules: `docs/WEBSITE_BRIEF.md`; tasks: `docs/PROGRESS.md`.
+- **Routes:** public, no login, own layout `layouts/website.blade.php`; Hindi at `/…`, English at `/en/…` (middleware sets
+  locale; text in `lang/hi/website.php`, `lang/en/website.php`). Admin screens under ERP menu **Website**. This Hindi is
+  for the public site only — the ERP admin stays English (Hindi admin UI remains Phase 8).
+- **Which farm:** the site shows one farm, `config('website.farm_id')` (env `WEBSITE_FARM_ID`, default first active farm).
+  All website tables have `farm_id` + `BelongsToFarm`; public queries set the farm explicitly.
+- **Settings:** `farms.settings.website` JSON — site name, tagline (hi/en), phone, WhatsApp number, email, address,
+  map URL, timings, social links, FSSAI no., home sections on/off, page texts (hi/en), and website colours
+  `w_primary #093F1E`, `w_leaf #176C2B`, `w_accent #FD8D00`, `w_bg #F8F4E8`, dark variants, logo / dark logo paths.
+  Rendered as CSS variables; nothing hard-coded.
+- **Tables (Stage 2):**
+  - `website_products`: name_hi, name_en, slug (unique per farm), category, short_hi/en, body_hi/en (cleaned HTML),
+    packing?, price? decimal(12,2), price_unit?, show_price (bool), images (json), sort, is_active, seo_title?, seo_description?
+  - `website_posts`: title_hi/en, slug, category, cover?, body_hi/en (cleaned HTML), status (`PostStatus`: draft/published),
+    published_at?, seo_title?, seo_description?
+  - `website_leads`: name, phone, email?, area?, interest (`LeadInterest`), website_product_id?, qty_per_day? decimal(10,2),
+    message?, page, locale, utm_source?/medium?/campaign?, status (`LeadStatus`: new/contacted/interested/converted/lost),
+    assigned_to?, follow_up_on? date, customer_id? (after convert), ip_hash; index (farm_id, status, created_at),
+    (farm_id, follow_up_on)
+  - `website_lead_notes`: website_lead_id, note, created_by
+- **Permissions:** `website.manage` (settings, products, posts), `leads.view`, `leads.manage` (owner + admin by default).
+- **Rules:** enquiry form = honeypot + rate limit 5/min per IP + Form Request; a lead never touches ERP stock / billing;
+  "Convert to customer" creates an ERP customer in one transaction and links it. Public pages cached (cleared on save),
+  images WebP with `srcset` + lazy-load, security headers on public routes, Lighthouse mobile ≥ 90.
+- **Out of scope here:** cart / online order / payment, customer login, WhatsApp / SMS / email sending, newsletter.
+Acceptance: all pages render in hi and en at 360 px–1440 px in light and dark; enquiry saves a lead and notifies
+`leads.view` users; lead CRM filters / follow-ups / convert work; sitemap.xml lists all published pages in both languages.
+
 ### Phase 8 — Not now
 Only after explicit instruction: WhatsApp/SMS, payment gateway, milk analyzer & weighing scale integration,
 thermal printer receipts, customer portal, PWA/offline sync, Hindi UI, ML forecasting.

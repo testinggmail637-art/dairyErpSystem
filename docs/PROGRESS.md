@@ -7,12 +7,12 @@
 
 | Item | Value |
 |---|---|
-| Current phase | Phase 7A — Public Website & Lead CRM (⬜ not started — added by the owner 2026-11-19) |
-| Last completed task | 7.10 — Phase 7 acceptance tests + final README + CHANGELOG 0.7.0 |
-| Next task | 7A.1 — Website brief & sitemap (owner confirms pages, sections, reference sites) |
-| Overall progress | 97 / 110 tasks (88%) — ERP phases 0–7: 97 / 97 (100%) · Website 7A: 0 / 13 |
+| Current phase | Phase 7A — Public Website & Lead CRM (🔄 in progress — Stage 1 design) |
+| Last completed task | 7A.1 — Website brief & sitemap (`docs/WEBSITE_BRIEF.md`) |
+| Next task | 7A.2 — Public layout (header, footer, mobile bar, hi/en, day/night) |
+| Overall progress | 98 / 110 tasks (89%) — ERP phases 0–7: 97 / 97 (100%) · Website 7A: 1 / 13 |
 | Tests passing | 788 |
-| Last updated (IST) | 2026-11-19 (docs/website-plan) |
+| Last updated (IST) | 2026-11-19 (task/7A.1-website-brief) |
 
 ## Phase overview
 
@@ -27,7 +27,7 @@
 | 5 | Health, Breeding, Feed | ✅ Done | 2026-11-13 | 2026-11-13 | `phase-5-done` |
 | 6 | Animal Trading & Staff | ✅ Done | 2026-11-14 | 2026-11-17 | `phase-6-done` |
 | 7 | Dashboard & Reports | ✅ Done | 2026-11-17 | 2026-11-19 | `phase-7-done` |
-| 7A | Public Website & Lead CRM (added 2026-11-19) — design first, then dynamic content | ⬜ Not started | | | |
+| 7A | Public Website & Lead CRM (added 2026-11-19) — design first, then dynamic content | 🔄 In progress | | | |
 | 8 | Integrations (only on explicit instruction) | ⏸ On hold until December 2026 | | | |
 
 Status legend: ⬜ Not started · 🟡 In progress · ✅ Done · ⏸ On hold
@@ -482,7 +482,7 @@ FSSAI number and lab reports, farm story, real reviews (with permission), domain
 Hindi text checked. Sample reviews and numbers are shown only in design previews, never on the live site.
 
 ### Stage 1 — Website design (static, owner reviews each step)
-- [ ] 7A.1 Website brief & sitemap: pages (Home, About, Products, Product detail, Blog / Articles, Contact / Enquiry, FAQ, legal pages), sections of each page, reference sites, logo / photos the owner provides — confirmed by the owner
+- [x] 7A.1 Website brief & sitemap: pages (Home, About, Products, Product detail, Blog / Articles, Contact / Enquiry, FAQ, legal pages), sections of each page, reference sites, logo / photos the owner provides — `docs/WEBSITE_BRIEF.md` (owner reviews in the PR)
 - [ ] 7A.2 Public layout: header with menu, footer (address, phone, timings, social links), floating call / WhatsApp-link button, mobile menu, separate from the ERP admin layout; theme from Appearance
 - [ ] 7A.3 Home page design (static): hero, why our milk, products preview, how home delivery works, farm / herd story, testimonials, enquiry call-to-action
 - [ ] 7A.4 Inner pages design (static): Products list + product detail, About, Contact with enquiry form (UI only), Blog list + article, FAQ, privacy / terms
