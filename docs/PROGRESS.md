@@ -461,6 +461,18 @@ after the owner signs off the design does Stage 2 make the content dynamic.** Sa
 Bootstrap 5 + jQuery, no npm / build step, colours and fonts only from Settings → Appearance (CSS variables), fast pages.
 Before 7A.1 starts, a short spec section for 7A is added to `docs/DAIRY_ERP_SPEC.md` (tables, rules, permissions).
 
+**Owner's website rules (2026-11-19, DECISIONS #203) — every 7A task must meet them:**
+1. **Looks real:** real farm / cow / milk photos (owner provides), real address, phone, timings, map; no stock-template feel, no fake numbers or reviews.
+2. **Brand colours from the logo** (`public/yashadhya-logos*`): forest green `#093F1E`, leaf green `#176C2B` (dark mode `#23A541`), saffron `#FD8D00`, cream `#F8F4E8`. Set as the website's Appearance defaults (CSS variables, not hard-coded). **Day + night mode** (toggle, remembers choice, follows the phone's setting first). Dark mode uses the `-dark` logos.
+3. **Hindi by default, English switch:** all text through Laravel translations (`lang/hi`, `lang/en`); URL keeps the language (`/` = Hindi, `/en/...` = English); `hreflang` tags; Devanagari font.
+4. **Super responsive:** checked at 360 px, 390 px, 768 px, 1024 px, 1440 px; no sideways scroll; tap targets ≥ 44 px.
+5. **Security:** HTTPS + security headers (CSP, HSTS, X-Frame-Options, Referrer-Policy), CSRF, honeypot + rate limit on forms, validated / cleaned input, no ERP data or admin links on public pages, admin login not linked from the site.
+6. **One font family and type scale:** one font pair (Hindi + English, self-hosted in `public/vendor/fonts`), fixed sizes (body / h1–h4 / small) as CSS variables; no ad-hoc sizes.
+7. **Business focus:** desi Indian cow (Gir, Sahiwal, Tharparkar, Rathi …) and buffalo (Murrah …) breeds — which breeds exactly, owner confirms in 7A.1.
+8. **Tell people what we offer:** clear products / services section (A2 desi cow milk, buffalo milk, home delivery, bulk / B2B, other items the owner confirms) with price or "ask for price" and an enquiry button.
+9. **Fast:** Lighthouse mobile ≥ 90, first view < 2 s on 4G; WebP images with sizes + lazy-load, no slider libraries, page cache, only the CSS / JS each page needs.
+10. **Reference sites:** in 7A.1 study 4–6 good dairy / farm sites (Indian A2 milk brands + international farm sites), list what we take from each, and combine into one design.
+
 ### Stage 1 — Website design (static, owner reviews each step)
 - [ ] 7A.1 Website brief & sitemap: pages (Home, About, Products, Product detail, Blog / Articles, Contact / Enquiry, FAQ, legal pages), sections of each page, reference sites, logo / photos the owner provides — confirmed by the owner
 - [ ] 7A.2 Public layout: header with menu, footer (address, phone, timings, social links), floating call / WhatsApp-link button, mobile menu, separate from the ERP admin layout; theme from Appearance
