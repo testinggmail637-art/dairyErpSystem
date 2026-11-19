@@ -473,6 +473,14 @@ Before 7A.1 starts, a short spec section for 7A is added to `docs/DAIRY_ERP_SPEC
 9. **Fast:** Lighthouse mobile ≥ 90, first view < 2 s on 4G; WebP images with sizes + lazy-load, no slider libraries, page cache, only the CSS / JS each page needs.
 10. **Reference sites:** in 7A.1 study 4–6 good dairy / farm sites (Indian A2 milk brands + international farm sites), list what we take from each, and combine into one design.
 
+**Sample content until launch (owner 2026-11-19, DECISIONS #204):** Claude prepares all design content: Hindi + English text,
+breeds, products, sample prices, story, FAQ, legal drafts, and free-licence photos (Pexels / Unsplash, saved as WebP in
+`public/images/website/`, source noted in `public/images/website/CREDITS.md`). Every sample item is listed in a
+**Go-live checklist** that the owner replaces after the design is final and before the site goes live: real photos, breeds and
+herd count, products / prices / packing, delivery area and timings, address / map / phone / WhatsApp / email, social links,
+FSSAI number and lab reports, farm story, real reviews (with permission), domain + SSL, privacy / terms / refund text (checked),
+Hindi text checked. Sample reviews and numbers are shown only in design previews, never on the live site.
+
 ### Stage 1 — Website design (static, owner reviews each step)
 - [ ] 7A.1 Website brief & sitemap: pages (Home, About, Products, Product detail, Blog / Articles, Contact / Enquiry, FAQ, legal pages), sections of each page, reference sites, logo / photos the owner provides — confirmed by the owner
 - [ ] 7A.2 Public layout: header with menu, footer (address, phone, timings, social links), floating call / WhatsApp-link button, mobile menu, separate from the ERP admin layout; theme from Appearance
