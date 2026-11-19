@@ -123,7 +123,7 @@ it('shows the milk reports on screen with filters, and downloads Excel and PDF',
 it('validates filters and needs reports.view', function () {
     $this->actingAs($this->accountant)->get(route('reports.milk', ['animals', 'from' => '2026-10-20', 'to' => '2026-10-01']))->assertSessionHasErrors('to');
     $this->get(route('reports.milk', ['daily', 'milk_type' => 'goat']))->assertSessionHasErrors('milk_type');
-    $this->get('/reports/milk/weekly')->assertNotFound();
+    $this->get('/admin/reports/milk/weekly')->assertNotFound();
 
     $staff = User::factory()->forFarm($this->farm)->withRole(RoleName::HerdStaff)->create();
     $this->actingAs($staff)->get(route('reports.milk', 'daily'))->assertForbidden();

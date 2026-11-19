@@ -153,5 +153,5 @@ it('validates periods and needs reports.view', function () {
     $this->actingAs($herdStaff)->get(route('reports.index'))->assertForbidden();
     $this->actingAs($herdStaff)->get(route('reports.expenses', 'daily'))->assertForbidden();
 
-    $this->actingAs($this->accountant)->get('/reports/expenses/unknown')->assertNotFound();
+    $this->actingAs($this->accountant)->get('/admin/reports/expenses/unknown')->assertNotFound();
 });

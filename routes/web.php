@@ -79,446 +79,452 @@ use App\Services\ProfitReportService;
 use App\Services\SalesReportService;
 use Illuminate\Support\Facades\Route;
 
-/*
-|--------------------------------------------------------------------------
-| Authentication (hand-built, no public registration, no email reset in v1)
-|--------------------------------------------------------------------------
-*/
-Route::middleware('guest')->group(function () {
-    Route::get('login', [LoginController::class, 'create'])->name('login');
-    Route::post('login', [LoginController::class, 'store'])->middleware('throttle:login')->name('login.store');
-});
+// Public website (Hindi at /, English at /en) — Phase 7A.
+require __DIR__.'/website.php';
 
-Route::post('logout', [LoginController::class, 'destroy'])->middleware('auth')->name('logout');
+// ERP admin lives under /admin so the public website can own / (DECISIONS #206).
+Route::prefix('admin')->group(function () {
+    /*
+    |--------------------------------------------------------------------------
+    | Authentication (hand-built, no public registration, no email reset in v1)
+    |--------------------------------------------------------------------------
+    */
+    Route::middleware('guest')->group(function () {
+        Route::get('login', [LoginController::class, 'create'])->name('login');
+        Route::post('login', [LoginController::class, 'store'])->middleware('throttle:login')->name('login.store');
+    });
 
-/*
-|--------------------------------------------------------------------------
-| Application (authenticated + active user, inside the current farm — EnsureUserIsActive, EnsureFarmSelected)
-|--------------------------------------------------------------------------
-*/
-Route::middleware(['auth', 'active', 'farm'])->group(function () {
-    Route::get('/', HomeController::class)->name('home');
-    Route::get('dashboard', DashboardController::class)->middleware('can:dashboard.view')->name('dashboard');
-    Route::get('dashboard/finance', [DashboardController::class, 'finance'])->middleware('can:dashboard.view')->name('dashboard.finance');
-
-    // Farm switcher (top bar; shown only when the user has more than one farm)
-    Route::post('farm/switch', FarmSwitchController::class)->name('farm.switch');
-
-    // Own account
-    Route::get('profile', [ProfileController::class, 'edit'])->name('profile.edit');
-    Route::put('profile', [ProfileController::class, 'update'])->name('profile.update');
-    Route::put('profile/password', [ProfileController::class, 'updatePassword'])->name('profile.password');
-
-    // Notifications (bell)
-    Route::get('notifications', [NotificationController::class, 'index'])->name('notifications.index');
-    Route::get('notifications/{id}/open', [NotificationController::class, 'open'])->name('notifications.open');
-    Route::post('notifications/read-all', [NotificationController::class, 'readAll'])->name('notifications.read-all');
+    Route::post('logout', [LoginController::class, 'destroy'])->middleware('auth')->name('logout');
 
     /*
-    | Expenses (Phase 1)
+    |--------------------------------------------------------------------------
+    | Application (authenticated + active user, inside the current farm — EnsureUserIsActive, EnsureFarmSelected)
+    |--------------------------------------------------------------------------
     */
-    Route::prefix('expenses')->group(function () {
-        Route::get('categories', [ExpenseCategoryController::class, 'index'])
-            ->middleware('can:expenses.view')->name('expense-categories.index');
-        Route::resource('categories', ExpenseCategoryController::class)
-            ->except(['index', 'show'])
-            ->parameters(['categories' => 'expense_category'])
-            ->names('expense-categories')
-            ->middleware('can:expenses.edit');
-        Route::get('categories/{expense_category}/children', [ExpenseCategoryController::class, 'children'])
-            ->name('expense-categories.children'); // expenses.view or expenses.create, checked in the controller
+    Route::middleware(['auth', 'active', 'farm'])->group(function () {
+        Route::get('/', HomeController::class)->name('home');
+        Route::get('dashboard', DashboardController::class)->middleware('can:dashboard.view')->name('dashboard');
+        Route::get('dashboard/finance', [DashboardController::class, 'finance'])->middleware('can:dashboard.view')->name('dashboard.finance');
 
-        Route::middleware('can:expenses.import')->prefix('import')->name('expense-imports.')->group(function () {
-            Route::get('/', [ExpenseImportController::class, 'index'])->name('index');
-            Route::get('template', [ExpenseImportController::class, 'template'])->name('template');
-            Route::post('/', [ExpenseImportController::class, 'store'])->name('store');
-            Route::get('{batch}', [ExpenseImportController::class, 'show'])->whereNumber('batch')->name('show');
-            Route::post('{batch}/import', [ExpenseImportController::class, 'import'])->whereNumber('batch')->name('import');
-            Route::get('{batch}/errors', [ExpenseImportController::class, 'errors'])->whereNumber('batch')->name('errors');
-            Route::post('{batch}/cancel', [ExpenseImportController::class, 'cancel'])->whereNumber('batch')->name('cancel');
-            Route::post('{batch}/revert', [ExpenseImportController::class, 'revert'])->whereNumber('batch')->name('revert');
+        // Farm switcher (top bar; shown only when the user has more than one farm)
+        Route::post('farm/switch', FarmSwitchController::class)->name('farm.switch');
+
+        // Own account
+        Route::get('profile', [ProfileController::class, 'edit'])->name('profile.edit');
+        Route::put('profile', [ProfileController::class, 'update'])->name('profile.update');
+        Route::put('profile/password', [ProfileController::class, 'updatePassword'])->name('profile.password');
+
+        // Notifications (bell)
+        Route::get('notifications', [NotificationController::class, 'index'])->name('notifications.index');
+        Route::get('notifications/{id}/open', [NotificationController::class, 'open'])->name('notifications.open');
+        Route::post('notifications/read-all', [NotificationController::class, 'readAll'])->name('notifications.read-all');
+
+        /*
+        | Expenses (Phase 1)
+        */
+        Route::prefix('expenses')->group(function () {
+            Route::get('categories', [ExpenseCategoryController::class, 'index'])
+                ->middleware('can:expenses.view')->name('expense-categories.index');
+            Route::resource('categories', ExpenseCategoryController::class)
+                ->except(['index', 'show'])
+                ->parameters(['categories' => 'expense_category'])
+                ->names('expense-categories')
+                ->middleware('can:expenses.edit');
+            Route::get('categories/{expense_category}/children', [ExpenseCategoryController::class, 'children'])
+                ->name('expense-categories.children'); // expenses.view or expenses.create, checked in the controller
+
+            Route::middleware('can:expenses.import')->prefix('import')->name('expense-imports.')->group(function () {
+                Route::get('/', [ExpenseImportController::class, 'index'])->name('index');
+                Route::get('template', [ExpenseImportController::class, 'template'])->name('template');
+                Route::post('/', [ExpenseImportController::class, 'store'])->name('store');
+                Route::get('{batch}', [ExpenseImportController::class, 'show'])->whereNumber('batch')->name('show');
+                Route::post('{batch}/import', [ExpenseImportController::class, 'import'])->whereNumber('batch')->name('import');
+                Route::get('{batch}/errors', [ExpenseImportController::class, 'errors'])->whereNumber('batch')->name('errors');
+                Route::post('{batch}/cancel', [ExpenseImportController::class, 'cancel'])->whereNumber('batch')->name('cancel');
+                Route::post('{batch}/revert', [ExpenseImportController::class, 'revert'])->whereNumber('batch')->name('revert');
+            });
+
+            Route::get('/', [ExpenseController::class, 'index'])->middleware('can:viewAny,'.Expense::class)->name('expenses.index');
+            Route::get('export', [ExpenseController::class, 'export'])->middleware('can:expenses.view')->name('expenses.export');
+            Route::get('create', [ExpenseController::class, 'create'])->middleware('can:expenses.create')->name('expenses.create');
+            Route::post('/', [ExpenseController::class, 'store'])->middleware('can:expenses.create')->name('expenses.store');
+            Route::whereNumber('expense')->group(function () {
+                Route::get('{expense}', [ExpenseController::class, 'show'])->middleware('can:view,expense')->name('expenses.show');
+                Route::get('{expense}/receipt', [ExpenseController::class, 'receipt'])->middleware('can:view,expense')->name('expenses.receipt');
+                Route::get('{expense}/edit', [ExpenseController::class, 'edit'])->middleware('can:update,expense')->name('expenses.edit');
+                Route::put('{expense}', [ExpenseController::class, 'update'])->middleware('can:update,expense')->name('expenses.update');
+                Route::delete('{expense}', [ExpenseController::class, 'destroy'])->middleware('can:delete,expense')->name('expenses.destroy');
+            });
         });
 
-        Route::get('/', [ExpenseController::class, 'index'])->middleware('can:viewAny,'.Expense::class)->name('expenses.index');
-        Route::get('export', [ExpenseController::class, 'export'])->middleware('can:expenses.view')->name('expenses.export');
-        Route::get('create', [ExpenseController::class, 'create'])->middleware('can:expenses.create')->name('expenses.create');
-        Route::post('/', [ExpenseController::class, 'store'])->middleware('can:expenses.create')->name('expenses.store');
-        Route::whereNumber('expense')->group(function () {
-            Route::get('{expense}', [ExpenseController::class, 'show'])->middleware('can:view,expense')->name('expenses.show');
-            Route::get('{expense}/receipt', [ExpenseController::class, 'receipt'])->middleware('can:view,expense')->name('expenses.receipt');
-            Route::get('{expense}/edit', [ExpenseController::class, 'edit'])->middleware('can:update,expense')->name('expenses.edit');
-            Route::put('{expense}', [ExpenseController::class, 'update'])->middleware('can:update,expense')->name('expenses.update');
-            Route::delete('{expense}', [ExpenseController::class, 'destroy'])->middleware('can:delete,expense')->name('expenses.destroy');
+        /*
+        | Herd (Phase 2)
+        */
+        Route::prefix('animals')->group(function () {
+            Route::get('breeds', [AnimalBreedController::class, 'index'])->middleware('can:animals.view')->name('animal-breeds.index');
+            Route::get('breeds/by-type/{type}', [AnimalBreedController::class, 'byType'])
+                ->middleware('can:animals.view')->name('animal-breeds.by-type');
+            Route::resource('breeds', AnimalBreedController::class)
+                ->only(['create', 'store', 'edit', 'update'])
+                ->parameters(['breeds' => 'animal_breed'])
+                ->names('animal-breeds')
+                ->middleware('can:animals.manage');
+
+            Route::get('/', [AnimalController::class, 'index'])->middleware('can:animals.view')->name('animals.index');
+            Route::get('search', [AnimalController::class, 'search'])->name('animals.search'); // animals.view or expense rights, checked in the controller
+            Route::get('create', [AnimalController::class, 'create'])->middleware('can:animals.manage')->name('animals.create');
+            Route::post('/', [AnimalController::class, 'store'])->middleware('can:animals.manage')->name('animals.store');
+            Route::whereNumber('animal')->group(function () {
+                Route::get('{animal}', [AnimalController::class, 'show'])->middleware('can:animals.view')->name('animals.show');
+                Route::get('{animal}/edit', [AnimalController::class, 'edit'])->middleware('can:animals.manage')->name('animals.edit');
+                Route::put('{animal}', [AnimalController::class, 'update'])->middleware('can:animals.manage')->name('animals.update');
+                Route::delete('{animal}', [AnimalController::class, 'destroy'])->middleware('can:animals.manage')->name('animals.destroy');
+                Route::post('{animal}/change', [AnimalController::class, 'change'])->middleware('can:animals.manage')->name('animals.change');
+                Route::post('{animal}/dry-off', [AnimalController::class, 'dryOff'])->middleware('can:breeding.manage')->name('animals.dry-off');
+                Route::post('{animal}/mark-heifer', [AnimalController::class, 'markHeifer'])->middleware('can:breeding.manage')->name('animals.mark-heifer');
+            });
         });
-    });
 
-    /*
-    | Herd (Phase 2)
-    */
-    Route::prefix('animals')->group(function () {
-        Route::get('breeds', [AnimalBreedController::class, 'index'])->middleware('can:animals.view')->name('animal-breeds.index');
-        Route::get('breeds/by-type/{type}', [AnimalBreedController::class, 'byType'])
-            ->middleware('can:animals.view')->name('animal-breeds.by-type');
-        Route::resource('breeds', AnimalBreedController::class)
-            ->only(['create', 'store', 'edit', 'update'])
-            ->parameters(['breeds' => 'animal_breed'])
-            ->names('animal-breeds')
-            ->middleware('can:animals.manage');
-
-        Route::get('/', [AnimalController::class, 'index'])->middleware('can:animals.view')->name('animals.index');
-        Route::get('search', [AnimalController::class, 'search'])->name('animals.search'); // animals.view or expense rights, checked in the controller
-        Route::get('create', [AnimalController::class, 'create'])->middleware('can:animals.manage')->name('animals.create');
-        Route::post('/', [AnimalController::class, 'store'])->middleware('can:animals.manage')->name('animals.store');
-        Route::whereNumber('animal')->group(function () {
-            Route::get('{animal}', [AnimalController::class, 'show'])->middleware('can:animals.view')->name('animals.show');
-            Route::get('{animal}/edit', [AnimalController::class, 'edit'])->middleware('can:animals.manage')->name('animals.edit');
-            Route::put('{animal}', [AnimalController::class, 'update'])->middleware('can:animals.manage')->name('animals.update');
-            Route::delete('{animal}', [AnimalController::class, 'destroy'])->middleware('can:animals.manage')->name('animals.destroy');
-            Route::post('{animal}/change', [AnimalController::class, 'change'])->middleware('can:animals.manage')->name('animals.change');
-            Route::post('{animal}/dry-off', [AnimalController::class, 'dryOff'])->middleware('can:breeding.manage')->name('animals.dry-off');
-            Route::post('{animal}/mark-heifer', [AnimalController::class, 'markHeifer'])->middleware('can:breeding.manage')->name('animals.mark-heifer');
+        // Herd → Breeding: breeding.manage for everything
+        Route::middleware('can:breeding.manage')->group(function () {
+            Route::resource('breeding/calvings', CalvingController::class)->only(['index', 'create', 'store', 'destroy'])->names('breeding.calvings');
+            Route::resource('breeding', BreedingEventController::class)->except('show');
         });
-    });
 
-    // Herd → Breeding: breeding.manage for everything
-    Route::middleware('can:breeding.manage')->group(function () {
-        Route::resource('breeding/calvings', CalvingController::class)->only(['index', 'create', 'store', 'destroy'])->names('breeding.calvings');
-        Route::resource('breeding', BreedingEventController::class)->except('show');
-    });
-
-    // Herd → Feed: feed.view to see stock and entries, feed.manage to change
-    Route::prefix('feed')->name('feed.')->group(function () {
-        Route::middleware('can:feed.view')->group(function () {
-            Route::get('/', [FeedController::class, 'index'])->name('index');
-            Route::get('entries', [FeedTransactionController::class, 'index'])->name('transactions.index');
+        // Herd → Feed: feed.view to see stock and entries, feed.manage to change
+        Route::prefix('feed')->name('feed.')->group(function () {
+            Route::middleware('can:feed.view')->group(function () {
+                Route::get('/', [FeedController::class, 'index'])->name('index');
+                Route::get('entries', [FeedTransactionController::class, 'index'])->name('transactions.index');
+            });
+            Route::middleware('can:feed.manage')->group(function () {
+                Route::resource('items', FeedController::class)->only(['create', 'store', 'edit', 'update', 'destroy'])->names('items');
+                Route::resource('entries', FeedTransactionController::class)->except(['index', 'show'])
+                    ->parameters(['entries' => 'transaction'])->names('transactions');
+            });
         });
-        Route::middleware('can:feed.manage')->group(function () {
-            Route::resource('items', FeedController::class)->only(['create', 'store', 'edit', 'update', 'destroy'])->names('items');
-            Route::resource('entries', FeedTransactionController::class)->except(['index', 'show'])
-                ->parameters(['entries' => 'transaction'])->names('transactions');
+
+        // Herd → Health: health.view to see, health.manage to add / change / delete
+        Route::prefix('health')->name('health.')->group(function () {
+            Route::middleware('can:health.view')->group(function () {
+                Route::get('treatments', [TreatmentController::class, 'index'])->name('treatments.index');
+                Route::get('vaccinations', [VaccinationController::class, 'index'])->name('vaccinations.index');
+                Route::get('vaccines', [VaccineTypeController::class, 'index'])->name('vaccine-types.index');
+            });
+            Route::middleware('can:health.manage')->group(function () {
+                Route::resource('treatments', TreatmentController::class)->except(['index', 'show']);
+                Route::resource('vaccinations', VaccinationController::class)->except(['index', 'show']);
+                Route::resource('vaccines', VaccineTypeController::class)->only(['store', 'edit', 'update', 'destroy'])
+                    ->parameters(['vaccines' => 'vaccine_type'])->names('vaccine-types');
+            });
         });
-    });
 
-    // Herd → Health: health.view to see, health.manage to add / change / delete
-    Route::prefix('health')->name('health.')->group(function () {
-        Route::middleware('can:health.view')->group(function () {
-            Route::get('treatments', [TreatmentController::class, 'index'])->name('treatments.index');
-            Route::get('vaccinations', [VaccinationController::class, 'index'])->name('vaccinations.index');
-            Route::get('vaccines', [VaccineTypeController::class, 'index'])->name('vaccine-types.index');
+        // own name prefix so the menu highlights "Milk Alerts", not "Milk Entry"
+        Route::get('milk-production/alerts', [MilkProductionController::class, 'alerts'])
+            ->middleware('can:viewAny,'.MilkProductionRecord::class)->name('milk-alerts.index');
+
+        Route::prefix('milk-production')->name('milk-production.')->group(function () {
+            Route::get('/', [MilkProductionController::class, 'index'])->middleware('can:viewAny,'.MilkProductionRecord::class)->name('index');
+            Route::post('bulk', [MilkProductionController::class, 'storeBulk'])->name('bulk'); // create, checked in the request
+            Route::get('entries', [MilkProductionController::class, 'entries'])->middleware('can:viewAny,'.MilkProductionRecord::class)->name('entries');
+            Route::get('create', [MilkProductionController::class, 'create'])->middleware('can:create,'.MilkProductionRecord::class)->name('create');
+            Route::post('/', [MilkProductionController::class, 'store'])->middleware('can:create,'.MilkProductionRecord::class)->name('store');
+            Route::whereNumber('record')->group(function () {
+                Route::get('{record}/edit', [MilkProductionController::class, 'edit'])->middleware('can:update,record')->name('edit');
+                Route::put('{record}', [MilkProductionController::class, 'update'])->middleware('can:update,record')->name('update');
+                Route::delete('{record}', [MilkProductionController::class, 'destroy'])->middleware('can:delete,record')->name('destroy');
+            });
         });
-        Route::middleware('can:health.manage')->group(function () {
-            Route::resource('treatments', TreatmentController::class)->except(['index', 'show']);
-            Route::resource('vaccinations', VaccinationController::class)->except(['index', 'show']);
-            Route::resource('vaccines', VaccineTypeController::class)->only(['store', 'edit', 'update', 'destroy'])
-                ->parameters(['vaccines' => 'vaccine_type'])->names('vaccine-types');
+
+        /*
+        | Milk stock (spec 7.4) — usage needs milk_stock.view, adjustments milk_stock.adjust (also checked in the request)
+        */
+        Route::prefix('milk-stock')->name('milk-stock.')->group(function () {
+            Route::middleware('can:milk_stock.view')->group(function () {
+                Route::get('/', [MilkStockController::class, 'index'])->name('index');
+                Route::get('ledger', [MilkStockController::class, 'ledger'])->name('ledger');
+                Route::get('usage/create', [MilkStockController::class, 'createUsage'])->name('usage.create');
+                Route::post('usage', [MilkStockController::class, 'store'])->name('usage.store');
+            });
+            Route::middleware('can:milk_stock.adjust')->group(function () {
+                Route::get('adjustments/create', [MilkStockController::class, 'createAdjustment'])->name('adjustments.create');
+                Route::post('adjustments', [MilkStockController::class, 'store'])->name('adjustments.store');
+            });
         });
-    });
 
-    // own name prefix so the menu highlights "Milk Alerts", not "Milk Entry"
-    Route::get('milk-production/alerts', [MilkProductionController::class, 'alerts'])
-        ->middleware('can:viewAny,'.MilkProductionRecord::class)->name('milk-alerts.index');
-
-    Route::prefix('milk-production')->name('milk-production.')->group(function () {
-        Route::get('/', [MilkProductionController::class, 'index'])->middleware('can:viewAny,'.MilkProductionRecord::class)->name('index');
-        Route::post('bulk', [MilkProductionController::class, 'storeBulk'])->name('bulk'); // create, checked in the request
-        Route::get('entries', [MilkProductionController::class, 'entries'])->middleware('can:viewAny,'.MilkProductionRecord::class)->name('entries');
-        Route::get('create', [MilkProductionController::class, 'create'])->middleware('can:create,'.MilkProductionRecord::class)->name('create');
-        Route::post('/', [MilkProductionController::class, 'store'])->middleware('can:create,'.MilkProductionRecord::class)->name('store');
-        Route::whereNumber('record')->group(function () {
-            Route::get('{record}/edit', [MilkProductionController::class, 'edit'])->middleware('can:update,record')->name('edit');
-            Route::put('{record}', [MilkProductionController::class, 'update'])->middleware('can:update,record')->name('update');
-            Route::delete('{record}', [MilkProductionController::class, 'destroy'])->middleware('can:delete,record')->name('destroy');
+        /*
+        | Collection (spec Phase 4) — farmers: farmers.view to see, farmers.manage to add / edit / delete
+        */
+        Route::get('farmers', [FarmerController::class, 'index'])->middleware('can:farmers.view')->name('farmers.index');
+        Route::get('farmers/search', [FarmerController::class, 'search'])->middleware('can:farmers.view')->name('farmers.search');
+        Route::resource('farmers', FarmerController::class)->except(['index', 'show'])->middleware('can:farmers.manage');
+        Route::get('farmers/{farmer}', [FarmerController::class, 'show'])->whereNumber('farmer')
+            ->middleware('can:farmers.view')->name('farmers.show');
+        // collection entry: collections.view to see the shift, collections.create to save
+        Route::get('collections', [CollectionController::class, 'index'])->middleware('can:collections.view')->name('collections.index');
+        Route::get('collections/list', [CollectionController::class, 'list'])->middleware('can:collections.view')->name('collections.list');
+        Route::get('collections/{collection}/edit', [CollectionController::class, 'edit'])->middleware('can:update,collection')->name('collections.edit');
+        Route::put('collections/{collection}', [CollectionController::class, 'update'])->name('collections.update'); // checked in the request
+        Route::delete('collections/{collection}', [CollectionController::class, 'destroy'])->name('collections.destroy');
+        Route::middleware('can:collections.create')->group(function () {
+            Route::post('collections', [CollectionController::class, 'store'])->name('collections.store');
+            Route::get('collections/quote', [CollectionController::class, 'quote'])->name('collections.quote');
         });
-    });
-
-    /*
-    | Milk stock (spec 7.4) — usage needs milk_stock.view, adjustments milk_stock.adjust (also checked in the request)
-    */
-    Route::prefix('milk-stock')->name('milk-stock.')->group(function () {
-        Route::middleware('can:milk_stock.view')->group(function () {
-            Route::get('/', [MilkStockController::class, 'index'])->name('index');
-            Route::get('ledger', [MilkStockController::class, 'ledger'])->name('ledger');
-            Route::get('usage/create', [MilkStockController::class, 'createUsage'])->name('usage.create');
-            Route::post('usage', [MilkStockController::class, 'store'])->name('usage.store');
+        // farmer advances: farmer_advances.manage
+        Route::middleware('can:farmer_advances.manage')->group(function () {
+            Route::get('farmer-advances', [FarmerAdvanceController::class, 'index'])->name('farmer-advances.index');
+            Route::post('farmer-advances', [FarmerAdvanceController::class, 'store'])->name('farmer-advances.store');
+            Route::delete('farmer-advances/{farmer_advance}', [FarmerAdvanceController::class, 'destroy'])->name('farmer-advances.destroy');
         });
-        Route::middleware('can:milk_stock.adjust')->group(function () {
-            Route::get('adjustments/create', [MilkStockController::class, 'createAdjustment'])->name('adjustments.create');
-            Route::post('adjustments', [MilkStockController::class, 'store'])->name('adjustments.store');
+        // farmer payment cycles: farmer_payments.view to see, farmer_payments.manage to make / change / finalize / pay
+        Route::get('farmer-payments', [FarmerPaymentController::class, 'index'])->middleware('can:farmer_payments.view')->name('farmer-payments.index');
+        Route::get('farmer-payments/{farmer_payment}', [FarmerPaymentController::class, 'show'])->middleware('can:farmer_payments.view')->name('farmer-payments.show');
+        Route::get('farmer-payments/{farmer_payment}/bank-sheet', [FarmerPaymentController::class, 'bankSheet'])->middleware('can:farmer_payments.view')->name('farmer-payments.bank-sheet');
+        Route::get('farmer-statements/{statement}/pdf', [FarmerPaymentController::class, 'statementPdf'])->middleware('can:farmer_payments.view')->name('farmer-statements.pdf');
+        Route::middleware('can:farmer_payments.manage')->group(function () {
+            Route::post('farmer-payments', [FarmerPaymentController::class, 'store'])->name('farmer-payments.store');
+            Route::delete('farmer-payments/{farmer_payment}', [FarmerPaymentController::class, 'destroy'])->name('farmer-payments.destroy');
+            Route::post('farmer-payments/{farmer_payment}/finalize', [FarmerPaymentController::class, 'finalize'])->name('farmer-payments.finalize');
+            Route::post('farmer-payments/{farmer_payment}/pay-all', [FarmerPaymentController::class, 'payAll'])->name('farmer-payments.pay-all');
+            Route::get('farmer-statements/{statement}/edit', [FarmerPaymentController::class, 'editStatement'])->name('farmer-statements.edit');
+            Route::put('farmer-statements/{statement}', [FarmerPaymentController::class, 'updateStatement'])->name('farmer-statements.update');
+            Route::post('farmer-statements/{statement}/pay', [FarmerPaymentController::class, 'pay'])->name('farmer-statements.pay');
+            Route::post('farmer-statements/{statement}/unpay', [FarmerPaymentController::class, 'unpay'])->name('farmer-statements.unpay');
         });
-    });
+        // rate charts + preview calculator: rate_charts.manage
+        Route::middleware('can:rate_charts.manage')->group(function () {
+            Route::resource('rate-charts', RateChartController::class);
+            Route::get('rate-charts/{rate_chart}/preview', [RateChartController::class, 'preview'])->name('rate-charts.preview');
+        });
 
-    /*
-    | Collection (spec Phase 4) — farmers: farmers.view to see, farmers.manage to add / edit / delete
-    */
-    Route::get('farmers', [FarmerController::class, 'index'])->middleware('can:farmers.view')->name('farmers.index');
-    Route::get('farmers/search', [FarmerController::class, 'search'])->middleware('can:farmers.view')->name('farmers.search');
-    Route::resource('farmers', FarmerController::class)->except(['index', 'show'])->middleware('can:farmers.manage');
-    Route::get('farmers/{farmer}', [FarmerController::class, 'show'])->whereNumber('farmer')
-        ->middleware('can:farmers.view')->name('farmers.show');
-    // collection entry: collections.view to see the shift, collections.create to save
-    Route::get('collections', [CollectionController::class, 'index'])->middleware('can:collections.view')->name('collections.index');
-    Route::get('collections/list', [CollectionController::class, 'list'])->middleware('can:collections.view')->name('collections.list');
-    Route::get('collections/{collection}/edit', [CollectionController::class, 'edit'])->middleware('can:update,collection')->name('collections.edit');
-    Route::put('collections/{collection}', [CollectionController::class, 'update'])->name('collections.update'); // checked in the request
-    Route::delete('collections/{collection}', [CollectionController::class, 'destroy'])->name('collections.destroy');
-    Route::middleware('can:collections.create')->group(function () {
-        Route::post('collections', [CollectionController::class, 'store'])->name('collections.store');
-        Route::get('collections/quote', [CollectionController::class, 'quote'])->name('collections.quote');
-    });
-    // farmer advances: farmer_advances.manage
-    Route::middleware('can:farmer_advances.manage')->group(function () {
-        Route::get('farmer-advances', [FarmerAdvanceController::class, 'index'])->name('farmer-advances.index');
-        Route::post('farmer-advances', [FarmerAdvanceController::class, 'store'])->name('farmer-advances.store');
-        Route::delete('farmer-advances/{farmer_advance}', [FarmerAdvanceController::class, 'destroy'])->name('farmer-advances.destroy');
-    });
-    // farmer payment cycles: farmer_payments.view to see, farmer_payments.manage to make / change / finalize / pay
-    Route::get('farmer-payments', [FarmerPaymentController::class, 'index'])->middleware('can:farmer_payments.view')->name('farmer-payments.index');
-    Route::get('farmer-payments/{farmer_payment}', [FarmerPaymentController::class, 'show'])->middleware('can:farmer_payments.view')->name('farmer-payments.show');
-    Route::get('farmer-payments/{farmer_payment}/bank-sheet', [FarmerPaymentController::class, 'bankSheet'])->middleware('can:farmer_payments.view')->name('farmer-payments.bank-sheet');
-    Route::get('farmer-statements/{statement}/pdf', [FarmerPaymentController::class, 'statementPdf'])->middleware('can:farmer_payments.view')->name('farmer-statements.pdf');
-    Route::middleware('can:farmer_payments.manage')->group(function () {
-        Route::post('farmer-payments', [FarmerPaymentController::class, 'store'])->name('farmer-payments.store');
-        Route::delete('farmer-payments/{farmer_payment}', [FarmerPaymentController::class, 'destroy'])->name('farmer-payments.destroy');
-        Route::post('farmer-payments/{farmer_payment}/finalize', [FarmerPaymentController::class, 'finalize'])->name('farmer-payments.finalize');
-        Route::post('farmer-payments/{farmer_payment}/pay-all', [FarmerPaymentController::class, 'payAll'])->name('farmer-payments.pay-all');
-        Route::get('farmer-statements/{statement}/edit', [FarmerPaymentController::class, 'editStatement'])->name('farmer-statements.edit');
-        Route::put('farmer-statements/{statement}', [FarmerPaymentController::class, 'updateStatement'])->name('farmer-statements.update');
-        Route::post('farmer-statements/{statement}/pay', [FarmerPaymentController::class, 'pay'])->name('farmer-statements.pay');
-        Route::post('farmer-statements/{statement}/unpay', [FarmerPaymentController::class, 'unpay'])->name('farmer-statements.unpay');
-    });
-    // rate charts + preview calculator: rate_charts.manage
-    Route::middleware('can:rate_charts.manage')->group(function () {
-        Route::resource('rate-charts', RateChartController::class);
-        Route::get('rate-charts/{rate_chart}/preview', [RateChartController::class, 'preview'])->name('rate-charts.preview');
-    });
+        /*
+        | Sales (spec Phase 3) — customers, routes and products: customers.view to see, customers.manage to add / edit
+        */
+        Route::get('customers', [CustomerController::class, 'index'])->middleware('can:customers.view')->name('customers.index');
+        Route::get('customers/search', [CustomerController::class, 'search'])->middleware('can:customers.view')->name('customers.search');
+        Route::resource('customers', CustomerController::class)
+            ->only(['create', 'store', 'edit', 'update', 'destroy'])
+            ->middleware('can:customers.manage');
+        Route::get('customers/{customer}', [CustomerController::class, 'show'])->whereNumber('customer')
+            ->middleware('can:customers.view')->name('customers.show');
+        Route::get('customers/{customer}/ledger', [CustomerController::class, 'ledger'])
+            ->middleware('can:customers.view')->name('customers.ledger');
+        Route::middleware('can:customers.manage')->scopeBindings()->group(function () {
+            Route::post('customers/{customer}/rates', [CustomerController::class, 'storeRate'])->name('customers.rates.store');
+            Route::delete('customers/{customer}/rates/{rate}', [CustomerController::class, 'destroyRate'])->name('customers.rates.destroy');
+        });
+        Route::get('deliveries', [DeliveryController::class, 'index'])->middleware('can:deliveries.view')->name('deliveries.index');
+        Route::post('deliveries/generate', [DeliveryController::class, 'generate'])->middleware('can:deliveries.view_all_routes')->name('deliveries.generate');
+        Route::get('deliveries/sheet', [DeliverySheetController::class, 'show'])->middleware('can:deliveries.view')->name('deliveries.sheet');
+        Route::middleware('can:deliveries.view_all_routes')->group(function () {
+            Route::get('deliveries/grid', [DeliveryGridController::class, 'index'])->name('deliveries.grid');
+            Route::post('deliveries/bulk-deliver', [DeliveryGridController::class, 'bulkDeliver'])->name('deliveries.bulk-deliver');
+            Route::get('deliveries/dispatch', [DeliveryGridController::class, 'createDispatch'])->name('deliveries.dispatch.create');
+            Route::post('deliveries/dispatch', [DeliveryGridController::class, 'storeDispatch'])->name('deliveries.dispatch.store');
+            Route::get('deliveries/{delivery}/edit', [DeliveryGridController::class, 'edit'])->name('deliveries.edit');
+            Route::put('deliveries/{delivery}', [DeliveryGridController::class, 'update'])->name('deliveries.update');
+        });
+        // route check + billed lock in DeliveryPolicy (via the Form Requests)
+        Route::post('deliveries/{delivery}/deliver', [DeliverySheetController::class, 'deliver'])->name('deliveries.deliver');
+        Route::post('deliveries/{delivery}/skip', [DeliverySheetController::class, 'skip'])->name('deliveries.skip');
+        Route::post('deliveries/{delivery}/payment', [DeliverySheetController::class, 'collect'])->name('deliveries.collect');
+        // Customer payments (policy: customer_payments.edit, or own same-day entry with customer_payments.create)
+        Route::get('customer-payments', [CustomerPaymentController::class, 'index'])
+            ->middleware('can:create,'.CustomerPayment::class)->name('customer-payments.index');
+        Route::get('customer-payments/create', [CustomerPaymentController::class, 'create'])
+            ->middleware(['can:create,'.CustomerPayment::class, 'can:customers.view'])->name('customer-payments.create');
+        Route::post('customer-payments', [CustomerPaymentController::class, 'store'])
+            ->middleware('can:create,'.CustomerPayment::class)->name('customer-payments.store');
+        Route::get('customer-payments/{customer_payment}/edit', [CustomerPaymentController::class, 'edit'])
+            ->middleware('can:update,customer_payment')->name('customer-payments.edit');
+        Route::put('customer-payments/{customer_payment}', [CustomerPaymentController::class, 'update'])
+            ->middleware('can:update,customer_payment')->name('customer-payments.update');
+        Route::delete('customer-payments/{customer_payment}', [CustomerPaymentController::class, 'destroy'])
+            ->middleware('can:delete,customer_payment')->name('customer-payments.destroy');
 
-    /*
-    | Sales (spec Phase 3) — customers, routes and products: customers.view to see, customers.manage to add / edit
-    */
-    Route::get('customers', [CustomerController::class, 'index'])->middleware('can:customers.view')->name('customers.index');
-    Route::get('customers/search', [CustomerController::class, 'search'])->middleware('can:customers.view')->name('customers.search');
-    Route::resource('customers', CustomerController::class)
-        ->only(['create', 'store', 'edit', 'update', 'destroy'])
-        ->middleware('can:customers.manage');
-    Route::get('customers/{customer}', [CustomerController::class, 'show'])->whereNumber('customer')
-        ->middleware('can:customers.view')->name('customers.show');
-    Route::get('customers/{customer}/ledger', [CustomerController::class, 'ledger'])
-        ->middleware('can:customers.view')->name('customers.ledger');
-    Route::middleware('can:customers.manage')->scopeBindings()->group(function () {
-        Route::post('customers/{customer}/rates', [CustomerController::class, 'storeRate'])->name('customers.rates.store');
-        Route::delete('customers/{customer}/rates/{rate}', [CustomerController::class, 'destroyRate'])->name('customers.rates.destroy');
-    });
-    Route::get('deliveries', [DeliveryController::class, 'index'])->middleware('can:deliveries.view')->name('deliveries.index');
-    Route::post('deliveries/generate', [DeliveryController::class, 'generate'])->middleware('can:deliveries.view_all_routes')->name('deliveries.generate');
-    Route::get('deliveries/sheet', [DeliverySheetController::class, 'show'])->middleware('can:deliveries.view')->name('deliveries.sheet');
-    Route::middleware('can:deliveries.view_all_routes')->group(function () {
-        Route::get('deliveries/grid', [DeliveryGridController::class, 'index'])->name('deliveries.grid');
-        Route::post('deliveries/bulk-deliver', [DeliveryGridController::class, 'bulkDeliver'])->name('deliveries.bulk-deliver');
-        Route::get('deliveries/dispatch', [DeliveryGridController::class, 'createDispatch'])->name('deliveries.dispatch.create');
-        Route::post('deliveries/dispatch', [DeliveryGridController::class, 'storeDispatch'])->name('deliveries.dispatch.store');
-        Route::get('deliveries/{delivery}/edit', [DeliveryGridController::class, 'edit'])->name('deliveries.edit');
-        Route::put('deliveries/{delivery}', [DeliveryGridController::class, 'update'])->name('deliveries.update');
-    });
-    // route check + billed lock in DeliveryPolicy (via the Form Requests)
-    Route::post('deliveries/{delivery}/deliver', [DeliverySheetController::class, 'deliver'])->name('deliveries.deliver');
-    Route::post('deliveries/{delivery}/skip', [DeliverySheetController::class, 'skip'])->name('deliveries.skip');
-    Route::post('deliveries/{delivery}/payment', [DeliverySheetController::class, 'collect'])->name('deliveries.collect');
-    // Customer payments (policy: customer_payments.edit, or own same-day entry with customer_payments.create)
-    Route::get('customer-payments', [CustomerPaymentController::class, 'index'])
-        ->middleware('can:create,'.CustomerPayment::class)->name('customer-payments.index');
-    Route::get('customer-payments/create', [CustomerPaymentController::class, 'create'])
-        ->middleware(['can:create,'.CustomerPayment::class, 'can:customers.view'])->name('customer-payments.create');
-    Route::post('customer-payments', [CustomerPaymentController::class, 'store'])
-        ->middleware('can:create,'.CustomerPayment::class)->name('customer-payments.store');
-    Route::get('customer-payments/{customer_payment}/edit', [CustomerPaymentController::class, 'edit'])
-        ->middleware('can:update,customer_payment')->name('customer-payments.edit');
-    Route::put('customer-payments/{customer_payment}', [CustomerPaymentController::class, 'update'])
-        ->middleware('can:update,customer_payment')->name('customer-payments.update');
-    Route::delete('customer-payments/{customer_payment}', [CustomerPaymentController::class, 'destroy'])
-        ->middleware('can:delete,customer_payment')->name('customer-payments.destroy');
-
-    // Bills: view / generate (+ delete draft) / finalize / cancel (spec 5.1)
-    Route::get('bills/create', [BillController::class, 'create'])->middleware('can:bills.generate')->name('bills.create');
-    Route::post('bills', [BillController::class, 'store'])->middleware('can:bills.generate')->name('bills.store');
-    Route::delete('bills/{bill}', [BillController::class, 'destroy'])->middleware('can:bills.generate')->name('bills.destroy');
-    Route::post('bills/{bill}/finalize', [BillController::class, 'finalize'])->middleware('can:bills.finalize')->name('bills.finalize');
-    Route::post('bills/{bill}/cancel', [BillController::class, 'cancel'])->middleware('can:bills.cancel')->name('bills.cancel');
-    Route::middleware('can:bills.view')->group(function () {
-        Route::get('bills', [BillController::class, 'index'])->name('bills.index');
-        Route::get('bills/{bill}', [BillController::class, 'show'])->whereNumber('bill')->name('bills.show');
-        Route::get('bills/{bill}/pdf', [BillController::class, 'pdf'])->name('bills.pdf');
-    });
-    // Customer adjustments (customer_adjustments.create; remove own same-day entry — CustomerAdjustmentPolicy)
-    Route::scopeBindings()->group(function () {
-        Route::post('customers/{customer}/adjustments', [CustomerController::class, 'storeAdjustment'])
-            ->middleware('can:customer_adjustments.create')->name('customers.adjustments.store');
-        Route::delete('customers/{customer}/adjustments/{adjustment}', [CustomerController::class, 'destroyAdjustment'])
-            ->name('customers.adjustments.destroy');
-    });
-    Route::middleware('can:subscriptions.manage')->group(function () {
-        Route::resource('subscriptions', SubscriptionController::class)->except('show');
+        // Bills: view / generate (+ delete draft) / finalize / cancel (spec 5.1)
+        Route::get('bills/create', [BillController::class, 'create'])->middleware('can:bills.generate')->name('bills.create');
+        Route::post('bills', [BillController::class, 'store'])->middleware('can:bills.generate')->name('bills.store');
+        Route::delete('bills/{bill}', [BillController::class, 'destroy'])->middleware('can:bills.generate')->name('bills.destroy');
+        Route::post('bills/{bill}/finalize', [BillController::class, 'finalize'])->middleware('can:bills.finalize')->name('bills.finalize');
+        Route::post('bills/{bill}/cancel', [BillController::class, 'cancel'])->middleware('can:bills.cancel')->name('bills.cancel');
+        Route::middleware('can:bills.view')->group(function () {
+            Route::get('bills', [BillController::class, 'index'])->name('bills.index');
+            Route::get('bills/{bill}', [BillController::class, 'show'])->whereNumber('bill')->name('bills.show');
+            Route::get('bills/{bill}/pdf', [BillController::class, 'pdf'])->name('bills.pdf');
+        });
+        // Customer adjustments (customer_adjustments.create; remove own same-day entry — CustomerAdjustmentPolicy)
         Route::scopeBindings()->group(function () {
-            Route::post('subscriptions/{subscription}/pauses', [SubscriptionController::class, 'storePause'])->name('subscriptions.pauses.store');
-            Route::delete('subscriptions/{subscription}/pauses/{pause}', [SubscriptionController::class, 'destroyPause'])->name('subscriptions.pauses.destroy');
+            Route::post('customers/{customer}/adjustments', [CustomerController::class, 'storeAdjustment'])
+                ->middleware('can:customer_adjustments.create')->name('customers.adjustments.store');
+            Route::delete('customers/{customer}/adjustments/{adjustment}', [CustomerController::class, 'destroyAdjustment'])
+                ->name('customers.adjustments.destroy');
         });
-    });
-    Route::get('delivery-routes', [DeliveryRouteController::class, 'index'])->middleware('can:customers.view')->name('delivery-routes.index');
-    Route::resource('delivery-routes', DeliveryRouteController::class)
-        ->only(['create', 'store', 'edit', 'update'])
-        ->middleware('can:customers.manage');
-    Route::get('products', [ProductController::class, 'index'])->middleware('can:customers.view')->name('products.index');
-    Route::resource('products', ProductController::class)
-        ->only(['create', 'store', 'edit', 'update'])
-        ->middleware('can:customers.manage');
+        Route::middleware('can:subscriptions.manage')->group(function () {
+            Route::resource('subscriptions', SubscriptionController::class)->except('show');
+            Route::scopeBindings()->group(function () {
+                Route::post('subscriptions/{subscription}/pauses', [SubscriptionController::class, 'storePause'])->name('subscriptions.pauses.store');
+                Route::delete('subscriptions/{subscription}/pauses/{pause}', [SubscriptionController::class, 'destroyPause'])->name('subscriptions.pauses.destroy');
+            });
+        });
+        Route::get('delivery-routes', [DeliveryRouteController::class, 'index'])->middleware('can:customers.view')->name('delivery-routes.index');
+        Route::resource('delivery-routes', DeliveryRouteController::class)
+            ->only(['create', 'store', 'edit', 'update'])
+            ->middleware('can:customers.manage');
+        Route::get('products', [ProductController::class, 'index'])->middleware('can:customers.view')->name('products.index');
+        Route::resource('products', ProductController::class)
+            ->only(['create', 'store', 'edit', 'update'])
+            ->middleware('can:customers.manage');
 
-    /*
-    | Reports
-    */
-    Route::middleware('can:reports.view')->prefix('reports')->group(function () {
-        Route::get('/', [ReportController::class, 'index'])->name('reports.index');
-        Route::get('expenses/{report}', [ExpenseReportController::class, 'show'])
-            ->whereIn('report', ExpenseReportService::REPORTS)->name('reports.expenses');
-        Route::get('milk/{report}', [MilkReportController::class, 'show'])
-            ->whereIn('report', MilkReportService::REPORTS)->name('reports.milk');
-        Route::get('sales/{report}', [SalesReportController::class, 'show'])
-            ->whereIn('report', SalesReportService::REPORTS)->name('reports.sales');
-        Route::get('balances/{report}', [BalanceReportController::class, 'show'])
-            ->whereIn('report', BalanceReportService::REPORTS)->name('reports.balances');
-        Route::get('profit/{report}', [ProfitReportController::class, 'show'])
-            ->whereIn('report', ProfitReportService::REPORTS)->name('reports.profit');
-        Route::get('collection/{report}', [CollectionReportController::class, 'show'])
-            ->whereIn('report', CollectionReportService::REPORTS)->name('reports.collection');
-        Route::get('loans/{report}', [LoanReportController::class, 'show'])->middleware('can:loans.view')
-            ->whereIn('report', LoanReportService::REPORTS)->name('reports.loans');
-        Route::get('trading/{report}', [TradingReportController::class, 'show'])->middleware('can:animal_trading.view')
-            ->whereIn('report', TradingReportController::REPORTS)->name('reports.trading');
-        Route::get('staff/{report}', [StaffReportController::class, 'show'])->middleware('can:staff.view')
-            ->whereIn('report', StaffReportController::REPORTS)->name('reports.staff');
-    });
-
-    // Download a queued (large) export file made for the logged-in user
-    Route::get('exports/{file}', ExportDownloadController::class)->name('exports.download');
-
-    // Loans & overdraft (spec Phase 3A): loans.view to see, loans.manage to add / edit / delete
-    Route::middleware('can:loans.manage')->group(function () {
-        Route::get('loans/create', [LoanController::class, 'create'])->name('loans.create');
-        Route::post('loans', [LoanController::class, 'store'])->name('loans.store');
-        Route::get('loans/{loan}/edit', [LoanController::class, 'edit'])->name('loans.edit');
-        Route::put('loans/{loan}', [LoanController::class, 'update'])->name('loans.update');
-        Route::delete('loans/{loan}', [LoanController::class, 'destroy'])->name('loans.destroy');
-    });
-    // Loan payments / charges (policy: loan_payments.edit, or own same-day entry with loan_payments.create; latest only)
-    Route::middleware('can:loan_payments.create')->group(function () {
-        Route::get('loans/{loan}/payments/create', [LoanPaymentController::class, 'create'])->name('loans.payments.create');
-        Route::post('loans/{loan}/payments', [LoanPaymentController::class, 'store'])->name('loans.payments.store');
-        Route::get('loans/{loan}/payments/split', [LoanPaymentController::class, 'split'])->name('loans.payments.split');
-        Route::get('loans/{loan}/entries/create', [RevolvingEntryController::class, 'create'])->name('loans.entries.create');
-        Route::post('loans/{loan}/entries', [RevolvingEntryController::class, 'store'])->name('loans.entries.store');
-        Route::get('loans/{loan}/prepayment', [LoanActionController::class, 'prepaymentForm'])->name('loans.prepayment.create');
-        Route::post('loans/{loan}/prepayment', [LoanActionController::class, 'prepay'])->name('loans.prepayment.store');
-    });
-    Route::middleware('can:loans.manage')->group(function () {
-        Route::get('loans/{loan}/rate', [LoanActionController::class, 'rateForm'])->name('loans.rate.edit');
-        Route::post('loans/{loan}/rate', [LoanActionController::class, 'changeRate'])->name('loans.rate.update');
-        Route::post('loans/{loan}/close', [LoanActionController::class, 'close'])->name('loans.close');
-        Route::post('loans/{loan}/reopen', [LoanActionController::class, 'reopen'])->name('loans.reopen'); // owner only (request)
-    });
-    Route::get('loan-transactions/{loan_transaction}/edit', [LoanPaymentController::class, 'edit'])
-        ->middleware('can:update,loan_transaction')->name('loan-transactions.edit');
-    Route::put('loan-transactions/{loan_transaction}', [LoanPaymentController::class, 'update'])->name('loan-transactions.update');
-    Route::get('loan-transactions/{loan_transaction}/entry', [RevolvingEntryController::class, 'edit'])
-        ->middleware('can:update,loan_transaction')->name('loan-transactions.entry.edit');
-    Route::put('loan-transactions/{loan_transaction}/entry', [RevolvingEntryController::class, 'update'])->name('loan-transactions.entry.update');
-    Route::delete('loan-transactions/{loan_transaction}', [LoanPaymentController::class, 'destroy'])->name('loan-transactions.destroy');
-    Route::middleware('can:loans.view')->group(function () {
-        Route::get('loans', [LoanController::class, 'index'])->name('loans.index');
-        Route::get('loans/{loan}', [LoanController::class, 'show'])->whereNumber('loan')->name('loans.show');
-    });
-
-    // Animal trading parties (spec Phase 6)
-    Route::get('parties', [PartyController::class, 'index'])->middleware('can:animal_trading.view')->name('parties.index');
-    Route::get('parties/search', [PartyController::class, 'search'])->middleware('can:animal_trading.view')->name('parties.search');
-    Route::get('animal-purchases', [AnimalPurchaseController::class, 'index'])->middleware('can:animal_trading.view')->name('animal-purchases.index');
-    Route::get('animal-purchases/create', [AnimalPurchaseController::class, 'create'])->middleware('can:animal_trading.manage')->name('animal-purchases.create');
-    Route::post('animal-purchases', [AnimalPurchaseController::class, 'store'])->middleware('can:animal_trading.manage')->name('animal-purchases.store');
-    Route::get('animal-purchases/{animalPurchase}', [AnimalPurchaseController::class, 'show'])->whereNumber('animalPurchase')->middleware('can:animal_trading.view')->name('animal-purchases.show');
-    Route::delete('animal-purchases/{animalPurchase}', [AnimalPurchaseController::class, 'destroy'])->whereNumber('animalPurchase')->middleware('can:animal_trading.manage')->name('animal-purchases.destroy');
-    Route::get('parties/{party}/ledger', [PartyController::class, 'ledger'])->whereNumber('party')->middleware('can:animal_trading.view')->name('parties.ledger');
-    Route::get('animal-payments', [AnimalPaymentController::class, 'index'])->middleware('can:animal_trading.view')->name('animal-payments.index');
-    Route::get('animal-payments/create', [AnimalPaymentController::class, 'create'])->middleware('can:animal_trading.manage')->name('animal-payments.create');
-    Route::post('animal-payments', [AnimalPaymentController::class, 'store'])->middleware('can:animal_trading.manage')->name('animal-payments.store');
-    Route::delete('animal-payments/{animalPayment}', [AnimalPaymentController::class, 'destroy'])->whereNumber('animalPayment')->middleware('can:animal_trading.manage')->name('animal-payments.destroy');
-    Route::get('animal-sales', [AnimalSaleController::class, 'index'])->middleware('can:animal_trading.view')->name('animal-sales.index');
-    Route::get('animal-sales/create', [AnimalSaleController::class, 'create'])->middleware('can:animal_trading.manage')->name('animal-sales.create');
-    Route::post('animal-sales', [AnimalSaleController::class, 'store'])->middleware('can:animal_trading.manage')->name('animal-sales.store');
-    Route::get('animal-sales/{animalSale}', [AnimalSaleController::class, 'show'])->whereNumber('animalSale')->middleware('can:animal_trading.view')->name('animal-sales.show');
-    Route::get('animal-sales/{animalSale}/receipt', [AnimalSaleController::class, 'receipt'])->whereNumber('animalSale')->middleware('can:animal_trading.view')->name('animal-sales.receipt');
-    Route::post('animal-sales/{animalSale}/cancel', [AnimalSaleController::class, 'cancel'])->whereNumber('animalSale')->middleware('can:animal_trading.manage')->name('animal-sales.cancel');
-    Route::resource('parties', PartyController::class)->except(['index', 'show'])->middleware('can:animal_trading.manage');
-
-    // Staff (spec Phase 6)
-    Route::get('staff', [StaffMemberController::class, 'index'])->middleware('can:staff.view')->name('staff.index');
-    Route::resource('staff-advances', StaffAdvanceController::class)->only(['index', 'create', 'store', 'destroy'])
-        ->parameters(['staff-advances' => 'staffAdvance'])->whereNumber('staffAdvance')->middleware('can:salary.manage');
-    Route::middleware('can:salary.manage')->group(function () {
-        Route::get('salary-runs', [SalaryRunController::class, 'index'])->name('salary-runs.index');
-        Route::post('salary-runs', [SalaryRunController::class, 'store'])->name('salary-runs.store');
-        Route::get('salary-runs/{salaryRun}', [SalaryRunController::class, 'show'])->whereNumber('salaryRun')->name('salary-runs.show');
-        Route::post('salary-runs/{salaryRun}/recalculate', [SalaryRunController::class, 'recalculate'])->whereNumber('salaryRun')->name('salary-runs.recalculate');
-        Route::post('salary-runs/{salaryRun}/finalize', [SalaryRunController::class, 'finalize'])->whereNumber('salaryRun')->name('salary-runs.finalize');
-        Route::delete('salary-runs/{salaryRun}', [SalaryRunController::class, 'destroy'])->whereNumber('salaryRun')->name('salary-runs.destroy');
-        Route::get('salary-slips/{salarySlip}/edit', [SalaryRunController::class, 'editSlip'])->whereNumber('salarySlip')->name('salary-slips.edit');
-        Route::put('salary-slips/{salarySlip}', [SalaryRunController::class, 'updateSlip'])->whereNumber('salarySlip')->name('salary-slips.update');
-        Route::post('salary-slips/{salarySlip}/pay', [SalaryRunController::class, 'paySlip'])->whereNumber('salarySlip')->name('salary-slips.pay');
-        Route::get('salary-slips/{salarySlip}/pdf', [SalaryRunController::class, 'slipPdf'])->whereNumber('salarySlip')->name('salary-slips.pdf');
-    });
-    Route::get('attendance', [AttendanceController::class, 'index'])->middleware('can:attendance.manage')->name('attendance.index');
-    Route::post('attendance', [AttendanceController::class, 'store'])->middleware('can:attendance.manage')->name('attendance.store');
-    Route::resource('staff', StaffMemberController::class)->only(['create', 'store', 'edit', 'update'])->whereNumber('staff')->middleware('can:staff.manage');
-
-    Route::get('vendors', [VendorController::class, 'index'])->middleware('can:vendors.view')->name('vendors.index');
-    Route::get('vendors/search', [VendorController::class, 'search'])->name('vendors.search'); // vendors.view or feed.manage, checked in the controller
-    Route::post('vendors/quick', [VendorController::class, 'quickStore'])->middleware('can:vendors.manage')->name('vendors.quick-store');
-    Route::resource('vendors', VendorController::class)->except(['index', 'show'])->middleware('can:vendors.manage');
-    Route::get('vendors/{vendor}', [VendorController::class, 'show'])->whereNumber('vendor')
-        ->middleware('can:vendors.view')->name('vendors.show'); // ledger
-
-    // Payments to vendors (policy: vendor_payments.edit, or own same-day entry with vendor_payments.create)
-    Route::get('vendor-payments/create', [VendorPaymentController::class, 'create'])
-        ->middleware('can:create,'.VendorPayment::class)->name('vendor-payments.create');
-    Route::post('vendor-payments', [VendorPaymentController::class, 'store'])
-        ->middleware('can:create,'.VendorPayment::class)->name('vendor-payments.store');
-    Route::whereNumber('vendor_payment')->group(function () {
-        Route::get('vendor-payments/{vendor_payment}/edit', [VendorPaymentController::class, 'edit'])
-            ->middleware('can:update,vendor_payment')->name('vendor-payments.edit');
-        Route::put('vendor-payments/{vendor_payment}', [VendorPaymentController::class, 'update'])
-            ->middleware('can:update,vendor_payment')->name('vendor-payments.update');
-        Route::delete('vendor-payments/{vendor_payment}', [VendorPaymentController::class, 'destroy'])
-            ->middleware('can:delete,vendor_payment')->name('vendor-payments.destroy');
-    });
-
-    /*
-    | Settings
-    */
-    Route::prefix('settings')->group(function () {
-        Route::middleware('can:settings.manage')->group(function () {
-            Route::get('farm', [FarmSettingsController::class, 'edit'])->name('settings.farm.edit');
-            Route::put('farm', [FarmSettingsController::class, 'update'])->name('settings.farm.update');
-
-            Route::resource('sections', SectionController::class)->except(['show', 'destroy']);
-            Route::resource('payment-modes', PaymentModeController::class)->except(['show', 'destroy']);
+        /*
+        | Reports
+        */
+        Route::middleware('can:reports.view')->prefix('reports')->group(function () {
+            Route::get('/', [ReportController::class, 'index'])->name('reports.index');
+            Route::get('expenses/{report}', [ExpenseReportController::class, 'show'])
+                ->whereIn('report', ExpenseReportService::REPORTS)->name('reports.expenses');
+            Route::get('milk/{report}', [MilkReportController::class, 'show'])
+                ->whereIn('report', MilkReportService::REPORTS)->name('reports.milk');
+            Route::get('sales/{report}', [SalesReportController::class, 'show'])
+                ->whereIn('report', SalesReportService::REPORTS)->name('reports.sales');
+            Route::get('balances/{report}', [BalanceReportController::class, 'show'])
+                ->whereIn('report', BalanceReportService::REPORTS)->name('reports.balances');
+            Route::get('profit/{report}', [ProfitReportController::class, 'show'])
+                ->whereIn('report', ProfitReportService::REPORTS)->name('reports.profit');
+            Route::get('collection/{report}', [CollectionReportController::class, 'show'])
+                ->whereIn('report', CollectionReportService::REPORTS)->name('reports.collection');
+            Route::get('loans/{report}', [LoanReportController::class, 'show'])->middleware('can:loans.view')
+                ->whereIn('report', LoanReportService::REPORTS)->name('reports.loans');
+            Route::get('trading/{report}', [TradingReportController::class, 'show'])->middleware('can:animal_trading.view')
+                ->whereIn('report', TradingReportController::REPORTS)->name('reports.trading');
+            Route::get('staff/{report}', [StaffReportController::class, 'show'])->middleware('can:staff.view')
+                ->whereIn('report', StaffReportController::REPORTS)->name('reports.staff');
         });
 
-        Route::resource('users', UserController::class)->except(['show', 'destroy'])->middleware('can:users.manage');
-        Route::resource('roles', RoleController::class)->except(['show'])->middleware('can:roles.manage');
+        // Download a queued (large) export file made for the logged-in user
+        Route::get('exports/{file}', ExportDownloadController::class)->name('exports.download');
 
-        Route::get('audit-log', [AuditLogController::class, 'index'])->middleware('can:audit_logs.view')->name('audit-logs.index');
+        // Loans & overdraft (spec Phase 3A): loans.view to see, loans.manage to add / edit / delete
+        Route::middleware('can:loans.manage')->group(function () {
+            Route::get('loans/create', [LoanController::class, 'create'])->name('loans.create');
+            Route::post('loans', [LoanController::class, 'store'])->name('loans.store');
+            Route::get('loans/{loan}/edit', [LoanController::class, 'edit'])->name('loans.edit');
+            Route::put('loans/{loan}', [LoanController::class, 'update'])->name('loans.update');
+            Route::delete('loans/{loan}', [LoanController::class, 'destroy'])->name('loans.destroy');
+        });
+        // Loan payments / charges (policy: loan_payments.edit, or own same-day entry with loan_payments.create; latest only)
+        Route::middleware('can:loan_payments.create')->group(function () {
+            Route::get('loans/{loan}/payments/create', [LoanPaymentController::class, 'create'])->name('loans.payments.create');
+            Route::post('loans/{loan}/payments', [LoanPaymentController::class, 'store'])->name('loans.payments.store');
+            Route::get('loans/{loan}/payments/split', [LoanPaymentController::class, 'split'])->name('loans.payments.split');
+            Route::get('loans/{loan}/entries/create', [RevolvingEntryController::class, 'create'])->name('loans.entries.create');
+            Route::post('loans/{loan}/entries', [RevolvingEntryController::class, 'store'])->name('loans.entries.store');
+            Route::get('loans/{loan}/prepayment', [LoanActionController::class, 'prepaymentForm'])->name('loans.prepayment.create');
+            Route::post('loans/{loan}/prepayment', [LoanActionController::class, 'prepay'])->name('loans.prepayment.store');
+        });
+        Route::middleware('can:loans.manage')->group(function () {
+            Route::get('loans/{loan}/rate', [LoanActionController::class, 'rateForm'])->name('loans.rate.edit');
+            Route::post('loans/{loan}/rate', [LoanActionController::class, 'changeRate'])->name('loans.rate.update');
+            Route::post('loans/{loan}/close', [LoanActionController::class, 'close'])->name('loans.close');
+            Route::post('loans/{loan}/reopen', [LoanActionController::class, 'reopen'])->name('loans.reopen'); // owner only (request)
+        });
+        Route::get('loan-transactions/{loan_transaction}/edit', [LoanPaymentController::class, 'edit'])
+            ->middleware('can:update,loan_transaction')->name('loan-transactions.edit');
+        Route::put('loan-transactions/{loan_transaction}', [LoanPaymentController::class, 'update'])->name('loan-transactions.update');
+        Route::get('loan-transactions/{loan_transaction}/entry', [RevolvingEntryController::class, 'edit'])
+            ->middleware('can:update,loan_transaction')->name('loan-transactions.entry.edit');
+        Route::put('loan-transactions/{loan_transaction}/entry', [RevolvingEntryController::class, 'update'])->name('loan-transactions.entry.update');
+        Route::delete('loan-transactions/{loan_transaction}', [LoanPaymentController::class, 'destroy'])->name('loan-transactions.destroy');
+        Route::middleware('can:loans.view')->group(function () {
+            Route::get('loans', [LoanController::class, 'index'])->name('loans.index');
+            Route::get('loans/{loan}', [LoanController::class, 'show'])->whereNumber('loan')->name('loans.show');
+        });
 
-        Route::middleware('can:appearance.manage')->prefix('appearance')->name('settings.appearance.')->group(function () {
-            Route::get('/', [AppearanceController::class, 'edit'])->name('edit');
-            Route::put('/', [AppearanceController::class, 'update'])->name('update');
-            Route::post('reset', [AppearanceController::class, 'reset'])->name('reset');
-            Route::get('sample-pdf', [AppearanceController::class, 'samplePdf'])->name('sample-pdf');
+        // Animal trading parties (spec Phase 6)
+        Route::get('parties', [PartyController::class, 'index'])->middleware('can:animal_trading.view')->name('parties.index');
+        Route::get('parties/search', [PartyController::class, 'search'])->middleware('can:animal_trading.view')->name('parties.search');
+        Route::get('animal-purchases', [AnimalPurchaseController::class, 'index'])->middleware('can:animal_trading.view')->name('animal-purchases.index');
+        Route::get('animal-purchases/create', [AnimalPurchaseController::class, 'create'])->middleware('can:animal_trading.manage')->name('animal-purchases.create');
+        Route::post('animal-purchases', [AnimalPurchaseController::class, 'store'])->middleware('can:animal_trading.manage')->name('animal-purchases.store');
+        Route::get('animal-purchases/{animalPurchase}', [AnimalPurchaseController::class, 'show'])->whereNumber('animalPurchase')->middleware('can:animal_trading.view')->name('animal-purchases.show');
+        Route::delete('animal-purchases/{animalPurchase}', [AnimalPurchaseController::class, 'destroy'])->whereNumber('animalPurchase')->middleware('can:animal_trading.manage')->name('animal-purchases.destroy');
+        Route::get('parties/{party}/ledger', [PartyController::class, 'ledger'])->whereNumber('party')->middleware('can:animal_trading.view')->name('parties.ledger');
+        Route::get('animal-payments', [AnimalPaymentController::class, 'index'])->middleware('can:animal_trading.view')->name('animal-payments.index');
+        Route::get('animal-payments/create', [AnimalPaymentController::class, 'create'])->middleware('can:animal_trading.manage')->name('animal-payments.create');
+        Route::post('animal-payments', [AnimalPaymentController::class, 'store'])->middleware('can:animal_trading.manage')->name('animal-payments.store');
+        Route::delete('animal-payments/{animalPayment}', [AnimalPaymentController::class, 'destroy'])->whereNumber('animalPayment')->middleware('can:animal_trading.manage')->name('animal-payments.destroy');
+        Route::get('animal-sales', [AnimalSaleController::class, 'index'])->middleware('can:animal_trading.view')->name('animal-sales.index');
+        Route::get('animal-sales/create', [AnimalSaleController::class, 'create'])->middleware('can:animal_trading.manage')->name('animal-sales.create');
+        Route::post('animal-sales', [AnimalSaleController::class, 'store'])->middleware('can:animal_trading.manage')->name('animal-sales.store');
+        Route::get('animal-sales/{animalSale}', [AnimalSaleController::class, 'show'])->whereNumber('animalSale')->middleware('can:animal_trading.view')->name('animal-sales.show');
+        Route::get('animal-sales/{animalSale}/receipt', [AnimalSaleController::class, 'receipt'])->whereNumber('animalSale')->middleware('can:animal_trading.view')->name('animal-sales.receipt');
+        Route::post('animal-sales/{animalSale}/cancel', [AnimalSaleController::class, 'cancel'])->whereNumber('animalSale')->middleware('can:animal_trading.manage')->name('animal-sales.cancel');
+        Route::resource('parties', PartyController::class)->except(['index', 'show'])->middleware('can:animal_trading.manage');
+
+        // Staff (spec Phase 6)
+        Route::get('staff', [StaffMemberController::class, 'index'])->middleware('can:staff.view')->name('staff.index');
+        Route::resource('staff-advances', StaffAdvanceController::class)->only(['index', 'create', 'store', 'destroy'])
+            ->parameters(['staff-advances' => 'staffAdvance'])->whereNumber('staffAdvance')->middleware('can:salary.manage');
+        Route::middleware('can:salary.manage')->group(function () {
+            Route::get('salary-runs', [SalaryRunController::class, 'index'])->name('salary-runs.index');
+            Route::post('salary-runs', [SalaryRunController::class, 'store'])->name('salary-runs.store');
+            Route::get('salary-runs/{salaryRun}', [SalaryRunController::class, 'show'])->whereNumber('salaryRun')->name('salary-runs.show');
+            Route::post('salary-runs/{salaryRun}/recalculate', [SalaryRunController::class, 'recalculate'])->whereNumber('salaryRun')->name('salary-runs.recalculate');
+            Route::post('salary-runs/{salaryRun}/finalize', [SalaryRunController::class, 'finalize'])->whereNumber('salaryRun')->name('salary-runs.finalize');
+            Route::delete('salary-runs/{salaryRun}', [SalaryRunController::class, 'destroy'])->whereNumber('salaryRun')->name('salary-runs.destroy');
+            Route::get('salary-slips/{salarySlip}/edit', [SalaryRunController::class, 'editSlip'])->whereNumber('salarySlip')->name('salary-slips.edit');
+            Route::put('salary-slips/{salarySlip}', [SalaryRunController::class, 'updateSlip'])->whereNumber('salarySlip')->name('salary-slips.update');
+            Route::post('salary-slips/{salarySlip}/pay', [SalaryRunController::class, 'paySlip'])->whereNumber('salarySlip')->name('salary-slips.pay');
+            Route::get('salary-slips/{salarySlip}/pdf', [SalaryRunController::class, 'slipPdf'])->whereNumber('salarySlip')->name('salary-slips.pdf');
+        });
+        Route::get('attendance', [AttendanceController::class, 'index'])->middleware('can:attendance.manage')->name('attendance.index');
+        Route::post('attendance', [AttendanceController::class, 'store'])->middleware('can:attendance.manage')->name('attendance.store');
+        Route::resource('staff', StaffMemberController::class)->only(['create', 'store', 'edit', 'update'])->whereNumber('staff')->middleware('can:staff.manage');
+
+        Route::get('vendors', [VendorController::class, 'index'])->middleware('can:vendors.view')->name('vendors.index');
+        Route::get('vendors/search', [VendorController::class, 'search'])->name('vendors.search'); // vendors.view or feed.manage, checked in the controller
+        Route::post('vendors/quick', [VendorController::class, 'quickStore'])->middleware('can:vendors.manage')->name('vendors.quick-store');
+        Route::resource('vendors', VendorController::class)->except(['index', 'show'])->middleware('can:vendors.manage');
+        Route::get('vendors/{vendor}', [VendorController::class, 'show'])->whereNumber('vendor')
+            ->middleware('can:vendors.view')->name('vendors.show'); // ledger
+
+        // Payments to vendors (policy: vendor_payments.edit, or own same-day entry with vendor_payments.create)
+        Route::get('vendor-payments/create', [VendorPaymentController::class, 'create'])
+            ->middleware('can:create,'.VendorPayment::class)->name('vendor-payments.create');
+        Route::post('vendor-payments', [VendorPaymentController::class, 'store'])
+            ->middleware('can:create,'.VendorPayment::class)->name('vendor-payments.store');
+        Route::whereNumber('vendor_payment')->group(function () {
+            Route::get('vendor-payments/{vendor_payment}/edit', [VendorPaymentController::class, 'edit'])
+                ->middleware('can:update,vendor_payment')->name('vendor-payments.edit');
+            Route::put('vendor-payments/{vendor_payment}', [VendorPaymentController::class, 'update'])
+                ->middleware('can:update,vendor_payment')->name('vendor-payments.update');
+            Route::delete('vendor-payments/{vendor_payment}', [VendorPaymentController::class, 'destroy'])
+                ->middleware('can:delete,vendor_payment')->name('vendor-payments.destroy');
+        });
+
+        /*
+        | Settings
+        */
+        Route::prefix('settings')->group(function () {
+            Route::middleware('can:settings.manage')->group(function () {
+                Route::get('farm', [FarmSettingsController::class, 'edit'])->name('settings.farm.edit');
+                Route::put('farm', [FarmSettingsController::class, 'update'])->name('settings.farm.update');
+
+                Route::resource('sections', SectionController::class)->except(['show', 'destroy']);
+                Route::resource('payment-modes', PaymentModeController::class)->except(['show', 'destroy']);
+            });
+
+            Route::resource('users', UserController::class)->except(['show', 'destroy'])->middleware('can:users.manage');
+            Route::resource('roles', RoleController::class)->except(['show'])->middleware('can:roles.manage');
+
+            Route::get('audit-log', [AuditLogController::class, 'index'])->middleware('can:audit_logs.view')->name('audit-logs.index');
+
+            Route::middleware('can:appearance.manage')->prefix('appearance')->name('settings.appearance.')->group(function () {
+                Route::get('/', [AppearanceController::class, 'edit'])->name('edit');
+                Route::put('/', [AppearanceController::class, 'update'])->name('update');
+                Route::post('reset', [AppearanceController::class, 'reset'])->name('reset');
+                Route::get('sample-pdf', [AppearanceController::class, 'samplePdf'])->name('sample-pdf');
+            });
         });
     });
 });

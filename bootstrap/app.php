@@ -2,6 +2,8 @@
 
 use App\Http\Middleware\EnsureFarmSelected;
 use App\Http\Middleware\EnsureUserIsActive;
+use App\Http\Middleware\WebsiteRequest;
+use App\Support\Website;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
@@ -18,7 +20,11 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->alias([
             'active' => EnsureUserIsActive::class,
             'farm' => EnsureFarmSelected::class,
+            'website' => WebsiteRequest::class,
         ]);
+
+        // The website theme cookie is written by JS (day / night toggle), so it is not encrypted.
+        $middleware->encryptCookies(except: [Website::THEME_COOKIE]);
 
         // Resolve/validate the farm before route model binding, so bound models are farm-scoped (404 otherwise);
         // sign out deactivated users before anything else touches the request.

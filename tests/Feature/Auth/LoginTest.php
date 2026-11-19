@@ -13,7 +13,7 @@ it('shows the login page to guests', function () {
 
 it('redirects guests away from the app', function () {
     $this->get(route('dashboard'))->assertRedirect(route('login'));
-    $this->get('/')->assertRedirect(route('login'));
+    $this->get('/admin')->assertRedirect(route('login'));
 });
 
 it('logs in with email', function () {
