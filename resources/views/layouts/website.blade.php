@@ -22,6 +22,8 @@
     @endforeach
     <link rel="alternate" hreflang="x-default" href="{{ $alternates[Website::DEFAULT_LOCALE] }}">
     <meta name="theme-color" content="{{ $colors[$theme]['primary'] }}">
+    {{-- Lets CSS hide scroll-reveal content only when JS runs (no JS = everything visible). --}}
+    <script>document.documentElement.classList.add('w-js');</script>
     @if ($themePref === 'auto')
         {{-- Follow the device theme before first paint (no flash) until the visitor picks one. --}}
         <script>if (matchMedia('(prefers-color-scheme: dark)').matches) { document.documentElement.dataset.theme = 'dark'; document.documentElement.dataset.bsTheme = 'dark'; }</script>

@@ -48,7 +48,7 @@ Keep this file short. Update it in the same commit when you add a new **shared**
 - **Blade components** `resources/views/components/`: `data-table`, `confirm-form`, `money`,
   `form/{input,select,date,money,quantity,textarea,switch,reason,group}`.
 - **Layout** `resources/views/layouts/`; PDF templates `resources/views/pdf/`.
-- **Public website** `App\Support\Website` (settings, `route()` per language, `alternateUrls()`, theme, tel / WhatsApp links), layout `layouts/website.blade.php`, partials + SVG icons `resources/views/website/{partials,icons}`, text `lang/{hi,en}/website.php`, CSS `public/css/website.css` (only `--w-*` variables), routes `routes/website.php`. ERP routes are under `/admin`.
+- **Public website** `App\Support\Website` (settings, `route()` per language, `alternateUrls()`, theme, tel / WhatsApp links), layout `layouts/website.blade.php`, partials + SVG icons `resources/views/website/{partials,icons}`, text `lang/{hi,en}/website.php`, CSS `public/css/website.css` (only `--w-*` variables), routes `routes/website.php`. ERP routes are under `/admin`. Responsive photo: `@include('website.partials.img', [name, widths, sizes, alt])`; motion hooks `data-reveal` (+ `--d` stagger), `data-count`, `data-timeline`, `data-slider`, `data-compare` in `public/js/website.js`; page text in `lang/{hi,en}/<page>.php`.
 - **Tests** query-count guard: `tests/Feature/Performance/QueryCountTest.php`; phase acceptance: `tests/Feature/Phase<N>AcceptanceTest.php`.
 
 ## Modules done so far
