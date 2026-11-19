@@ -8,11 +8,11 @@
 | Item | Value |
 |---|---|
 | Current phase | Phase 7 — Dashboard & Reports (🟡 in progress) |
-| Last completed task | 7.8 — Excel/PDF export on all reports |
-| Next task | 7.9 — Performance: indexes, eager loading, dashboard cache, DemoSeeder timing check |
-| Overall progress | 95 / 97 tasks (98%) |
-| Tests passing | 785 |
-| Last updated (IST) | 2026-11-18 (task/7.8-report-exports) |
+| Last completed task | 7.9 — Performance: covering indexes, cross-farm rate fix, dashboard query-count test |
+| Next task | 7.10 — Phase 7 acceptance tests + final README (no placeholders) + CHANGELOG 0.7.0 |
+| Overall progress | 96 / 97 tasks (99%) |
+| Tests passing | 786 |
+| Last updated (IST) | 2026-11-19 (task/7.9-performance) |
 
 ## Phase overview
 
@@ -428,7 +428,7 @@ Status legend: ⬜ Not started · 🟡 In progress · ✅ Done · ⏸ On hold
 - [x] 7.6 Simple P&L (management summary) + trading & staff reports
 - [x] 7.7 Milk forecast (7/30/90 days)
 - [x] 7.8 Excel/PDF export on all reports
-- [ ] 7.9 Performance: indexes, eager loading, dashboard cache, DemoSeeder timing check
+- [x] 7.9 Performance: indexes, eager loading, dashboard cache, DemoSeeder timing check
 - [ ] 7.10 Phase 7 acceptance tests pass + final README (no placeholders) + CHANGELOG 0.7.0
 
 ### Phase log
