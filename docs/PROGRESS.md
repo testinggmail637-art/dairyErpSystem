@@ -7,12 +7,12 @@
 
 | Item | Value |
 |---|---|
-| Current phase | Phase 7 — Dashboard & Reports (✅ done — Phase 8 only on explicit instruction) |
+| Current phase | Phase 7A — Public Website & Lead CRM (⬜ not started — added by the owner 2026-11-19) |
 | Last completed task | 7.10 — Phase 7 acceptance tests + final README + CHANGELOG 0.7.0 |
-| Next task | None planned — all spec phases 0–7 done; Phase 8 (integrations) only on explicit instruction |
-| Overall progress | 97 / 97 tasks (100%) |
+| Next task | 7A.1 — Website brief & sitemap (owner confirms pages, sections, reference sites) |
+| Overall progress | 97 / 110 tasks (88%) — ERP phases 0–7: 97 / 97 (100%) · Website 7A: 0 / 13 |
 | Tests passing | 788 |
-| Last updated (IST) | 2026-11-19 (task/7.10-phase7-acceptance) |
+| Last updated (IST) | 2026-11-19 (docs/website-plan) |
 
 ## Phase overview
 
@@ -27,7 +27,8 @@
 | 5 | Health, Breeding, Feed | ✅ Done | 2026-11-13 | 2026-11-13 | `phase-5-done` |
 | 6 | Animal Trading & Staff | ✅ Done | 2026-11-14 | 2026-11-17 | `phase-6-done` |
 | 7 | Dashboard & Reports | ✅ Done | 2026-11-17 | 2026-11-19 | `phase-7-done` |
-| 8 | Integrations (only on explicit instruction) | ⏸ Not planned | | | |
+| 7A | Public Website & Lead CRM (added 2026-11-19) — design first, then dynamic content | ⬜ Not started | | | |
+| 8 | Integrations (only on explicit instruction) | ⏸ On hold until December 2026 | | | |
 
 Status legend: ⬜ Not started · 🟡 In progress · ✅ Done · ⏸ On hold
 
@@ -449,6 +450,64 @@ Status legend: ⬜ Not started · 🟡 In progress · ✅ Done · ⏸ On hold
   6. **Reports → Milk production → Milk balance**: closing per stock equals the Milk stock screen for the end date.
   7. Add an expense, go back to the Dashboard: "Today's expenses" includes it at once (cache cleared).
   8. Open `/pulse` after browsing: no dashboard or report request above 1000 ms.
+
+---
+
+## Phase 7A — Public Website & Lead CRM (added by the owner 2026-11-19; not in the original spec — see DECISIONS #202)
+
+A public website for the dairy (content, products, enquiries / leads, SEO), run from the same Laravel app, with a small
+CRM inside the ERP admin to manage it. **Order fixed by the owner: Stage 1 finalizes the design with static pages; only
+after the owner signs off the design does Stage 2 make the content dynamic.** Same technical rules as the ERP: Blade +
+Bootstrap 5 + jQuery, no npm / build step, colours and fonts only from Settings → Appearance (CSS variables), fast pages.
+Before 7A.1 starts, a short spec section for 7A is added to `docs/DAIRY_ERP_SPEC.md` (tables, rules, permissions).
+
+**Owner's website rules (2026-11-19, DECISIONS #203) — every 7A task must meet them:**
+1. **Looks real:** real farm / cow / milk photos (owner provides), real address, phone, timings, map; no stock-template feel, no fake numbers or reviews.
+2. **Brand colours from the logo** (`public/yashadhya-logos*`): forest green `#093F1E`, leaf green `#176C2B` (dark mode `#23A541`), saffron `#FD8D00`, cream `#F8F4E8`. Set as the website's Appearance defaults (CSS variables, not hard-coded). **Day + night mode** (toggle, remembers choice, follows the phone's setting first). Dark mode uses the `-dark` logos.
+3. **Hindi by default, English switch:** all text through Laravel translations (`lang/hi`, `lang/en`); URL keeps the language (`/` = Hindi, `/en/...` = English); `hreflang` tags; Devanagari font.
+4. **Super responsive:** checked at 360 px, 390 px, 768 px, 1024 px, 1440 px; no sideways scroll; tap targets ≥ 44 px.
+5. **Security:** HTTPS + security headers (CSP, HSTS, X-Frame-Options, Referrer-Policy), CSRF, honeypot + rate limit on forms, validated / cleaned input, no ERP data or admin links on public pages, admin login not linked from the site.
+6. **One font family and type scale:** one font pair (Hindi + English, self-hosted in `public/vendor/fonts`), fixed sizes (body / h1–h4 / small) as CSS variables; no ad-hoc sizes.
+7. **Business focus:** desi Indian cow (Gir, Sahiwal, Tharparkar, Rathi …) and buffalo (Murrah …) breeds — which breeds exactly, owner confirms in 7A.1.
+8. **Tell people what we offer:** clear products / services section (A2 desi cow milk, buffalo milk, home delivery, bulk / B2B, other items the owner confirms) with price or "ask for price" and an enquiry button.
+9. **Fast:** Lighthouse mobile ≥ 90, first view < 2 s on 4G; WebP images with sizes + lazy-load, no slider libraries, page cache, only the CSS / JS each page needs.
+10. **Reference sites:** in 7A.1 study 4–6 good dairy / farm sites (Indian A2 milk brands + international farm sites), list what we take from each, and combine into one design.
+
+**Sample content until launch (owner 2026-11-19, DECISIONS #204):** Claude prepares all design content: Hindi + English text,
+breeds, products, sample prices, story, FAQ, legal drafts, and free-licence photos (Pexels / Unsplash, saved as WebP in
+`public/images/website/`, source noted in `public/images/website/CREDITS.md`). Every sample item is listed in a
+**Go-live checklist** that the owner replaces after the design is final and before the site goes live: real photos, breeds and
+herd count, products / prices / packing, delivery area and timings, address / map / phone / WhatsApp / email, social links,
+FSSAI number and lab reports, farm story, real reviews (with permission), domain + SSL, privacy / terms / refund text (checked),
+Hindi text checked. Sample reviews and numbers are shown only in design previews, never on the live site.
+
+### Stage 1 — Website design (static, owner reviews each step)
+- [ ] 7A.1 Website brief & sitemap: pages (Home, About, Products, Product detail, Blog / Articles, Contact / Enquiry, FAQ, legal pages), sections of each page, reference sites, logo / photos the owner provides — confirmed by the owner
+- [ ] 7A.2 Public layout: header with menu, footer (address, phone, timings, social links), floating call / WhatsApp-link button, mobile menu, separate from the ERP admin layout; theme from Appearance
+- [ ] 7A.3 Home page design (static): hero, why our milk, products preview, how home delivery works, farm / herd story, testimonials, enquiry call-to-action
+- [ ] 7A.4 Inner pages design (static): Products list + product detail, About, Contact with enquiry form (UI only), Blog list + article, FAQ, privacy / terms
+- [ ] 7A.5 Design sign-off: owner review round(s), fixes, check at 360 px / tablet / desktop, Lighthouse (performance, accessibility, SEO) ≥ 90 on mobile — **owner approves the design before Stage 2**
+
+### Stage 2 — Dynamic content & CRM (ERP admin → Website menu)
+- [ ] 7A.6 Website settings & page content: site name / tagline, contact details, social links, home page sections and About / FAQ / legal text editable from admin; permission `website.manage`
+- [ ] 7A.7 Website products catalogue: name, slug, short + long description, images, price shown or "ask for price", category, sort, active (catalogue for display and enquiries only — not ERP stock or billing)
+- [ ] 7A.8 Blog / content: posts with category, cover image, text editor (HTML cleaned), draft / published, publish date, slug
+- [ ] 7A.9 Leads: enquiry form saves a lead (name, phone, email, interest / product, message, page, UTM source); spam protection (honeypot + rate limit); bell notification to `leads.view` users
+- [ ] 7A.10 Lead CRM: lead list with filters (status new / contacted / interested / converted / lost, source, date), notes and follow-up date, assign to a user, follow-up reminders, Excel export, "Convert to customer" (creates an ERP customer)
+- [ ] 7A.11 SEO: meta title / description per page, product and post, Open Graph, canonical URLs, clean slugs, `sitemap.xml`, `robots.txt`, schema.org (LocalBusiness, Product, Article, FAQ), image alt text, page cache
+- [ ] 7A.12 Website performance & security: cached public pages (cleared on content save), image resizing / lazy-load, rate limits, no admin data exposed on public routes
+- [ ] 7A.13 Phase 7A acceptance tests + README + CHANGELOG 0.7.1
+
+### Phase log
+- **Completed on:** _TODO_
+- **What was built (plain language):** _TODO_
+- **Screens / URLs added:** _TODO_
+- **Tables / migrations added:** _TODO_
+- **Services / commands / jobs added:** _TODO_
+- **Tests added (count, all passing?):** _TODO_
+- **Decisions taken:** _TODO_
+- **Known issues / pending:** _TODO_
+- **How to check it manually:** _TODO_
 
 ---
 
