@@ -5,6 +5,23 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+## [0.7.0] - 2026-11-19 — Phase 7: Dashboard & Reports
+
+### Added
+- Phase 7 · Task 7.1: remaining dashboard cards — collection and deliveries today, sales this month, customer receivables + unbilled milk, farmer payable, party balances, "needs attention" list (vaccinations, calvings, low feed, overdue bills); money only with `dashboard.financial`, each card only with its module permission.
+- Phase 7 · Task 7.2: dashboard charts — milk in and out (own production / collection / sales, 30 days) and income vs costs by day / week / month / year on the Simple P&L basis.
+- Phase 7 · Task 7.3: lactation-wise milk report and milk balance / reconciliation (opening, every movement type, closing, lowest closing, days below zero).
+- Phase 7 · Task 7.4: Reports → Receivables & payables — receivables aging (0–30 / 31–60 / 61–90 / 90+, FIFO), farmer payables and party balances as of a date.
+- Phase 7 · Task 7.5: expense category × month and section × month matrices; Reports → Profitability — cost per litre, profit per animal (with herd overhead), collection center margin.
+- Phase 7 · Task 7.6: Simple P&L (management summary, not statutory accounts).
+- Phase 7 · Task 7.7: milk forecast for the next 7 / 30 / 90 days (14-day average, dry-off 60 days before expected calving).
+- Phase 7 · Task 7.8: Excel and PDF on all 33 reports, guarded by a sweep test.
+- Phase 7 · Task 7.9: covering indexes for month-wise delivery and collection totals; cold-dashboard query-count test; timing check of the dashboard, lists and every report on the demo year.
+- Phase 7 · Task 7.10: Phase 7 acceptance tests (`tests/Feature/Phase7AcceptanceTest.php`) — dashboard on the demo year, every report total reconciled with plain SQL over its source tables; README completed (no placeholders).
+
+### Fixed
+- Profit per animal / animal P&L took the realized milk rate from all farms' deliveries; now only the current farm's.
+
 ## [0.6.0] - 2026-11-17 — Phase 6: Animal Trading & Staff
 
 ### Added

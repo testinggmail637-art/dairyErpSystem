@@ -7,12 +7,12 @@
 
 | Item | Value |
 |---|---|
-| Current phase | Phase 7 — Dashboard & Reports (🟡 in progress) |
-| Last completed task | 7.9 — Performance: covering indexes, cross-farm rate fix, dashboard query-count test |
-| Next task | 7.10 — Phase 7 acceptance tests + final README (no placeholders) + CHANGELOG 0.7.0 |
-| Overall progress | 96 / 97 tasks (99%) |
-| Tests passing | 786 |
-| Last updated (IST) | 2026-11-19 (task/7.9-performance) |
+| Current phase | Phase 7 — Dashboard & Reports (✅ done — Phase 8 only on explicit instruction) |
+| Last completed task | 7.10 — Phase 7 acceptance tests + final README + CHANGELOG 0.7.0 |
+| Next task | None planned — all spec phases 0–7 done; Phase 8 (integrations) only on explicit instruction |
+| Overall progress | 97 / 97 tasks (100%) |
+| Tests passing | 788 |
+| Last updated (IST) | 2026-11-19 (task/7.10-phase7-acceptance) |
 
 ## Phase overview
 
@@ -26,7 +26,7 @@
 | 4 | Farmers & Collection Center | ✅ Done | 2026-11-09 | 2026-11-12 | `phase-4-done` |
 | 5 | Health, Breeding, Feed | ✅ Done | 2026-11-13 | 2026-11-13 | `phase-5-done` |
 | 6 | Animal Trading & Staff | ✅ Done | 2026-11-14 | 2026-11-17 | `phase-6-done` |
-| 7 | Dashboard & Reports | 🟡 In progress | 2026-11-17 | | |
+| 7 | Dashboard & Reports | ✅ Done | 2026-11-17 | 2026-11-19 | `phase-7-done` |
 | 8 | Integrations (only on explicit instruction) | ⏸ Not planned | | | |
 
 Status legend: ⬜ Not started · 🟡 In progress · ✅ Done · ⏸ On hold
@@ -429,18 +429,26 @@ Status legend: ⬜ Not started · 🟡 In progress · ✅ Done · ⏸ On hold
 - [x] 7.7 Milk forecast (7/30/90 days)
 - [x] 7.8 Excel/PDF export on all reports
 - [x] 7.9 Performance: indexes, eager loading, dashboard cache, DemoSeeder timing check
-- [ ] 7.10 Phase 7 acceptance tests pass + final README (no placeholders) + CHANGELOG 0.7.0
+- [x] 7.10 Phase 7 acceptance tests pass + final README (no placeholders) + CHANGELOG 0.7.0
 
 ### Phase log
-- **Completed on:** _TODO_
-- **What was built (plain language):** _TODO_
-- **Screens / URLs added:** _TODO_
-- **Tables / migrations added:** _TODO_
-- **Services / commands / jobs added:** _TODO_
-- **Tests added (count, all passing?):** _TODO_
-- **Decisions taken:** _TODO_
-- **Known issues / pending:** _TODO_
-- **How to check it manually:** _TODO_
+- **Completed on:** 2026-11-19
+- **What was built (plain language):** The dashboard now shows every card the spec lists: today's milk in and out, stock, wastage, expenses, sales this month, what customers owe (and unbilled milk), what we owe farmers and vendors, party balances, loans, and a "needs attention" list (vaccinations, calvings, low feed, overdue bills). Money cards are shown only to users with `dashboard.financial`. Two charts: milk in vs out for 30 days, and income vs costs by day / week / month / year. Reports cover milk (including lactation-wise, milk balance and a 7 / 30 / 90-day forecast), receivables aging, farmer payables, party balances, expense matrices (category × month, section × month), cost per litre, profit per animal, collection center margin and a simple P&L. Every report has Excel and PDF. Everything is calculated in SQL, and the dashboard is cached for 5 minutes and refreshed on every write.
+- **Screens / URLs added:** `/dashboard` (all cards + charts, `/dashboard/finance?period=day|week|month|year` JSON); `/reports/milk/{lactations|balance|forecast}`, `/reports/balances/{receivables|farmers|parties}`, `/reports/expenses/{category-months|sections}`, `/reports/profit/{cost-per-litre|animals|collection-margin|pnl}` (each with `?export=xlsx|pdf`).
+- **Tables / migrations added:** no new tables (spec). Indexes only: `deliveries (farm_id, bill_id, status, amount)` (7.1), covering indexes `deliveries (farm_id, status, delivery_date, amount, delivered_qty)` and `milk_collections (farm_id, quality_status, collection_date, quantity_litre, amount)` (7.9).
+- **Services / commands / jobs added:** `DashboardService` (completed), `BalanceReportService`, `ProfitReportService`; `MilkReportService` (lactation, balance, forecast), `ExpenseReportService` (matrices). No new commands or jobs.
+- **Tests added (count, all passing?):** Phase 7 took the suite from 734 to 788 tests, all passing. Includes `Phase7AcceptanceTest` (dashboard timing on the demo year; every report total vs plain SQL over its source tables), `ReportExportsTest` (Excel + PDF of all 33 reports) and a cold-dashboard query-count guard.
+- **Decisions taken:** [#192–#200](DECISIONS.md) — dashboard card bases, chart bases, lactation / balance rules, aging FIFO, overhead rule, P&L basis, forecast dry-off (60 days before calving), report exports, performance.
+- **Known issues / pending:** the milk stock balance is an all-time sum (~0.2 s per 50k movements, i.e. per year); the dashboard cache hides it. A balance snapshot table may be worth adding after several years of data (Decision #200). The demo data shows a high cost per litre, own-farm stock below zero on some days and no collection-milk sales: these are artefacts of the random demo data, which the reports correctly surface. Phase 8 (integrations) is only on explicit instruction.
+- **How to check it manually:**
+  1. `php artisan migrate` and, on a local copy, `php artisan db:seed --class=DemoSeeder`.
+  2. Log in as owner and open **Dashboard**: all cards and both charts show; switch the income chart between Day / Week / Month / Year.
+  3. Log in as `herd@dairy.test`: money cards are hidden, milk cards show.
+  4. **Reports → Receivables & payables → Receivables aging**: the total equals the dashboard "Customer receivables" card.
+  5. **Reports → Profitability → Profit & loss**: income, costs and net profit for this financial year; download Excel and PDF.
+  6. **Reports → Milk production → Milk balance**: closing per stock equals the Milk stock screen for the end date.
+  7. Add an expense, go back to the Dashboard: "Today's expenses" includes it at once (cache cleared).
+  8. Open `/pulse` after browsing: no dashboard or report request above 1000 ms.
 
 ---
 
