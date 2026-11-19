@@ -1,9 +1,5 @@
 # Dairy ERP
 
-> **Note for Claude Code:** keep this README complete and true at the end of every phase (see `CLAUDE.md` →
-> "Documentation you must keep up to date"). Replace every `_TODO_` as soon as the information exists.
-> By the end of Phase 7 there must be no `_TODO_` left.
-
 A web-based ERP for an Indian dairy business: own cow/buffalo herd, milk collection center (farmers, Fat/SNF
 rate charts, payments), milk sales (B2C home delivery subscriptions and B2B bulk supply with monthly billing),
 cow/buffalo buying & selling, expenses, loans & overdraft, staff, and profit reports — with every litre and every rupee traceable.
@@ -22,15 +18,14 @@ cow/buffalo buying & selling, expenses, loans & overdraft, staff, and profit rep
 | 4 | Farmers & Collection Center | ✅ Done (v0.4.0) |
 | 5 | Health, Breeding, Feed | ✅ Done (v0.5.0) |
 | 6 | Animal Trading & Staff | ✅ Done (v0.6.0) |
-| 7 | Dashboard & Reports | ⬜ Not started |
+| 7 | Dashboard & Reports | ✅ Done (v0.7.0) |
+| 8 | Integrations (WhatsApp/SMS, payment gateway, analyzer, portal, PWA …) | ⏸ Only on explicit instruction |
 
 Detailed task-by-task progress: [`docs/PROGRESS.md`](docs/PROGRESS.md) · Version history: [`CHANGELOG.md`](CHANGELOG.md)
 
 ---
 
 ## Features
-
-_TODO: for each module, list the working features in plain language once its phase is done._
 
 - **Expenses** ✅ — two-level categories (9 defaults, tree view); vendors with opening balance; expenses saved directly
   (no approval) as paid (with payment mode) or credit (adds to what we owe the vendor), with quantity/unit, receipt
@@ -63,7 +58,7 @@ _TODO: for each module, list the working features in plain language once its pha
 - **Health, breeding & feed** ✅ — treatments with milk withdrawal date and an optional linked expense (one per treatment, follows edits); vaccine types (6 defaults + own, repeat interval) and vaccinations for one or many animals with next due date and "due" list; breeding events (heat, AI, natural service, pregnancy check, abortion) with expected calving date (cow 280 / buffalo 310 days) and pregnant badge; calvings (mother → milking, lactation + 1, calf created with its mother; undo with reason); Dry off and Mark as heifer actions, dashboard suggestion for female calves over 12 months; feed items with reorder level, opening / purchase / consumption / adjustments, stock and value (purchase = one expense, consumption none, never below zero); daily bell reminders (`reminders:daily`); withdrawal warning on milk entry.
 - **Animal trading** ✅ — parties (buyers / sellers, opening balance, ledger with running balance); purchases that create the animals inline (source purchased, approx. age → estimated birth date) with transport / commission / other costs shared by price and an optional first payment; sales of active animals (status sold, leaves milk entry, history kept; cancel with reason makes them active again) with selling costs and a receipt PDF; payments paid / received in installments, linked to a purchase or sale; estimated P&L per animal (purchase cost + expenses + feed × average cost vs sale net + own-herd milk value) on the animal page; trading summary report.
 - **Staff & salary** ✅ — staff members (monthly salary, joining / leaving date, optional login user; edits with reason); daily attendance on one screen for all staff (present / absent / half day / leave / holiday); advances (not expenses); monthly salary runs — draft slips from attendance (paid days = present + holiday + ½ half day, leave paid only if the farm setting says so), bonus / deductions, advance recovered by default, finalize → one Labour › Salary expense per staff member and the month locked, mark paid, salary slip PDF; attendance register and salary register reports.
-- **Dashboard & reports** 🟡 — dashboard cards and charts for milk, stock, herd, expenses and vendor payable (cached 5 min, permission-aware); expense, milk production, sales, loan, milk collection, animal trading and staff reports. Heifer suggestion card (Phase 5). Remaining cards and reports come with Phase 7.
+- **Dashboard & reports** ✅ — dashboard cards (today's own production, collection, deliveries, wastage, stock by source and type, expenses, month-to-date sales, customer receivables and unbilled milk, farmer / vendor payable, party balances, loans, milk drop alerts, "needs attention" list: vaccinations due, expected calvings, low feed, overdue bills; money cards only with `dashboard.financial`), charts (milk in and out for 30 days; income vs costs by day / week / month / year), all SQL-aggregated and cached 5 min per farm (cleared on every write). **Reports** (Reports menu, each with period filters, Excel and PDF): expenses (daily, monthly, category-wise, category × month, section × month, vendor outstanding); milk production (daily, monthly, animal-wise, lactation-wise, milk balance / reconciliation with below-zero days, 7 / 30 / 90-day milk forecast); collection (daily by shift, farmer-wise, rejected milk); sales (customer, route, product, dairy plant reconciliation); receivables aging (0–30 / 31–60 / 61–90 / 90+), farmer payables and party balances as of a date; profitability (cost per litre, profit per animal, collection center margin, simple P&L — management summary); loans; animal trading; staff attendance and salary registers.
 - **Admin panel** ✅ — login by email or mobile (inactive users blocked, even mid-session); users with roles and
   farms, owner-role protection; roles with a permission matrix; farm settings; sections and payment modes; audit log
   (who changed what, old → new, reason); **Appearance** (logo, colours, fonts, light/dark/auto theme, login page, PDF
@@ -128,7 +123,8 @@ and 36 ten-day payment cycles (older ones paid; the last three: paid, finalized 
 4 feed items with a year of weekly purchases (each an expense) and daily consumption, 25 treatments (3 under milk
 withdrawal now), FMD / HS / deworming rounds, AI + pregnancy checks on half the milking animals. Phase 6: 3 trading parties, 2 purchases (3 animals), a
 sale with an installment received, 4 staff with two months of attendance, an advance, last month's salary run
-finalized and paid (salary expenses) and this month's as a draft. Phase 7 adds its own demo data.
+finalized and paid (salary expenses) and this month's as a draft. Phase 7 (dashboard and reports) adds no tables and
+reads all of the above; on this year of data a cold dashboard load takes about 0.7 s on a local XAMPP machine.
 
 ---
 
@@ -173,7 +169,7 @@ Scheduled jobs (IST, defined in `routes/console.php`):
 | daily 08:00 | `loans:reminders` | Bell notifications to users with `loans.view`: instalment due in 3 days / today / overdue (day 1, then weekly), card bill due in 3 days, interest debit day of OD / CC / KCC, limit renewal in 15 days. Each farm once a day |
 | daily 07:00 | `reminders:daily` | Bell notifications, one summary per kind, to users with its permission: vaccinations overdue / due within `vaccination_reminder_days` (`health.view`), expected calvings up to `calving_reminder_days` ahead or up to 30 days late (`breeding.manage`), feed at / below reorder level (`feed.view`), yesterday's milk drop alerts (`milk_production.view`), overdue unpaid customer bills (`bills.view`). Each farm once a day |
 
-_More jobs (reminders) are added in later phases._ Restore steps: `docs/BACKUP_RESTORE.md`.
+Restore steps: `docs/BACKUP_RESTORE.md`.
 
 ---
 
@@ -194,8 +190,10 @@ php artisan test        # uses dairy_erp_test (MySQL), never the main DB
 ./vendor/bin/pint
 ```
 
-Current: 414 tests passing (end of Phase 2). `tests/Feature/Phase0AcceptanceTest.php`, `Phase1AcceptanceTest.php` and
-`Phase2AcceptanceTest.php` walk through each phase's acceptance criteria end to end.
+Current: 788 tests passing (end of Phase 7); the full suite takes about 15 minutes on a local XAMPP machine — while
+working run one file or `--filter=<Name>`. `tests/Feature/Phase<N>AcceptanceTest.php` (Phase 0–7, plus 3A) walks through
+each phase's acceptance criteria end to end; Phase 7's runs on the full DemoSeeder year and checks every report total
+against plain SQL sums of its source tables. `tests/Feature/Performance/QueryCountTest.php` guards against N+1 queries.
 
 ---
 
@@ -246,11 +244,14 @@ app/
 ├── Http/
 │   ├── Controllers/        # Auth, Account (profile, notifications, export downloads), Farm (switcher),
 │   │                       #   Settings (users, roles, farm, sections, payment modes, audit log, appearance),
-│   │                       #   Expenses (categories, expenses, vendors, vendor payments, import), Herd (breeds, animals, milk entry, milk alerts), MilkStock, Reports
+│   │                       #   Expenses (categories, expenses, vendors, vendor payments, import), Herd (breeds, animals, milk entry,
+│   │                       #   milk alerts, health, breeding, feed), MilkStock, Sales (routes, products, customers, subscriptions,
+│   │                       #   deliveries, bills, payments), Loans, Collection (farmers, rate charts, collections, farmer payments),
+│   │                       #   Trading (parties, purchases, sales, payments), Staff (staff, attendance, advances, salary), Reports, Dashboard
 │   ├── Middleware/         # EnsureFarmSelected (farm), EnsureUserIsActive (active)
 │   └── Requests/           # all validation (Form Requests), Concerns/RequiresReason
 ├── Imports/                # ExpenseImportColumns, ExpenseImportReader (xlsx/xls/csv)
-├── Jobs/  Listeners/       # queued export notification; NotifyOwnersOfBackupProblem
+├── Jobs/  Listeners/       # GenerateBills (bulk bills), queued export notification; NotifyOwnersOfBackupProblem
 ├── Models/                 # Farm, User, Role, Activity, Section, PaymentMode, ExpenseCategory, Vendor, Expense,
 │   │                       #   VendorPayment, ExpenseImportBatch, ExpenseImportRow, AnimalBreed, Animal, MilkProductionRecord, MilkStockMovement …
 │   ├── Concerns/           # BelongsToFarm, TracksUser, Auditable, HasFarmDefaults
@@ -260,8 +261,8 @@ app/
 ├── Policies/               # ExpensePolicy, VendorPaymentPolicy, MilkProductionRecordPolicy (OwnEntrySameDay rule)
 ├── Providers/              # AppServiceProvider (bindings, gates, view composers), TelescopeServiceProvider (local)
 ├── Reports/                # ReportTable (one definition → screen, Excel, PDF)
-├── Services/               # business logic: Expense, ExpenseImport, ExpenseReport, VendorLedger, VendorPayment,
-│                           #   Animal, MilkProduction, MilkStock, MilkReport, MilkDropAlert, Appearance, DocumentNumber, User, Role …
+├── Services/               # business logic, one service per module (Expense, MilkStock, Billing, Loan, Collection, FarmerPayment,
+│                           #   AnimalPurchase, SalaryRun …) and per report group (*ReportService, Dashboard) — see docs/CODEMAP.md
 └── Support/                # Money, Format, FinancialYear, Color, CurrentFarm, Permissions, Exporter, ReceiptStorage, AnimalPhotoStorage,
                             #   SvgSanitizer, helpers.php
 config/                     # dairy.php (owner seed), menu.php (sidebar), backup, pulse, sentry, permission …
@@ -276,7 +277,7 @@ resources/views/
 ├── components/             # x-form.* fields, x-confirm-form, x-data-table, x-money
 ├── layouts/                # app, guest, partials (sidebar, top bar, branding head, flash)
 ├── pdf/                    # shared PDF layout, report PDF, appearance sample
-└── auth/ account/ settings/ expenses/ herd/ reports/ dashboard.blade.php
+└── auth/ account/ settings/ expenses/ herd/ milk-stock/ sales/ loans/ collection/ trading/ staff/ reports/ dashboard.blade.php
 routes/web.php  routes/console.php        # routes; scheduled jobs
 tests/Feature/ tests/Unit/ tests/Fixtures/ # Pest; PhaseNAcceptanceTest covers each phase's acceptance criteria
 ```
