@@ -33,12 +33,12 @@ return [
             'light' => [
                 'primary' => '#093F1E', 'leaf' => '#176C2B', 'accent' => '#FD8D00', 'on_accent' => '#1C2A20',
                 'bg' => '#F8F4E8', 'surface' => '#FFFFFF', 'text' => '#1C2A20', 'muted' => '#5E6B61', 'border' => '#E4DDC8',
-                'on_primary' => '#FFFFFF', 'footer_bg' => '#093F1E', 'footer_text' => '#F8F4E8',
+                'on_primary' => '#FFFFFF', 'overlay' => '#06210F', 'on_photo' => '#FFFFFF', 'danger' => '#C0392B', 'footer_bg' => '#093F1E', 'footer_text' => '#F8F4E8',
             ],
             'dark' => [
                 'primary' => '#23A541', 'leaf' => '#23A541', 'accent' => '#FD8D00', 'on_accent' => '#1C2A20',
                 'bg' => '#0E1A12', 'surface' => '#16261B', 'text' => '#F8F4E8', 'muted' => '#B9C2B4', 'border' => '#2A3D30',
-                'on_primary' => '#0E1A12', 'footer_bg' => '#0A140D', 'footer_text' => '#F8F4E8',
+                'on_primary' => '#0E1A12', 'overlay' => '#06210F', 'on_photo' => '#FFFFFF', 'danger' => '#E5675A', 'footer_bg' => '#0A140D', 'footer_text' => '#F8F4E8',
             ],
         ],
         'logo' => 'images/website/brand/logo-header',

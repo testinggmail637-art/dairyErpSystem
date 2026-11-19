@@ -8,11 +8,11 @@
 | Item | Value |
 |---|---|
 | Current phase | Phase 7A — Public Website & Lead CRM (🔄 in progress — Stage 1 design) |
-| Last completed task | 7A.2 — Public layout (header, footer, mobile bar, hi/en, day/night); ERP moved to `/admin` |
-| Next task | 7A.3 — Home page design (static) |
-| Overall progress | 99 / 110 tasks (90%) — ERP phases 0–7: 97 / 97 (100%) · Website 7A: 2 / 13 |
+| Last completed task | 7A.3 — Home page design (static, 14 sections, animations, real photos) |
+| Next task | 7A.4 — Inner pages, one page at a time: About first |
+| Overall progress | 100 / 110 tasks (91%) — ERP phases 0–7: 97 / 97 (100%) · Website 7A: 3 / 13 |
 | Tests passing | 788 |
-| Last updated (IST) | 2026-11-19 (task/7A.2-public-layout) |
+| Last updated (IST) | 2026-11-19 (task/7A.3-home-page) |
 
 ## Phase overview
 
@@ -484,7 +484,7 @@ Hindi text checked. Sample reviews and numbers are shown only in design previews
 ### Stage 1 — Website design (static, owner reviews each step)
 - [x] 7A.1 Website brief & sitemap: pages (Home, About, Products, Product detail, Blog / Articles, Contact / Enquiry, FAQ, legal pages), sections of each page, reference sites, logo / photos the owner provides — `docs/WEBSITE_BRIEF.md` (owner reviews in the PR)
 - [x] 7A.2 Public layout: header with menu, footer (address, phone, timings, social links), floating call / WhatsApp-link button, mobile menu, separate from the ERP admin layout; theme from Appearance
-- [ ] 7A.3 Home page design (static): hero, why our milk, products preview, how home delivery works, farm / herd story, testimonials, enquiry call-to-action
+- [x] 7A.3 Home page design (static): hero, why our milk, products preview, how home delivery works, farm / herd story, testimonials, enquiry call-to-action
 - [ ] 7A.4 Inner pages design (static): Products list + product detail, About, Contact with enquiry form (UI only), Blog list + article, FAQ, privacy / terms
 - [ ] 7A.5 Design sign-off: owner review round(s), fixes, check at 360 px / tablet / desktop, Lighthouse (performance, accessibility, SEO) ≥ 90 on mobile — **owner approves the design before Stage 2**
 
