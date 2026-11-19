@@ -11,6 +11,7 @@ use App\Enums\OwnershipType;
 use App\Models\Animal;
 use App\Models\AnimalSale;
 use App\Reports\ReportTable;
+use App\Support\CurrentFarm;
 use App\Support\Format;
 use App\Support\Money;
 use Carbon\Carbon;
@@ -28,6 +29,8 @@ use Illuminate\Support\Facades\DB;
  */
 class AnimalPnlService
 {
+    public function __construct(private readonly CurrentFarm $currentFarm) {}
+
     /** The breakdown of one animal (animal page). */
     public function forAnimal(Animal $animal): array
     {
@@ -216,6 +219,7 @@ class AnimalPnlService
         }
 
         $rates = DB::table('deliveries as d')->join('products as p', 'p.id', '=', 'd.product_id')
+            ->where('d.farm_id', $this->currentFarm->id()) // raw query: no farm scope, so filter by hand
             ->where('d.status', DeliveryStatus::Delivered->value)->where('d.stock_source', MilkSource::OwnFarm->value)
             ->where('d.delivered_qty', '>', 0)
             ->groupByRaw("p.milk_type, DATE_FORMAT(d.delivery_date, '%Y-%m')")

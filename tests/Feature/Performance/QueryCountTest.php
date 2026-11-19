@@ -24,6 +24,7 @@ use App\Models\Vendor;
 use App\Models\VendorPayment;
 use App\Services\MilkStockService;
 use App\Support\CurrentFarm;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 
 beforeEach(function () {
@@ -43,6 +44,33 @@ function queriesFor(string $url, User $user): int
 
     return $count;
 }
+
+it('builds the dashboard (cache cold) in a constant number of SQL aggregates', function () {
+    $this->actingAs($this->owner);
+    $make = function (int $n) {
+        foreach (Animal::factory()->count($n)->create(['farm_id' => $this->farm->id]) as $animal) {
+            MilkProductionRecord::factory()->create(['farm_id' => $this->farm->id, 'animal_id' => $animal->id, 'production_date' => today()->toDateString()]);
+        }
+        Expense::factory()->count($n)->create(['farm_id' => $this->farm->id, 'expense_date' => today()->toDateString()]);
+        Customer::factory()->count($n)->create(['farm_id' => $this->farm->id]);
+    };
+    $cold = function () {
+        $this->get(route('dashboard'))->assertOk(); // warm-up (permission cache, appearance cache)
+        Cache::flush();
+        DB::flushQueryLog();
+        DB::enableQueryLog();
+        $this->get(route('dashboard'))->assertOk();
+        DB::disableQueryLog();
+
+        return count(DB::getQueryLog());
+    };
+
+    $make(2);
+    $few = $cold();
+    $make(15);
+
+    expect($cold())->toBe($few);
+});
 
 it('keeps the users list at a constant number of queries', function () {
     User::factory()->count(3)->forFarm($this->farm)->withRole(RoleName::HerdStaff)->create();

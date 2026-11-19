@@ -88,6 +88,10 @@ it('adds milk value for own-herd animals at the month realized own-farm rate (fa
     $deliver('2026-07-10', '10', '600');            // July: ₹60 / L
     $deliver('2026-07-11', '10', '640');            // July average ₹62 / L
     $deliver('2026-07-12', '10', '1000', 'collection'); // other stock: ignored
+    $other = Farm::factory()->create();
+    Delivery::factory()->create(['farm_id' => $other->id, 'customer_id' => Customer::factory()->create(['farm_id' => $other->id])->id,
+        'product_id' => Product::factory()->create(['farm_id' => $other->id, 'milk_type' => 'cow'])->id, 'delivery_date' => '2026-07-10',
+        'delivered_qty' => '10', 'amount' => '2000', 'status' => 'delivered', 'stock_source' => 'own_farm']); // another farm: ignored
 
     MilkProductionRecord::factory()->create(['farm_id' => $this->farm->id, 'animal_id' => $cow->id, 'production_date' => '2026-07-05', 'shift' => 'morning', 'quantity_litre' => '10']);
     MilkProductionRecord::factory()->create(['farm_id' => $this->farm->id, 'animal_id' => $cow->id, 'production_date' => '2026-08-05', 'shift' => 'morning', 'quantity_litre' => '5']); // August: no sales → type average 62
