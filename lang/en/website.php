@@ -60,6 +60,7 @@ return [
         'follow_us' => 'Follow us',
         'fssai' => 'FSSAI licence',
         'rights' => 'All rights reserved.',
+        'word' => 'Yashadhya',
     ],
 
     'products' => [

@@ -8,20 +8,11 @@
     $logoDark = Website::get('logo_dark');
 @endphp
 <header class="w-header" id="top">
-    <div class="w-topbar d-none d-lg-block">
-        <div class="container d-flex align-items-center gap-4">
-            <a href="{{ Website::telLink() }}">@include('website.icons.telephone-fill') {{ Website::get('phone') }}</a>
-            <span>@include('website.icons.clock-fill') {{ Website::get('timings') }}</span>
-            <a href="mailto:{{ Website::get('email') }}">@include('website.icons.envelope-fill') {{ Website::get('email') }}</a>
-            <span class="ms-auto d-flex gap-3">@include('website.partials.social')</span>
-        </div>
-    </div>
-
     <nav class="w-nav" aria-label="{{ __('website.action.menu') }}">
         <div class="container d-flex align-items-center gap-2">
             <a class="w-brand me-auto me-xl-4" href="{{ Website::route('home') }}" aria-label="{{ Website::get('site_name') }}">
                 <img class="w-logo w-logo-light" src="{{ asset($logo.'-400.webp') }}" srcset="{{ asset($logo.'-400.webp') }} 400w, {{ asset($logo.'-640.webp') }} 640w" sizes="(min-width: 992px) 200px, 160px" width="400" height="123" alt="{{ Website::get('site_name') }}">
-                <img class="w-logo w-logo-dark" src="{{ asset($logoDark.'-400.webp') }}" srcset="{{ asset($logoDark.'-400.webp') }} 400w, {{ asset($logoDark.'-640.webp') }} 640w" sizes="(min-width: 992px) 200px, 160px" width="400" height="123" alt="{{ Website::get('site_name') }}" loading="lazy">
+                <img class="w-logo w-logo-dark" src="{{ asset($logoDark.'-400.webp') }}" srcset="{{ asset($logoDark.'-400.webp') }} 400w, {{ asset($logoDark.'-640.webp') }} 640w" sizes="(min-width: 992px) 200px, 160px" width="400" height="123" alt="{{ Website::get('site_name') }}">
             </a>
 
             <ul class="w-menu d-none d-xl-flex">

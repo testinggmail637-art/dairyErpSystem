@@ -33,12 +33,17 @@ return [
             'light' => [
                 'primary' => '#093F1E', 'leaf' => '#176C2B', 'accent' => '#FD8D00', 'on_accent' => '#1C2A20',
                 'bg' => '#F8F4E8', 'surface' => '#FFFFFF', 'text' => '#1C2A20', 'muted' => '#5E6B61', 'border' => '#E4DDC8',
-                'on_primary' => '#FFFFFF', 'overlay' => '#06210F', 'on_photo' => '#FFFFFF', 'danger' => '#C0392B', 'footer_bg' => '#093F1E', 'footer_text' => '#F8F4E8',
+                'on_primary' => '#FFFFFF', 'overlay' => '#06210F', 'on_photo' => '#FFFFFF', 'danger' => '#C0392B', 'footer_bg' => '#072F17', 'footer_text' => '#F8F4E8',
+                // Home redesign: green bands, text on them, headings/labels on the page, gold detail, soft card.
+                'band' => '#093F1E', 'on_band' => '#F8F4E8', 'on_band_muted' => '#C9D2C4', 'heading' => '#093F1E',
+                'eyebrow' => '#A85C00', 'gold' => '#E6C27A', 'surface_2' => '#EFE6CF', 'ok' => '#176C2B',
             ],
             'dark' => [
                 'primary' => '#23A541', 'leaf' => '#23A541', 'accent' => '#FD8D00', 'on_accent' => '#1C2A20',
                 'bg' => '#0E1A12', 'surface' => '#16261B', 'text' => '#F8F4E8', 'muted' => '#B9C2B4', 'border' => '#2A3D30',
-                'on_primary' => '#0E1A12', 'overlay' => '#06210F', 'on_photo' => '#FFFFFF', 'danger' => '#E5675A', 'footer_bg' => '#0A140D', 'footer_text' => '#F8F4E8',
+                'on_primary' => '#0E1A12', 'overlay' => '#06210F', 'on_photo' => '#FFFFFF', 'danger' => '#E5675A', 'footer_bg' => '#081A0F', 'footer_text' => '#F8F4E8',
+                'band' => '#0B3218', 'on_band' => '#F1ECDF', 'on_band_muted' => '#B9C2B4', 'heading' => '#F1ECDF',
+                'eyebrow' => '#FFB25C', 'gold' => '#E6C27A', 'surface_2' => '#1E3326', 'ok' => '#7FD492',
             ],
         ],
         'logo' => 'images/website/brand/logo-header',

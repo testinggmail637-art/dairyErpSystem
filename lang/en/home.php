@@ -1,178 +1,132 @@
 <?php
 
-// Home page text — English. SAMPLE content until launch (DECISIONS #204); prices, numbers and reviews are placeholders.
+// Home page — English. Sample copy until launch (DECISIONS #204); [brackets] = owner fills in.
 return [
     'hero' => [
-        'eyebrow' => 'Desi cow & buffalo milk · from our own herd',
+        'eyebrow' => 'Desi cows · A2 · Our own gaushala',
+        'word_1' => 'Pure',
+        'word_2' => 'Milk',
         'title' => 'Pure desi cow milk, at your door every morning',
-        'text' => 'Gir, Sahiwal and Tharparkar cows and Murrah buffaloes — grazing in the open, fed on green fodder. Milked at dawn, tested and chilled, never watered down or mixed.',
+        'text' => 'No water, no powder — tested every day, delivered before 7 AM.',
         'cta' => 'Order milk',
-        'cta_secondary' => 'Meet our herd',
-        'trust' => ['Fresh every day', 'Every batch tested', 'Delivered before 7:30 AM'],
-        'image_alt' => 'Desi cows grazing in a green field',
+        'cta_secondary' => 'See our gaushala',
     ],
 
-    'pause' => 'Pause animation',
-    'play' => 'Play animation',
-
-    'free_from' => [
-        'title' => 'Our milk has no',
-        'items' => ['Added water', 'Milk powder', 'Preservatives', 'Hormone injections'],
+    'quality' => [
+        'eyebrow' => 'Tested every morning',
+        'title_1' => 'Tested.',
+        'title_2' => 'Nothing found.',
+        'text' => 'Every morning, right after milking, we test for water, milk powder, preservatives and hormones. You can see the report too.',
+        'link' => "See today's full report",
+        'report' => 'Test report',
+        'batch' => 'Batch [number] · [date] · morning',
+        'rows' => [
+            ['Added water', '✓ None found'],
+            ['Milk powder', '✓ None found'],
+            ['Preservatives', '✓ None found'],
+            ['Hormones', '✓ None found'],
+        ],
+        'fat' => 'Fat / SNF',
+        'fat_value' => '4.2 / 8.6 [sample]',
+        'stamp' => 'PURE',
     ],
 
     'offer' => [
         'eyebrow' => 'What we offer',
-        'title' => 'Pure milk for your family and your business',
-        'items' => [
-            ['icon' => 'droplet-fill', 'title' => 'A2 desi cow milk', 'text' => 'Light, easy-to-digest A2 milk from Gir, Sahiwal and Tharparkar cows — for children and elders alike.', 'page' => 'products'],
-            ['icon' => 'basket2-fill', 'title' => 'Murrah buffalo milk', 'text' => 'Rich, creamy, high-fat milk — the best for curd, paneer, ghee and chai.', 'page' => 'products'],
-            ['icon' => 'truck', 'title' => 'Daily home delivery', 'text' => 'Daily or alternate days, at your door before 7:30 AM. Pause for holidays, one bill a month.', 'page' => 'home-delivery'],
-            ['icon' => 'shop', 'title' => 'Bulk supply', 'text' => 'Fixed daily quantity at a fixed rate for hotels, sweet shops, tea stalls and events.', 'page' => 'bulk-orders'],
-        ],
-        'more' => 'Learn more',
+        'title' => 'One gaushala, four services',
+        'all' => 'See all products',
+        'main_label' => '01 · Most loved',
+        'main_title' => 'A2 desi cow milk',
+        'main_text' => 'Gir · Sahiwal · Tharparkar — in glass bottles',
+        'main_cta' => 'Order milk',
+        'buffalo_title' => 'Buffalo milk',
+        'buffalo_text' => 'Murrah buffalo, thick and creamy',
+        'delivery_label' => '03 · Home delivery',
+        'delivery_time' => '7:00',
+        'delivery_text' => 'AM, every morning',
+        'bulk_title' => 'Bulk supply',
     ],
 
     'breeds' => [
         'eyebrow' => 'Our desi breeds',
-        'title' => 'Only native Indian breeds, no foreign crosses',
-        'text' => 'Our herd has only desi cows and buffaloes. They stay healthy in the Indian heat, and their milk is part of our tradition.',
+        'title' => 'Every cow has a name',
+        'prev' => 'Previous breed',
+        'next' => 'Next breed',
         'items' => [
-            ['image' => 'breed-gir', 'name' => 'Gir cow', 'origin' => 'Gujarat', 'text' => 'A gentle cow with curved horns and long ears, known across India for its A2 milk.'],
-            ['image' => 'breed-sahiwal', 'name' => 'Sahiwal cow', 'origin' => 'Punjab', 'text' => 'Reddish-brown and one of the highest-yielding desi breeds.'],
-            ['image' => 'breed-tharparkar', 'name' => 'Tharparkar cow', 'origin' => 'Rajasthan', 'text' => 'A strong white cow that gives good milk even in the heat and dryness of the Thar.'],
-            ['image' => 'breed-murrah', 'name' => 'Murrah buffalo', 'origin' => 'Haryana', 'text' => 'Jet-black with tightly curled horns — famous for thick, high-fat milk.'],
+            ['img' => 'breed-gir', 'name' => 'Gir', 'tag' => 'A2', 'line' => 'Gujarat · curved horns, sweet creamy milk'],
+            ['img' => 'breed-sahiwal', 'name' => 'Sahiwal', 'tag' => 'A2', 'line' => 'Punjab · red-brown, handles the heat'],
+            ['img' => 'breed-tharparkar', 'name' => 'Tharparkar', 'tag' => 'A2', 'line' => 'Rajasthan · healthy even on little water'],
+            ['img' => 'breed-murrah', 'name' => 'Murrah', 'tag' => 'Buffalo', 'line' => 'Haryana · thick, high-fat milk'],
         ],
-        'cta' => 'Read about our herd',
+    ],
+
+    'journey' => [
+        'eyebrow' => 'From farm to glass',
+        'title' => 'The journey of every drop',
+        'steps' => [
+            ['title' => 'Grazing and green fodder', 'text' => '4:30 AM · open land, our own fodder', 'alt' => 'Cows grazing in the open'],
+            ['title' => 'Clean hand milking', 'text' => '5:30 AM · washed vessels, clean hands', 'alt' => 'Hand milking'],
+            ['title' => 'Testing and chilling', 'text' => '6:00 AM · fat / SNF and adulteration test', 'alt' => ''],
+            ['title' => 'Glass bottle to your door', 'text' => 'By 7:00 AM · at your doorstep', 'alt' => 'Milk in a glass bottle and glass'],
+        ],
+        'test_title' => 'Test report · 6:00 AM',
+        'test_rows' => [
+            ['Fat / SNF', '4.2 / 8.6 [sample]'],
+            ['Adulteration', '✓ None found'],
+            ['Temperature', 'Chilled to 4 °C'],
+        ],
     ],
 
     'products' => [
         'eyebrow' => 'Our products',
-        'ask_price' => 'Ask for price',
-        'enquire' => 'Send enquiry',
-        'details' => 'See all products',
+        'title' => 'Fresh every day, from our gaushala.',
         'prev' => 'Previous product',
         'next' => 'Next product',
         'items' => [
-            ['image' => 'product-cow-milk', 'icon' => 'droplet-fill', 'tab' => 'Cow milk', 'sub' => 'देसी गाय का दूध', 'name' => 'A2 desi cow milk', 'word' => 'PURE', 'text' => 'Light, sweet milk from Gir, Sahiwal and Tharparkar cows. Milked at dawn, at your door the same morning — no water, no powder.', 'sizes' => ['500 ml', '1 L', '2 L'], 'price' => '₹90 / litre'],
-            ['image' => 'product-buffalo-milk', 'icon' => 'basket2-fill', 'tab' => 'Buffalo milk', 'sub' => 'मुर्रा भैंस का दूध', 'name' => 'Murrah buffalo milk', 'word' => 'RICH', 'text' => 'Thick, high-fat milk from Murrah buffaloes. Heavy malai, great curd and the best chai.', 'sizes' => ['500 ml', '1 L', '5 L', 'Bulk'], 'price' => '₹70 / litre'],
-            ['image' => 'product-ghee', 'icon' => 'award-fill', 'tab' => 'Bilona ghee', 'sub' => 'बिलोना घी', 'name' => 'A2 bilona ghee', 'word' => 'GOLDEN', 'text' => 'Butter churned from curd with a wooden mathani, slow-cooked into grainy, golden ghee.', 'sizes' => ['500 ml', '1 L'], 'price' => null],
-            ['image' => 'product-dahi', 'icon' => 'heart-fill', 'tab' => 'Curd', 'sub' => 'मटकी वाला दही', 'name' => 'Clay-pot curd', 'word' => 'FRESH', 'text' => 'Thick curd set overnight in a clay pot — mild, never too sour, just like home.', 'sizes' => ['500 g', '1 kg'], 'price' => '₹50 / 500 g'],
-            ['image' => 'product-paneer', 'icon' => 'star-fill', 'tab' => 'Paneer', 'sub' => 'मलाई पनीर', 'name' => 'Malai paneer', 'word' => 'CREAMY', 'text' => 'Soft, creamy paneer made from the same day\'s milk — for sabzi, tikka and bhurji.', 'sizes' => ['250 g', '500 g', '1 kg'], 'price' => '₹220 / 500 g'],
+            ['img' => 'milk-bottle', 'name' => 'A2 cow milk', 'size' => '1 L · glass bottle', 'price' => '₹[price]'],
+            ['img' => 'dahi', 'name' => 'Matka dahi', 'size' => '500 g', 'price' => '₹[price]'],
+            ['img' => 'ghee-jar', 'name' => 'Bilona ghee', 'size' => '500 ml · hand churned', 'price' => 'Ask price'],
+            ['img' => 'paneer', 'name' => 'Fresh paneer', 'size' => '250 g · made daily', 'price' => '₹[price]'],
+            ['img' => 'milk-cup', 'name' => 'Buffalo milk', 'size' => '1 L', 'price' => '₹[price]'],
         ],
     ],
 
-    'compare' => [
-        'badge' => 'See the difference',
-        'title' => 'Market milk vs Yashadhya milk',
-        'text' => 'Drag the line in the middle and see the difference yourself.',
-        'slider' => 'Move the comparison line',
-        'left' => 'Market milk',
-        'right' => 'Yashadhya A2',
-        'left_points' => ['Risk of added water', 'Days old, in a plastic packet', 'Fear of chemicals (urea, detergent)'],
-        'right_points' => ['Glass bottle', 'Fresh from the same morning', 'Every batch tested'],
-    ],
-
-    'bilona' => [
-        'badge' => 'The bilona way',
-        'title' => 'From cow to ghee, the traditional way',
+    'delivery' => [
+        'eyebrow' => 'Home delivery',
+        'title' => 'Starting is really easy.',
+        'step' => 'Step',
         'steps' => [
-            ['image' => 'hero-herd', 'title' => 'Caring for the herd', 'text' => 'Green fodder, clean water and open fields. No hormone injections.'],
-            ['image' => 'milking', 'title' => 'Milking', 'text' => 'Milked by clean hands at dawn; every batch tested.'],
-            ['image' => 'product-dahi', 'title' => 'Setting curd', 'text' => 'Boiled milk is set overnight in clay pots.'],
-            ['image' => 'bilona-churning', 'title' => 'Bilona churning', 'text' => 'Curd is churned with a wooden mathani to separate the butter.'],
-            ['image' => 'product-ghee', 'title' => 'Slow fire', 'text' => 'Butter is slow-cooked for hours into grainy, golden ghee.'],
+            ['img' => 'milk-cup', 'title' => 'Send an enquiry', 'text' => 'Form, call or WhatsApp — our team calls the same day.'],
+            ['img' => 'milk-pitcher', 'title' => 'Pick quantity and plan', 'text' => 'Start from half a litre — change any time.'],
+            ['img' => 'milk-bottle', 'title' => 'At your door before 7', 'text' => 'Pause any time on holidays, one bill a month.'],
         ],
-        'cta' => 'The full story of our farm',
-    ],
-
-    'trust' => [
-        'badge' => 'Why trust us',
-        'title' => 'Purity you can actually see',
-        'zero_label' => 'Adulteration',
-        'zero_text' => 'No water, no chemicals, no preservatives. What the cow gives is what reaches you.',
-        'stats' => [['value' => 25, 'label' => 'Desi cows'], ['value' => 15, 'label' => 'Murrah buffaloes']],
-        'tiles' => [
-            'lab' => ['icon' => 'shield-fill-check', 'title' => 'Lab tested', 'text' => 'Every batch checked'],
-            'glass' => ['icon' => 'droplet-fill', 'title' => 'Glass packing', 'text' => 'Away from plastic'],
-            'fresh' => ['icon' => 'truck', 'title' => 'Fresh delivery', 'text' => 'Same-morning milk, straight to your home'],
-            'pure' => ['icon' => 'tree-fill', 'title' => '100% pure', 'text' => 'Only milk from our own farm, nothing bought in'],
-        ],
-    ],
-
-    'order' => [
-        'badge' => 'How to order',
-        'title' => 'Just 3 easy steps',
-        'steps' => [
-            ['icon' => 'whatsapp', 'title' => 'Send an enquiry', 'text' => 'Fill the form or WhatsApp us: product, quantity and your area.'],
-            ['icon' => 'telephone-fill', 'title' => 'We call you', 'text' => 'We agree the price, size and delivery days with you on the phone.'],
-            ['icon' => 'truck', 'title' => 'Home delivery', 'text' => 'Milk every morning before 7:30 AM, ghee in glass jars — straight to your home.'],
-        ],
-        'points' => [
-            ['icon' => 'calendar2-check', 'text' => 'Daily or alternate days'],
-            ['icon' => 'pause-circle-fill', 'text' => 'Pause for holidays'],
-            ['icon' => 'receipt', 'text' => 'One bill a month — UPI or cash'],
-        ],
-        'areas' => 'Delivery:',
+        'plans' => ['Daily', 'Alternate days', 'Custom'],
+        'cta' => 'Start delivery',
     ],
 
     'why' => [
         'eyebrow' => 'Why Yashadhya',
-        'title' => 'A family farm, not a big factory',
-        'values' => [
-            ['icon' => 'award-fill', 'title' => 'Desi breeds only', 'text' => 'Gir, Sahiwal, Tharparkar and Murrah — no foreign crosses.'],
-            ['icon' => 'house-heart-fill', 'title' => 'Our own herd', 'text' => 'We do not buy and resell milk; it comes from our own cows, in our own care.'],
-            ['icon' => 'shield-fill-check', 'title' => 'Tested daily', 'text' => 'Every batch is tested; we show the reports when you ask.'],
-            ['icon' => 'people-fill', 'title' => 'Fair to farmers', 'text' => 'We buy milk from village farmers at a fair price based on fat/SNF.'],
+        'image_alt' => 'A farmer walking with his cow at sunrise',
+        'quote' => '“The milk we give our own children is the milk we send to your home.”',
+        'by' => "— [Founder's name], Yashadhya Organics",
+        'promises' => [
+            ['Only desi breeds', 'Gir · Sahiwal · Tharparkar'],
+            ['Our own gaushala', 'No outside milk mixed in'],
+            ['Tested daily', 'Fat / SNF on every batch'],
+            ['Fair price to farmers', 'Tested in front of them, paid on time'],
         ],
-        'quote' => 'Our grandmother used to say — care for the cow and she will care for the whole family. Yashadhya began with that thought: pure milk at an honest price.',
-        'quote_by' => 'Founder, Yashadhya Organics',
-        'image_alt' => 'A farmer in Rajasthan milking a cow with her calf beside her',
-    ],
-
-    'ecosystem' => [
-        'eyebrow' => 'What we believe',
-        'title' => 'Cows, farmers, the land and families — together',
-        'tabs' => [
-            ['key' => 'cows', 'icon' => 'heart-fill', 'label' => 'Cows', 'title' => 'Cows come first', 'text' => 'Open sheds, shade, clean water and a vet on time. Milk from a sick cow is never sold. Old cows stay with us for life.'],
-            ['key' => 'farmers', 'icon' => 'people-fill', 'label' => 'Farmers', 'title' => 'With village farmers', 'text' => 'At our collection center, fat and SNF are tested in front of the farmer, with a printed slip and payment on a fixed day.'],
-            ['key' => 'earth', 'icon' => 'tree-fill', 'label' => 'The land', 'title' => 'Giving back to the land', 'text' => 'Dung becomes compost and biogas; chemical fertiliser on our fodder fields is kept to a minimum.'],
-            ['key' => 'family', 'icon' => 'house-heart-fill', 'label' => 'Families', 'title' => 'Your family, our responsibility', 'text' => 'The same milk our children drink comes to your home. You are welcome to visit the farm any time.'],
-        ],
-    ],
-
-    'reviews' => [
-        'eyebrow' => 'What customers say',
-        'title' => 'From the families we serve',
-        'items' => [
-            ['text' => 'The children no longer get tummy aches from milk. It arrives on time and tastes just like the village.', 'name' => 'Sunita Sharma', 'place' => 'City area 1'],
-            ['text' => 'Buffalo milk gives us thick malai and ghee at home. The monthly bill is always clear.', 'name' => 'Rajesh Verma', 'place' => 'Area 2'],
-            ['text' => 'Our sweet shop gets 40 litres every day. Not a single late morning in six months.', 'name' => 'Gupta Sweets', 'place' => 'Area 3'],
-        ],
-    ],
-
-    'faq' => [
-        'eyebrow' => 'Questions',
-        'title' => 'Frequently asked questions',
-        'items' => [
-            ['q' => 'What is A2 milk?', 'a' => 'Milk from native Indian cows contains the A2 beta-casein protein. Many people find it lighter and easier to digest than milk from foreign breeds (A1).'],
-            ['q' => 'What time is milk delivered?', 'a' => 'Between 5:30 and 7:30 AM. We confirm the exact time for your area when you enquire.'],
-            ['q' => 'Can I pause delivery for a few days?', 'a' => 'Yes. Call or WhatsApp us a day before; those days are not added to your bill.'],
-            ['q' => 'How do I pay?', 'a' => 'You get one bill at the end of the month. Pay by UPI, bank transfer or cash — whatever is easiest.'],
-            ['q' => 'Can I visit the farm?', 'a' => 'Of course. Sundays 8 to 11 AM — please call before you come.'],
-        ],
-        'all' => 'See all questions',
     ],
 
     'questions' => [
-        'badge' => 'Think about it',
+        'eyebrow' => 'Think about it',
         'title' => 'Questions nobody asks when buying packet milk',
         'text' => 'We want you to ask. We have a straight answer to every question.',
         'col_question' => 'Question',
         'col_them' => 'Packet / company milk',
         'col_us' => 'Yashadhya Farm',
         'rows' => [
-            ['q' => 'Which cow or buffalo is it from?', 'them' => 'Milk of thousands of animals mixed together; you can\'t know', 'us' => 'Our own Gir and Sahiwal cows and Murrah buffaloes'],
-            ['q' => 'How old is the milk?', 'them' => 'Often 1–2 days from milking to your home', 'us' => 'Milked at dawn, at your door before 7:30 AM'],
+            ['q' => 'Which cow or buffalo is it from?', 'them' => 'Milk of thousands of animals mixed together; you can\'t know', 'us' => 'Our own Gir, Sahiwal and Tharparkar cows and Murrah buffaloes'],
+            ['q' => 'How old is the milk?', 'them' => 'Often 1–2 days from milking to your home', 'us' => 'Milked at dawn, at your door before 7 AM'],
             ['q' => 'Is water or milk powder added?', 'them' => 'Fat and SNF are levelled by machine; adding powder is common', 'us' => 'Nothing added; fat and SNF tested in every batch'],
             ['q' => 'Chemicals or preservatives?', 'them' => 'You have to trust the label; you can\'t check yourself', 'us' => 'No preservatives; ask for the test report any time'],
             ['q' => 'Hormone injections for the animals?', 'them' => 'Nobody knows', 'us' => 'Never; no oxytocin at all'],
@@ -184,15 +138,51 @@ return [
         'note' => 'This compares common packet milk in general, not any particular brand.',
     ],
 
+    'reviews' => [
+        'eyebrow' => 'What families say',
+        'sample' => '[sample]',
+        'title' => '[Number] homes, one milk every morning.',
+        'items' => [
+            ['“The kids drink their milk without being asked. A thick layer of cream every day.”', '[Name] · [Area]'],
+            ['“Milk before 7, one bill a month — no hassle at all.”', '[Name] · [Area]'],
+            ['“Grandma says the taste of her childhood milk is back.”', '[Name] · [Area]'],
+            ['“The whole kitchen smells of the bilona ghee.”', '[Name] · [Area]'],
+            ['“Our sweet shop takes its milk from here every day.”', '[Shop] · bulk customer'],
+            ['“Going on holiday? One message and delivery paused.”', '[Name] · [Area]'],
+        ],
+    ],
+
+    'faq' => [
+        'eyebrow' => 'FAQ',
+        'title_1' => 'Pick a question,',
+        'title_2' => 'get the answer.',
+        'support' => 'Yashadhya support',
+        'reply_time' => 'Usually replies within 10 minutes',
+        'more' => 'Another question? Talk to us —',
+        'whatsapp' => 'WhatsApp us',
+        'items' => [
+            ['What is A2 milk?', 'Milk from desi cows (Gir, Sahiwal, Tharparkar) carries the A2 type of protein, which many people find easier to digest.'],
+            ['Which areas do you deliver to?', "Right now in [area names]. Send us your address — we'll confirm the same day."],
+            ['How do I pause on holidays?', 'Call or WhatsApp us a day before. You are not billed for those days.'],
+            ['How do I pay?', 'One bill at the end of the month — by UPI, cash or bank transfer. [owner to confirm]'],
+            ['What about the glass bottles?', 'Rinse the empty bottle and leave it at your door the next morning — our delivery person picks it up.'],
+            ['How is the milk tested?', "Every batch is tested for fat / SNF and adulteration. You can see today's report on the website."],
+        ],
+    ],
+
     'enquiry' => [
-        'title' => 'Start pure milk from tomorrow morning',
-        'text' => 'Leave your name and phone number and we will call you today. Or call / WhatsApp us directly.',
+        'eyebrow' => 'Enquiry',
+        'title_1' => 'Pure milk,',
+        'title_2' => 'from tomorrow morning.',
+        'image_alt' => 'A desi cow with her calf',
         'name' => 'Your name',
+        'name_ph' => 'e.g. Sunita Sharma',
         'phone' => 'Mobile number',
-        'interest' => 'What do you need?',
-        'interests' => ['home_delivery' => 'Daily milk at home', 'bulk' => 'Bulk / for a shop', 'product' => 'Ghee, curd, paneer', 'other' => 'Something else'],
-        'submit' => 'Request a call back',
-        'note' => 'We use your number only for this enquiry.',
-        'demo' => 'This form will be switched on soon. Until then, please call or WhatsApp us.',
+        'phone_ph' => '10 digits',
+        'interest' => "I'm interested in",
+        'options' => ['Home delivery', 'Bulk order', 'Farmer — selling milk'],
+        'submit' => 'Send enquiry',
+        'ok' => 'Thank you! Our team will call you today.',
+        'bad' => 'Please enter your name and a 10-digit mobile number.',
     ],
 ];

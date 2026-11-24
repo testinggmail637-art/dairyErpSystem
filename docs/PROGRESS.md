@@ -8,11 +8,11 @@
 | Item | Value |
 |---|---|
 | Current phase | Phase 7A — Public Website & Lead CRM (🔄 in progress — Stage 1 design) |
-| Last completed task | 7A.3 — Home page design (static, 14 sections, animations, real photos) |
+| Last completed task | 7A.3b — Home page redesign (12 sections picked by the owner on the design canvas, 3D style, hi/en, day/night) |
 | Next task | 7A.4 — Inner pages, one page at a time: About first |
 | Overall progress | 100 / 110 tasks (91%) — ERP phases 0–7: 97 / 97 (100%) · Website 7A: 3 / 13 |
-| Tests passing | 798 |
-| Last updated (IST) | 2026-11-24 (fix/7A.3-home-ux-review — home page UX review fixes) |
+| Tests passing | 799 |
+| Last updated (IST) | 2026-11-24 (task/7A.3b-home-redesign — new home page) |
 
 ## Phase overview
 
@@ -487,6 +487,7 @@ Hindi text checked. Sample reviews and numbers are shown only in design previews
 - [x] 7A.3 Home page design (static): hero, why our milk, products preview, how home delivery works, farm / herd story, testimonials, enquiry call-to-action
   - 2026-11-24 UX review (UI UX Pro Max checklist): small eyebrow text leaf green (saffron failed contrast), pause / play for product slider and free-from strip, slider tabs use arrow keys, compare slider lets phones scroll, SVG icons instead of text symbols, no repeated photo
   - 2026-11-24 New section before the enquiry form (owner request): "Questions nobody asks when buying packet milk", 8 questions, packet milk vs Yashadhya Farm (table on desktop, cards on phones; sample text, general, no brand named)
+  - 2026-11-24 **7A.3b Home redesign** (owner did not like the 7A.3 look): 12 sections chosen one by one from 4+ options on the design canvas — hero with photo inside the words, test report card, offer bento, breeds coverflow, farm-to-glass photo stack, product cards, 3-step delivery, founder quote on photo, reviews marquee, FAQ chat, enquiry over photo, new footer. "Packet milk vs Yashadhya Farm" questions table kept from 7A.3 (after the founder quote). Green header band, new colour tokens, Lenis smooth scroll. Old page kept as tag `backup/home-v1` (DECISIONS #209)
 - [ ] 7A.4 Inner pages design (static): Products list + product detail, About, Contact with enquiry form (UI only), Blog list + article, FAQ, privacy / terms
 - [ ] 7A.5 Design sign-off: owner review round(s), fixes, check at 360 px / tablet / desktop, Lighthouse (performance, accessibility, SEO) ≥ 90 on mobile — **owner approves the design before Stage 2**
 
