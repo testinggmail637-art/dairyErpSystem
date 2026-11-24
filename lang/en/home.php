@@ -12,6 +12,9 @@ return [
         'image_alt' => 'Desi cows grazing in a green field',
     ],
 
+    'pause' => 'Pause animation',
+    'play' => 'Play animation',
+
     'free_from' => [
         'title' => 'Our milk has no',
         'items' => ['Added water', 'Milk powder', 'Preservatives', 'Hormone injections'],
@@ -158,6 +161,27 @@ return [
             ['q' => 'Can I visit the farm?', 'a' => 'Of course. Sundays 8 to 11 AM — please call before you come.'],
         ],
         'all' => 'See all questions',
+    ],
+
+    'questions' => [
+        'badge' => 'Think about it',
+        'title' => 'Questions nobody asks when buying packet milk',
+        'text' => 'We want you to ask. We have a straight answer to every question.',
+        'col_question' => 'Question',
+        'col_them' => 'Packet / company milk',
+        'col_us' => 'Yashadhya Farm',
+        'rows' => [
+            ['q' => 'Which cow or buffalo is it from?', 'them' => 'Milk of thousands of animals mixed together; you can\'t know', 'us' => 'Our own Gir and Sahiwal cows and Murrah buffaloes'],
+            ['q' => 'How old is the milk?', 'them' => 'Often 1–2 days from milking to your home', 'us' => 'Milked at dawn, at your door before 7:30 AM'],
+            ['q' => 'Is water or milk powder added?', 'them' => 'Fat and SNF are levelled by machine; adding powder is common', 'us' => 'Nothing added; fat and SNF tested in every batch'],
+            ['q' => 'Chemicals or preservatives?', 'them' => 'You have to trust the label; you can\'t check yourself', 'us' => 'No preservatives; ask for the test report any time'],
+            ['q' => 'Hormone injections for the animals?', 'them' => 'Nobody knows', 'us' => 'Never; no oxytocin at all'],
+            ['q' => 'What do the animals eat?', 'them' => 'Nobody knows', 'us' => 'Green fodder, oil cake and straw from our own fields'],
+            ['q' => 'What is the packing?', 'them' => 'Plastic pouch', 'us' => 'Glass bottles that we take back'],
+            ['q' => 'Can you see the farm?', 'them' => 'No', 'us' => 'Yes, come any time and see for yourself'],
+        ],
+        'cta' => 'Ask your question',
+        'note' => 'This compares common packet milk in general, not any particular brand.',
     ],
 
     'enquiry' => [
