@@ -33,17 +33,20 @@
 
     {{-- 2. Free-from marquee --}}
     <section class="w-free" aria-label="{{ __('home.free_from.title') }}">
-        <div class="w-marquee">
+        <div class="w-marquee" id="free-marquee">
             @foreach ([false, true] as $copy)
                 <ul class="w-marquee-track" @if ($copy) aria-hidden="true" @endif>
                     <li><strong>{{ __('home.free_from.title') }}</strong></li>
                     @foreach (__('home.free_from.items') as $item)
-                        <li><span class="w-free-x" aria-hidden="true">✕</span> {{ $item }}</li>
+                        <li><span class="w-free-x">@include('website.icons.x-lg')</span> {{ $item }}</li>
                     @endforeach
-                    <li aria-hidden="true">✦</li>
+                    <li>@include('website.icons.droplet-fill')</li>
                 </ul>
             @endforeach
         </div>
+        <button type="button" class="w-play w-play-sm" data-marquee-toggle aria-controls="free-marquee" aria-label="{{ __('home.pause') }}" data-label-pause="{{ __('home.pause') }}" data-label-play="{{ __('home.play') }}">
+            <span class="w-when-playing">@include('website.icons.pause-circle-fill')</span><span class="w-when-paused">@include('website.icons.play-circle-fill')</span>
+        </button>
     </section>
 
     {{-- 3. What we offer --}}
@@ -110,12 +113,15 @@
                 <button type="button" class="w-round-btn" data-slide-prev aria-label="{{ __('home.products.prev') }}"><span class="w-flip">@include('website.icons.arrow-right')</span></button>
                 <div class="w-slide-tabs" role="tablist">
                     @foreach ($products as $i => $p)
-                        <button type="button" class="w-slide-tab @if ($i === 0) is-active @endif" data-slide-to="{{ $i }}" role="tab" aria-controls="slide-{{ $i }}" aria-selected="{{ $i === 0 ? 'true' : 'false' }}">
+                        <button type="button" class="w-slide-tab @if ($i === 0) is-active @endif" data-slide-to="{{ $i }}" role="tab" aria-controls="slide-{{ $i }}" aria-selected="{{ $i === 0 ? 'true' : 'false' }}" tabindex="{{ $i === 0 ? 0 : -1 }}">
                             @include('website.icons.'.$p['icon']) {{ $p['tab'] }}
                         </button>
                     @endforeach
                 </div>
                 <button type="button" class="w-round-btn" data-slide-next aria-label="{{ __('home.products.next') }}">@include('website.icons.arrow-right')</button>
+                <button type="button" class="w-round-btn w-play" data-slide-toggle aria-label="{{ __('home.pause') }}" data-label-pause="{{ __('home.pause') }}" data-label-play="{{ __('home.play') }}">
+                    <span class="w-when-playing">@include('website.icons.pause-circle-fill')</span><span class="w-when-paused">@include('website.icons.play-circle-fill')</span>
+                </button>
             </div>
         </div>
     </section>
@@ -137,7 +143,7 @@
                 <span class="w-compare-tag w-compare-tag-right">{{ __('home.compare.right') }}</span>
                 <ul class="w-compare-points w-compare-points-left">
                     @foreach (__('home.compare.left_points') as $point)
-                        <li><span class="w-no" aria-hidden="true">⊘</span> {{ $point }}</li>
+                        <li><span class="w-no">@include('website.icons.x-circle-fill')</span> {{ $point }}</li>
                     @endforeach
                 </ul>
                 <ul class="w-compare-points w-compare-points-right">
@@ -232,9 +238,9 @@
                     <h3 class="h4">{{ $tiles['lab']['title'] }}</h3>
                     <p>{{ $tiles['lab']['text'] }}</p>
                 </div>
-                @foreach (['glass' => 'glass-bottles', 'fresh' => 'product-buffalo-milk', 'pure' => 'farmer-calf'] as $key => $photo)
+                @foreach (['glass' => 'glass-bottles', 'fresh' => 'product-buffalo-milk', 'pure' => 'milking'] as $key => $photo)
                     <div class="w-tile w-tile-photo w-tile-{{ $key }}" data-reveal style="--d: {{ $loop->index + 2 }}">
-                        @include('website.partials.img', ['name' => $img.$photo, 'widths' => $photo === 'farmer-calf' ? [640, 1024] : [480, 800], 'sizes' => '(min-width: 992px) 50vw, 100vw', 'alt' => '', 'class' => 'w-tile-bg'])
+                        @include('website.partials.img', ['name' => $img.$photo, 'widths' => $photo === 'milking' ? [640, 1024] : [480, 800], 'sizes' => '(min-width: 992px) 50vw, 100vw', 'alt' => '', 'class' => 'w-tile-bg'])
                         <span class="w-tile-icon">@include('website.icons.'.$tiles[$key]['icon'])</span>
                         <h3 class="h4">{{ $tiles[$key]['title'] }}</h3>
                         <p>{{ $tiles[$key]['text'] }}</p>
@@ -376,7 +382,42 @@
         </div>
     </section>
 
-    {{-- 14. Enquiry band (UI only in Stage 1; saving leads comes in 7A.9) --}}
+    {{-- 14. Questions nobody asks: packet milk vs our farm (a table; stacks into cards on phones) --}}
+    <section class="w-section">
+        <div class="container">
+            <div class="w-heading text-center" data-reveal>
+                <span class="w-pill">{{ __('home.questions.badge') }}</span>
+                <h2>{{ __('home.questions.title') }}</h2>
+                <p class="w-lead">{{ __('home.questions.text') }}</p>
+            </div>
+            <div class="w-vs-wrap" data-reveal>
+                <table class="w-vs">
+                    <thead>
+                        <tr>
+                            <th scope="col">{{ __('home.questions.col_question') }}</th>
+                            <th scope="col" class="w-vs-them">{{ __('home.questions.col_them') }}</th>
+                            <th scope="col" class="w-vs-us">{{ __('home.questions.col_us') }}</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (__('home.questions.rows') as $row)
+                            <tr>
+                                <th scope="row">{{ $row['q'] }}</th>
+                                <td class="w-vs-them" data-label="{{ __('home.questions.col_them') }}"><span class="w-vs-cell">@include('website.icons.x-circle-fill') {{ $row['them'] }}</span></td>
+                                <td class="w-vs-us" data-label="{{ __('home.questions.col_us') }}"><span class="w-vs-cell">@include('website.icons.check-circle-fill') {{ $row['us'] }}</span></td>
+                            </tr>
+                        @endforeach
+                    </tbody>
+                </table>
+            </div>
+            <div class="text-center mt-4" data-reveal>
+                <a class="w-btn w-btn-accent" href="#enquiry">{{ __('home.questions.cta') }}</a>
+                <p class="w-small w-muted mt-3 mb-0">{{ __('home.questions.note') }}</p>
+            </div>
+        </div>
+    </section>
+
+    {{-- 15. Enquiry band (UI only in Stage 1; saving leads comes in 7A.9) --}}
     <section class="w-section w-enquiry" id="enquiry">
         <div class="container">
             <div class="row g-4 g-lg-5 align-items-center">

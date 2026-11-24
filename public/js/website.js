@@ -116,13 +116,31 @@
         targets.forEach(function (el) { io.observe(el); });
     }
 
+    /* ---------- Pause / play buttons for moving content ---------- */
+    function setStopped(btn, stopped) {
+        btn.classList.toggle('is-stopped', stopped);
+        btn.setAttribute('aria-label', stopped ? btn.dataset.labelPlay : btn.dataset.labelPause);
+    }
+
+    document.querySelectorAll('[data-marquee-toggle]').forEach(function (btn) {
+        var marquee = document.getElementById(btn.getAttribute('aria-controls'));
+        btn.addEventListener('click', function () {
+            var stopped = !marquee.classList.contains('is-paused');
+            marquee.classList.toggle('is-paused', stopped);
+            setStopped(btn, stopped);
+        });
+    });
+
     /* ---------- Product showcase slider ---------- */
     document.querySelectorAll('[data-slider]').forEach(function (slider) {
         var slides = slider.querySelectorAll('.w-slide');
         var tabs = slider.querySelectorAll('[data-slide-to]');
+        var toggle = slider.querySelector('[data-slide-toggle]');
         var delay = 6000;
         var current = 0;
         var timer = null;
+        var hold = false;            // hover or keyboard focus inside
+        var stopped = reduceMotion;  // pause button
         slider.style.setProperty('--w-autoplay', delay + 'ms');
 
         function go(index) {
@@ -136,6 +154,7 @@
                 var on = i === current;
                 t.classList.remove('is-active');
                 t.setAttribute('aria-selected', on ? 'true' : 'false');
+                t.tabIndex = on ? 0 : -1;
                 if (on) {
                     void t.offsetWidth; // restart the progress bar animation
                     t.classList.add('is-active');
@@ -149,24 +168,39 @@
 
         function restart() {
             clearTimeout(timer);
-            if (!reduceMotion && !slider.classList.contains('is-paused')) {
+            slider.classList.toggle('is-paused', hold || stopped);
+            if (!hold && !stopped) {
                 timer = setTimeout(function () { go(current + 1); }, delay);
             }
         }
 
         function pause(on) {
-            slider.classList.toggle('is-paused', on);
-            if (on) { clearTimeout(timer); } else { restart(); }
+            hold = on;
+            restart();
         }
 
         tabs.forEach(function (t) {
             t.addEventListener('click', function () { go(parseInt(t.dataset.slideTo, 10)); });
         });
+        // Tabs pattern: arrow keys / Home / End move between tabs.
+        tabs[0].parentElement.addEventListener('keydown', function (e) {
+            var keys = { ArrowRight: current + 1, ArrowLeft: current - 1, Home: 0, End: tabs.length - 1 };
+            if (!(e.key in keys)) { return; }
+            e.preventDefault();
+            go(keys[e.key]);
+            tabs[current].focus();
+        });
         slider.querySelector('[data-slide-prev]').addEventListener('click', function () { go(current - 1); });
         slider.querySelector('[data-slide-next]').addEventListener('click', function () { go(current + 1); });
+        toggle.addEventListener('click', function () {
+            stopped = !stopped;
+            setStopped(toggle, stopped);
+            restart();
+        });
         slider.addEventListener('mouseenter', function () { pause(true); });
         slider.addEventListener('mouseleave', function () { pause(false); });
-        slider.addEventListener('focusin', function () { pause(true); });
+        // Hold only for keyboard focus; a tap on a phone also focuses a button and would stop autoplay for good.
+        slider.addEventListener('focusin', function (e) { if (e.target.matches(':focus-visible')) { pause(true); } });
         slider.addEventListener('focusout', function () { pause(false); });
 
         // Swipe on phones.
@@ -179,7 +213,7 @@
             x0 = null;
         }, { passive: true });
 
-        if (reduceMotion) { slider.classList.add('is-paused'); }
+        setStopped(toggle, stopped);
         restart();
     });
 

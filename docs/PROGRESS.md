@@ -11,8 +11,8 @@
 | Last completed task | 7A.3 — Home page design (static, 14 sections, animations, real photos) |
 | Next task | 7A.4 — Inner pages, one page at a time: About first |
 | Overall progress | 100 / 110 tasks (91%) — ERP phases 0–7: 97 / 97 (100%) · Website 7A: 3 / 13 |
-| Tests passing | 788 |
-| Last updated (IST) | 2026-11-19 (task/7A.3-home-page) |
+| Tests passing | 798 |
+| Last updated (IST) | 2026-11-24 (fix/7A.3-home-ux-review — home page UX review fixes) |
 
 ## Phase overview
 
@@ -485,6 +485,8 @@ Hindi text checked. Sample reviews and numbers are shown only in design previews
 - [x] 7A.1 Website brief & sitemap: pages (Home, About, Products, Product detail, Blog / Articles, Contact / Enquiry, FAQ, legal pages), sections of each page, reference sites, logo / photos the owner provides — `docs/WEBSITE_BRIEF.md` (owner reviews in the PR)
 - [x] 7A.2 Public layout: header with menu, footer (address, phone, timings, social links), floating call / WhatsApp-link button, mobile menu, separate from the ERP admin layout; theme from Appearance
 - [x] 7A.3 Home page design (static): hero, why our milk, products preview, how home delivery works, farm / herd story, testimonials, enquiry call-to-action
+  - 2026-11-24 UX review (UI UX Pro Max checklist): small eyebrow text leaf green (saffron failed contrast), pause / play for product slider and free-from strip, slider tabs use arrow keys, compare slider lets phones scroll, SVG icons instead of text symbols, no repeated photo
+  - 2026-11-24 New section before the enquiry form (owner request): "Questions nobody asks when buying packet milk", 8 questions, packet milk vs Yashadhya Farm (table on desktop, cards on phones; sample text, general, no brand named)
 - [ ] 7A.4 Inner pages design (static): Products list + product detail, About, Contact with enquiry form (UI only), Blog list + article, FAQ, privacy / terms
 - [ ] 7A.5 Design sign-off: owner review round(s), fixes, check at 360 px / tablet / desktop, Lighthouse (performance, accessibility, SEO) ≥ 90 on mobile — **owner approves the design before Stage 2**
 
@@ -492,7 +494,7 @@ Hindi text checked. Sample reviews and numbers are shown only in design previews
 - [ ] 7A.6 Website settings & page content: site name / tagline, contact details, social links, home page sections and About / FAQ / legal text editable from admin; permission `website.manage`
 - [ ] 7A.7 Website products catalogue: name, slug, short + long description, images, price shown or "ask for price", category, sort, active (catalogue for display and enquiries only — not ERP stock or billing)
 - [ ] 7A.8 Blog / content: posts with category, cover image, text editor (HTML cleaned), draft / published, publish date, slug
-- [ ] 7A.9 Leads: enquiry form saves a lead (name, phone, email, interest / product, message, page, UTM source); spam protection (honeypot + rate limit); bell notification to `leads.view` users
+- [ ] 7A.9 Leads: enquiry form saves a lead (name, phone, email, interest / product, message, page, UTM source); spam protection (honeypot + rate limit); bell notification to `leads.view` users. UX: each invalid field shows its own error below it (linked with `aria-describedby`), not only a top message
 - [ ] 7A.10 Lead CRM: lead list with filters (status new / contacted / interested / converted / lost, source, date), notes and follow-up date, assign to a user, follow-up reminders, Excel export, "Convert to customer" (creates an ERP customer)
 - [ ] 7A.11 SEO: meta title / description per page, product and post, Open Graph, canonical URLs, clean slugs, `sitemap.xml`, `robots.txt`, schema.org (LocalBusiness, Product, Article, FAQ), image alt text, page cache
 - [ ] 7A.12 Website performance & security: cached public pages (cleared on content save), image resizing / lazy-load, rate limits, no admin data exposed on public routes

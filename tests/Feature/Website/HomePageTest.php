@@ -10,7 +10,7 @@ it('shows every home section in Hindi and English', function (string $url, strin
     $response = $this->get($url)->assertOk();
 
     foreach (['hero.title', 'free_from.title', 'offer.title', 'breeds.title', 'products.eyebrow', 'compare.title', 'bilona.title', 'trust.title',
-        'order.title', 'why.title', 'ecosystem.title', 'faq.title', 'enquiry.title'] as $key) {
+        'order.title', 'why.title', 'ecosystem.title', 'faq.title', 'questions.title', 'enquiry.title'] as $key) {
         $response->assertSee(__("home.$key", [], $locale));
     }
     foreach (__('home.breeds.items', [], $locale) as $breed) {
