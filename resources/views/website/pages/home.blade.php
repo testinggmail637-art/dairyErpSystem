@@ -338,6 +338,5 @@
 @endsection
 
 @push('scripts')
-    <script src="{{ asset('vendor/lenis/lenis.min.js') }}" defer></script>
     <script src="{{ asset_v('js/home.js') }}" defer></script>
 @endpush
