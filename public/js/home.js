@@ -6,18 +6,6 @@
     var $ = function (s, el) { return (el || document).querySelector(s); };
     var $$ = function (s, el) { return Array.prototype.slice.call((el || document).querySelectorAll(s)); };
 
-    /* Smooth scroll (Lenis, free) — off for reduced motion. */
-    if (!reduce && window.Lenis) {
-        var lenis = new window.Lenis({ duration: 1.1 });
-        (function raf(t) { lenis.raf(t); requestAnimationFrame(raf); })(0);
-        document.addEventListener('click', function (e) {
-            var a = e.target.closest('a[href^="#"]');
-            if (!a || a.getAttribute('href').length < 2) { return; }
-            var target = document.querySelector(a.getAttribute('href'));
-            if (target) { e.preventDefault(); lenis.scrollTo(target, { offset: -80 }); }
-        });
-    }
-
     /* Swipe helper: only a clear sideways swipe, never a page scroll. */
     function swipe(el, onLeft, onRight) {
         if (!el) { return; }

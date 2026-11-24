@@ -57,10 +57,9 @@
     margin: 0; font-weight: 800; letter-spacing: -.03em; padding: .04em .06em .2em; /* room so the photo fills the lower matras */
     -webkit-background-clip: text; background-clip: text; color: transparent; -webkit-text-fill-color: transparent;
     background: url('../images/website/home/hero-herd-1280.webp') 50% 55% / cover; -webkit-background-clip: text; background-clip: text;
-    font-size: clamp(120px, 21vw, 300px); line-height: 1.02; animation: h-pan 14s ease-in-out infinite;
+    font-size: clamp(120px, 21vw, 300px); line-height: 1.02; /* no moving photo: re-painting this huge text every frame made scrolling lag */
 }
 .h-hero-word span { display: inline-block; }
-@keyframes h-pan { 0%, 100% { background-position: 40% 55%; } 50% { background-position: 60% 50%; } }
 .h-drop { position: absolute; left: 50%; bottom: 30px; width: 22px; height: 30px; margin-left: -11px; border-radius: 50% 50% 50% 50% / 60% 60% 40% 40%; background: var(--w-on-band); box-shadow: 0 6px 14px rgb(0 0 0 / .25); animation: h-drop 2.8s ease-in infinite; }
 @keyframes h-drop { 0% { transform: translateY(-140px); opacity: 0; } 20% { opacity: 1; } 80% { transform: translateY(40px); opacity: 1; } 100% { transform: translateY(48px); opacity: 0; } }
 .h-hero-bottom { position: relative; background: linear-gradient(var(--w-bg), color-mix(in srgb, var(--w-bg) 90%, var(--w-surface-2))); color: var(--w-text); padding: 40px 0 70px; }
@@ -158,9 +157,12 @@
 .h-dphoto img { width: 100%; height: 100%; object-fit: cover; transition: opacity .4s; }
 .h-dbadge { position: absolute; left: 22px; top: 22px; padding: 6px 14px; border-radius: 999px; background: color-mix(in srgb, var(--w-on-band) 92%, transparent); color: var(--w-band); font-weight: 700; font-size: 14px; }
 
+/* Native scroll (Lenis removed: its inertia felt like lag); smooth only for in-page links. */
+html:has(.h-page) { scroll-behavior: smooth; scroll-padding-top: 80px; }
+
 /* 8 why */
 .h-why { position: relative; min-height: clamp(640px, 62vw, 880px); display: flex; align-items: flex-end; color: var(--w-on-photo); overflow: hidden; }
-.h-why-bg { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; animation: h-zoom 22s ease-in-out infinite alternate; }
+.h-why-bg { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; animation: h-zoom 22s ease-in-out infinite alternate; will-change: transform; }
 @keyframes h-zoom { from { transform: scale(1.02); } to { transform: scale(1.1); } }
 .h-why-shade { position: absolute; inset: 0; background: linear-gradient(180deg, var(--w-band) 0%, transparent 22%, transparent 50%, color-mix(in srgb, var(--w-overlay) 88%, transparent) 100%); }
 .h-why-inner { position: relative; padding-bottom: 50px; display: flex; flex-direction: column; gap: 20px; width: 100%; }
@@ -229,7 +231,7 @@
 
 /* 11 enquiry */
 .h-enquiry { position: relative; min-height: 780px; display: flex; align-items: center; color: var(--w-on-band); overflow: hidden; background: var(--w-band); }
-.h-enq-bg { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; object-position: 40% 45%; animation: h-zoom 22s ease-in-out infinite alternate; }
+.h-enq-bg { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; object-position: 40% 45%; /* still: a moving photo under the blurred form costs a blur every frame */ }
 .h-enq-shade { position: absolute; inset: 0; background: linear-gradient(180deg, var(--w-band) 0%, transparent 16%, transparent 40%), linear-gradient(270deg, color-mix(in srgb, var(--w-overlay) 92%, transparent) 0%, color-mix(in srgb, var(--w-overlay) 75%, transparent) 42%, transparent 75%); }
 .h-enq-inner { position: relative; width: 100%; display: flex; justify-content: flex-end; padding-block: 60px; }
 .h-form { width: min(520px, 100%); padding: 38px; border-radius: 18px; background: color-mix(in srgb, var(--w-band) 55%, transparent); backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px); border: 1px solid color-mix(in srgb, var(--w-on-band) 20%, transparent); display: flex; flex-direction: column; gap: 16px; }
