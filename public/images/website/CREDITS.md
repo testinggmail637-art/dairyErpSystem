@@ -21,3 +21,19 @@ credit while used. Files: `home/<name>-<width>.webp` (resized, WebP).
 | `product-paneer` | [Paneer.jpg](https://commons.wikimedia.org/wiki/File:Paneer.jpg) | Tamilselvi v | CC BY-SA 4.0 |
 | `bilona-churning` | [Bishnoivillage.jpg](https://commons.wikimedia.org/wiki/File:Bishnoivillage.jpg) | Abdel Sinoctou | CC BY-SA 3.0 |
 | `glass-bottles` | [Glass Milk Bottles.tif](https://commons.wikimedia.org/wiki/File:Glass_Milk_Bottles.tif) | Pkgx | CC BY-SA 4.0 |
+
+## Pexels (home redesign 7A.3b, DECISIONS #209)
+
+Free for commercial use, credit not required ([Pexels licence](https://www.pexels.com/license/)); listed so they are
+easy to replace with the owner's own photos before launch.
+
+| Name | Pexels photo id | Note |
+|---|---|---|
+| `milk-bottle` | 5946742 | |
+| `milk-cup` | 5336006 | |
+| `milk-pitcher` | 5545921 | |
+| `dahi` | 10809146 | |
+| `ghee-jar` | 373882 | colour-graded to look like ghee — sample only |
+| `paneer` | 4198114 | fresh soft cheese — sample only |
+| `sunrise-farmer` | 30222866 | mood photo, not our farm |
+| `cow-calf` | 30147588 | |
