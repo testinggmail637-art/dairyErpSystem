@@ -89,7 +89,7 @@ if (matchMedia('(max-width: 767.98px)').matches) {
 
 /* ---------- loader → hero intro ---------- */
 function heroIntro() {
-  if (!hasGSAP || reduce) return;
+  if (!hasGSAP || reduce || !$('.hero')) return; // inner demo pages have their own intro
   const tl = gsap.timeline({ defaults: { ease: 'expo.out' } });
   tl.from('.hero-title .word', { yPercent: 110, duration: 1.3, stagger: 0.12 })
     .from('.hero-meta > *', { y: 20, opacity: 0, duration: 0.8, stagger: 0.08 }, '-=1')
@@ -186,7 +186,8 @@ function heroIntro() {
   const io = new IntersectionObserver((entries) => entries.forEach((en) => {
     if (en.isIntersecting) links.forEach((l) => l.classList.toggle('active', l.getAttribute('href') === '#' + en.target.id));
   }), { rootMargin: '-45% 0px -50% 0px' });
-  links.forEach((l) => { const s = $(l.getAttribute('href')); if (s) io.observe(s); });
+  // only same-page #links (other pages link to /demo#ch1 or /demo/products)
+  links.forEach((l) => { const s = l.hash && l.pathname === location.pathname ? $(l.hash) : null; if (s) io.observe(s); });
 })();
 
 /* ---------- custom cursor + magnetic buttons ---------- */
@@ -209,7 +210,7 @@ if (finePointer && !reduce) {
 } else { const c = $('#cursor'); if (c) c.remove(); }
 
 /* ---------- hero mouse parallax ---------- */
-if (finePointer && !reduce && hasGSAP) {
+if (finePointer && !reduce && hasGSAP && $('.hero')) {
   const layers = [['.layer-back', 12], ['.layer-mid', 24], ['.layer-front', 48], ['.vertical-hi', 30]];
   const setters = layers.map(([s]) => [gsap.quickTo(s, 'x', { duration: 0.8, ease: 'power3' }), gsap.quickTo(s, 'y', { duration: 0.8, ease: 'power3' })]);
   $('.hero').addEventListener('mousemove', (e) => {
@@ -234,10 +235,10 @@ function fillProduct(i) {
   if (hasGSAP && !reduce) gsap.from('#productModal .modal-body > .row > *', { y: 24, opacity: 0, duration: 0.6, stagger: 0.08, ease: 'expo.out' });
 }
 $$('[data-product]').forEach((b) => b.addEventListener('click', () => fillProduct(+b.dataset.product)));
-$('#pmNext').addEventListener('click', () => fillProduct((currentProduct + 1) % PRODUCTS.length));
+$('#pmNext')?.addEventListener('click', () => fillProduct((currentProduct + 1) % PRODUCTS.length));
 const pm = $('#productModal');
-pm.addEventListener('show.bs.modal', () => lenis && lenis.stop());
-pm.addEventListener('hidden.bs.modal', () => lenis && lenis.start());
+pm?.addEventListener('show.bs.modal', () => lenis && lenis.stop());
+pm?.addEventListener('hidden.bs.modal', () => lenis && lenis.start());
 
 /* ---------- 3D tilt on product cards ---------- */
 if (finePointer && !reduce) {
@@ -269,7 +270,7 @@ function updatePlan() {
   } else out.textContent = litres;
 }
 $$('#ch5 input[type="radio"]').forEach((r) => r.addEventListener('change', updatePlan));
-updatePlan();
+if ($('#ch5')) updatePlan();
 
 /* ---------- Gauri chat ---------- */
 function gauriAnswer(q) {
@@ -290,6 +291,7 @@ function gauriAnswer(q) {
 }
 (function chat() {
   const log = $('#chatLog'), count = $('#msgCount');
+  if (!log) return; // only the demo home has Gauri
   const add = (text, who) => {
     const d = document.createElement('div');
     d.className = 'msg ' + who; d.textContent = text;
@@ -331,7 +333,7 @@ function gauriAnswer(q) {
 })();
 
 /* ---------- enquiry → WhatsApp ---------- */
-$('#enquiryForm').addEventListener('submit', (e) => {
+$('#enquiryForm')?.addEventListener('submit', (e) => {
   e.preventDefault();
   const f = e.target;
   if (!f.checkValidity()) { f.classList.add('was-validated'); return; }
@@ -397,6 +399,7 @@ if (!hasGSAP || reduce) {
   /* CH1: pinned horizontal scroll; sky shifts night → day, sun rises, clock runs */
   (function morning() {
     const track = $('.morning-track'), pin = $('.morning-pin');
+    if (!pin) return; // demo home only
     const dist = () => Math.max(0, track.scrollWidth - innerWidth + 48);
     const clock = $('#morningClock');
     const tl = gsap.timeline({
@@ -426,6 +429,7 @@ if (!hasGSAP || reduce) {
   /* CH4: bottle fills with milk as you scroll, checks tick in, packet milk gets struck through */
   (function proof() {
     const fill = $('#milkFill'), pct = $('#fillPct');
+    if (!fill) return; // demo home only
     const o = { y: 380 };
     gsap.to(o, { y: 60, ease: 'none', scrollTrigger: { trigger: '.bottle', start: 'top 85%', end: 'bottom 35%', scrub: 1 },
       onUpdate: () => { fill.setAttribute('transform', `translate(0,${o.y})`); pct.textContent = Math.round(((380 - o.y) / 320) * 100); } });

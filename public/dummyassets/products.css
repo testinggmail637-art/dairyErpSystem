@@ -1,0 +1,104 @@
+/* =========================================================
+   Demo products page (/demo/products) — builds on style.css
+   ========================================================= */
+
+/* ---------- hero ---------- */
+.pp-hero { position: relative; overflow: hidden; padding: clamp(130px, 16vw, 190px) 0 clamp(60px, 8vw, 100px);
+  background: radial-gradient(70% 60% at 85% 20%, rgba(242,184,75,.12), transparent 60%), var(--ink); }
+.pp-title { font-size: clamp(76px, 13vw, 200px); line-height: .86; text-transform: uppercase; margin: 0; }
+.pp-title .line { display: block; overflow: hidden; }
+.pp-title .word { display: inline-block; }
+.pp-title .outline { -webkit-text-stroke-color: var(--cream); }
+.pp-hi { font-size: clamp(28px, 3.6vw, 46px); line-height: 1.25; color: var(--cream); margin: 22px 0 8px; max-width: 900px; }
+.pp-lead { max-width: 560px; font-size: 19px; color: var(--cream-2); }
+.pp-ghost { position: absolute; right: -2vw; bottom: -6vw; font-size: clamp(220px, 34vw, 520px); line-height: 1; color: transparent;
+  -webkit-text-stroke: 1px var(--line-2); pointer-events: none; user-select: none; }
+.pp-notice { display: inline-flex; align-items: center; flex-wrap: wrap; gap: 8px 14px; margin-top: 18px; padding: 12px 20px; border-radius: 999px;
+  border: 1px solid var(--line-2); background: rgba(237,230,214,.04); color: var(--cream); text-decoration: none; transition: border-color .3s, transform .3s; }
+.pp-notice:hover { border-color: var(--gold); color: var(--cream); transform: translateY(-2px); }
+.pp-notice b { color: var(--gold); }
+.pp-pulse { position: relative; width: 10px; height: 10px; border-radius: 50%; background: var(--green); flex: none; }
+.pp-pulse::after { content: ''; position: absolute; inset: -6px; border-radius: 50%; border: 2px solid var(--green); animation: ppPing 1.8s ease-out infinite; }
+@keyframes ppPing { from { transform: scale(.4); opacity: .9; } to { transform: scale(1.4); opacity: 0; } }
+
+/* ---------- filter (sticks under the navbar) ---------- */
+/* follows the navbar: under it while it shows, at the very top once it slides away */
+.pp-filter { position: sticky; top: 66px; z-index: 20; padding: 12px 0; background: var(--ink); border-bottom: 1px solid var(--line);
+  transition: top .4s cubic-bezier(.2,.7,.2,1); }
+body:has(#mainNav.hide) .pp-filter { top: 0; }
+.pp-filter .container-xl { align-items: center; overflow-x: auto; scrollbar-width: none; }
+.pp-filter .container-xl::-webkit-scrollbar { display: none; }
+.pp-filter .chip { flex: none; min-height: 44px; padding: 0 20px; font-size: 15px; font-weight: 600; }
+.pp-filter .chip.is-on { background: var(--gold); border-color: var(--gold); color: var(--ink); }
+.pp-count { color: var(--cream-2); }
+
+/* ---------- product rows (photo and text swap sides) ---------- */
+.pp-list { padding-bottom: clamp(60px, 8vw, 120px); }
+.pp-row { display: grid; grid-template-columns: 1fr 1fr; gap: clamp(28px, 5vw, 80px); align-items: center; padding: clamp(40px, 5vw, 70px) 0;
+  border-bottom: 1px solid var(--line); }
+.pp-row.pp-flip .pp-media { order: 2; }
+.pp-row.is-hidden { display: none; }
+.pp-media { position: relative; margin: 0; aspect-ratio: 5 / 4; border-radius: 28px; overflow: hidden; background: var(--ink-2); }
+.pp-media img { width: 100%; height: 100%; object-fit: cover; transform-origin: 50% 60%; transition: transform 1.2s cubic-bezier(.2,.7,.2,1); }
+.pp-row:hover .pp-media img { transform: scale(1.05); }
+.pp-media img.pp-ghee { filter: sepia(.7) saturate(2.3) hue-rotate(-8deg) brightness(1.02) contrast(1.04); } /* stock photo until the real ghee photo */
+.pp-media::after { content: ''; position: absolute; inset: 0; border-radius: inherit; box-shadow: inset 0 0 0 1px rgba(237,230,214,.12);
+  background: linear-gradient(180deg, transparent 55%, rgba(7,17,11,.55)); pointer-events: none; }
+.pp-soon { position: absolute; z-index: 1; top: 18px; left: 18px; padding: 7px 14px; border-radius: 999px; background: var(--ink); color: var(--gold);
+  font-weight: 700; font-size: 14px; border: 1px solid rgba(242,184,75,.4); }
+.pp-num { position: absolute; z-index: 1; right: 18px; bottom: 6px; font-size: clamp(70px, 9vw, 130px); line-height: 1; color: transparent;
+  -webkit-text-stroke: 1.5px var(--cream); opacity: .85; }
+.pp-name { margin: 10px 0 14px; display: flex; flex-direction: column; gap: 4px; }
+.pp-name .display-font { font-size: clamp(46px, 6vw, 86px); line-height: .9; text-transform: uppercase; color: var(--cream); transition: color .3s, letter-spacing .4s; }
+.pp-row:hover .pp-name .display-font { color: var(--gold); letter-spacing: .02em; }
+.pp-name .hi { font-size: clamp(26px, 2.6vw, 36px); }
+.pp-sizes { display: flex; gap: 8px; flex-wrap: wrap; margin: 0 0 14px; }
+.pp-sizes span { padding: 5px 14px; border-radius: 999px; border: 1px solid var(--line-2); font-size: 13px; color: var(--cream); }
+.pp-text { font-size: 18px; color: var(--cream-2); max-width: 520px; }
+.pp-points { list-style: none; padding: 0; margin: 0 0 26px; display: grid; gap: 10px; }
+.pp-points li { position: relative; padding-left: 30px; font-weight: 600; color: var(--cream); }
+.pp-points li::before { content: '✓'; position: absolute; left: 0; top: 1px; width: 20px; height: 20px; border-radius: 50%; display: grid; place-items: center;
+  font-size: 11px; font-weight: 700; background: var(--green); color: var(--ink); }
+.pp-row.is-entering { animation: ppIn .5s cubic-bezier(.2,.7,.2,1) both; }
+@keyframes ppIn { from { opacity: 0; transform: translateY(24px); } to { opacity: 1; transform: none; } }
+
+/* ---------- free-from stamps ---------- */
+.pp-stamps { list-style: none; margin: 40px 0 0; padding: 0; display: grid; grid-template-columns: repeat(4, 1fr); gap: 18px; }
+.pp-stamps li { display: flex; flex-direction: column; gap: 10px; padding: 28px 24px; border-radius: 22px; border: 1.5px dashed rgba(7,17,11,.35); background: var(--paper); }
+.pp-stamps b { font-size: clamp(22px, 2vw, 30px); line-height: 1.2; }
+.pp-no { align-self: flex-start; padding: 2px 14px; border: 2.5px solid #B4382A; border-radius: 8px; color: #B4382A; font-size: 20px; font-weight: 700; transform: rotate(-7deg); }
+
+/* ---------- join ---------- */
+.pp-join { background: radial-gradient(60% 70% at 50% 100%, rgba(242,184,75,.14), transparent 70%), var(--ink); }
+.pp-join .epi-title .hi { display: block; font-size: clamp(28px, 3.6vw, 48px); line-height: 1.3; text-transform: none; margin-top: 14px; }
+
+/* ---------- side navigator (desktop) ---------- */
+.pp-dots { position: fixed; right: 22px; top: 50%; z-index: 30; display: flex; flex-direction: column; gap: 6px; transform: translate(30px, -50%);
+  opacity: 0; pointer-events: none; transition: opacity .4s, transform .5s cubic-bezier(.2,.7,.2,1); }
+.pp-dots.is-on { opacity: 1; transform: translate(0, -50%); pointer-events: auto; }
+.pp-dots a { display: flex; align-items: center; justify-content: flex-end; gap: 10px; padding: 4px 0; color: var(--muted); text-decoration: none; font-size: 12px; }
+.pp-dots a .mono { position: relative; padding-left: 22px; transition: color .3s; }
+.pp-dots a .mono::before { content: ''; position: absolute; left: 0; top: 50%; width: 14px; height: 1px; background: currentColor; transition: width .3s; }
+.pp-dot-name { opacity: 0; transform: translateX(8px); transition: opacity .3s, transform .3s; color: var(--cream); font-size: 15px; white-space: nowrap; }
+.pp-dots a:hover .pp-dot-name, .pp-dots a.active .pp-dot-name { opacity: 1; transform: none; }
+.pp-dots a.active .mono, .pp-dots a:hover .mono { color: var(--gold); }
+.pp-dots a.active .mono::before { width: 22px; }
+.pp-dots a.is-off { display: none; }
+@media (max-width: 1199.98px) { .pp-dots { display: none; } }
+.pp-media { will-change: transform; transition: transform .6s cubic-bezier(.2,.7,.2,1); }
+
+@media (max-width: 991.98px) {
+  .pp-row, .pp-row.pp-flip { grid-template-columns: 1fr; }
+  .pp-row.pp-flip .pp-media { order: 0; }
+  .pp-stamps { grid-template-columns: repeat(2, 1fr); }
+}
+@media (max-width: 767.98px) {
+  .pp-notice { border-radius: 18px; }
+  .pp-row { padding: 40px 0; }
+  .pp-stamps { gap: 12px; }
+  .pp-stamps li { padding: 18px 16px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .pp-pulse::after, .pp-row.is-entering { animation: none; }
+  .pp-media img, .pp-notice { transition: none; }
+}
