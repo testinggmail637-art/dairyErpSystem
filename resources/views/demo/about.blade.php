@@ -1,8 +1,8 @@
 @extends('demo.layout')
 
-{{-- Demo About page (local only). Text: lang/hi/about.php — story, names, years and place are [placeholders] for the owner. --}}
+{{-- Demo About page (local only). Text: lang/hi/demo/about.php — story, names, years and place are [placeholders] for the owner. --}}
 @php
-    $t = trans('about', [], 'hi');
+    $t = trans('demo/about', [], 'hi');
     $img = 'images/website/home/';
     $pic = fn ($n, $w) => asset("{$img}{$n}-{$w}.webp");
     $journeyImg = [['cow-calf', 768], ['glass-bottles', 480], ['hero-herd', 768], ['milk-pitcher', 480], ['bilona-churning', 480]];
