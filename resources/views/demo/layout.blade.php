@@ -44,6 +44,7 @@
         <li class="nav-item"><a class="nav-link" href="{{ $base }}#ch4">04 प्रमाण</a></li>
         <li class="nav-item"><a class="nav-link" href="{{ $base }}#ch5">05 योजना</a></li>
         <li class="nav-item"><a @class(['nav-link', 'active' => request()->is('demo/about')]) href="{{ route('demo', 'about') }}">कहानी</a></li>
+        <li class="nav-item"><a @class(['nav-link', 'active' => request()->is('demo/blog') || request()->is('demo/article')]) href="{{ route('demo', 'blog') }}">लेख</a></li>
         <li class="nav-item"><a class="nav-link" href="{{ $base }}#faq">FAQ</a></li>
         <li class="nav-item"><a @class(['nav-link', 'active' => request()->is('demo/contact')]) href="{{ route('demo', 'contact') }}">संपर्क</a></li>
       </ul>
@@ -62,7 +63,7 @@
 <div class="footer-word display-font" aria-hidden="true">YASHADHYA</div>
 <footer class="container-xl d-flex justify-content-between flex-wrap gap-3 mono small-label pb-5 mb-5 mb-lg-0">
   <span>© 2026 YASHADHYA ORGANICS · ALL RIGHTS RESERVED · FSSAI [NUMBER]</span>
-  <span class="d-flex flex-wrap gap-3"><a href="{{ route('demo', 'contact') }}">CONTACT</a><a href="#">INSTAGRAM</a><a href="#">FACEBOOK</a><a href="#">YOUTUBE</a><a href="#">PRIVACY</a><a href="#">TERMS</a><a href="#">REFUNDS</a></span>
+  <span class="d-flex flex-wrap gap-3"><a href="{{ route('demo', 'contact') }}">CONTACT</a><a href="{{ route('demo', 'blog') }}">BLOG</a><a href="#">INSTAGRAM</a><a href="#">FACEBOOK</a><a href="#">YOUTUBE</a><a href="#">PRIVACY</a><a href="#">TERMS</a><a href="#">REFUNDS</a></span>
 </footer>
 
 <!-- sticky action bar (mobile) -->
