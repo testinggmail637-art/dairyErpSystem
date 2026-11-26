@@ -1,8 +1,8 @@
 @extends('demo.layout')
 
-{{-- Demo "our herd" page (local only). Text: lang/hi/herd.php — herd counts / names are [placeholders] for the owner. --}}
+{{-- Demo "our herd" page (local only). Text: lang/hi/demo/herd.php — herd counts / names are [placeholders] for the owner. --}}
 @php
-    $t = trans('herd', [], 'hi');
+    $t = trans('demo/herd', [], 'hi');
     $img = 'images/website/home/';
     $wa = 'https://wa.me/91XXXXXXXXXX?text='.rawurlencode($t['visit']['whatsapp_text']);
     $icons = [

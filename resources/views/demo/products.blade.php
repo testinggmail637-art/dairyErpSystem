@@ -2,8 +2,8 @@
 
 {{-- Demo products page (local only). Text from lang/{hi,en}/products.php; no prices — delivery has not started (DECISIONS #211). --}}
 @php
-    $t = trans('products', [], 'hi');
-    $en = trans('products.items', [], 'en');
+    $t = trans('demo/products', [], 'hi');
+    $en = trans('demo/products.items', [], 'en');
     $img = 'images/website/home/';
     $srcset = fn ($n) => collect([480, 800, 1200])->map(fn ($x) => asset("{$img}{$n}-{$x}.webp")." {$x}w")->implode(', ');
     $wa = fn ($text) => 'https://wa.me/91XXXXXXXXXX?text='.rawurlencode($text);

@@ -45,6 +45,7 @@
         <li class="nav-item"><a class="nav-link" href="{{ $base }}#ch5">05 योजना</a></li>
         <li class="nav-item"><a @class(['nav-link', 'active' => request()->is('demo/about')]) href="{{ route('demo', 'about') }}">कहानी</a></li>
         <li class="nav-item"><a class="nav-link" href="{{ $base }}#faq">FAQ</a></li>
+        <li class="nav-item"><a @class(['nav-link', 'active' => request()->is('demo/contact')]) href="{{ route('demo', 'contact') }}">संपर्क</a></li>
       </ul>
       <div class="d-flex align-items-center gap-3">
         <span class="mono small-label d-none d-xl-inline"><span class="blink green">●</span> NEXT DELIVERY T-<span class="js-countdown">--:--</span></span>
@@ -60,8 +61,8 @@
 
 <div class="footer-word display-font" aria-hidden="true">YASHADHYA</div>
 <footer class="container-xl d-flex justify-content-between flex-wrap gap-3 mono small-label pb-5 mb-5 mb-lg-0">
-  <span>© 2026 YASHADHYA ORGANICS · FSSAI [NUMBER]</span>
-  <span class="d-flex flex-wrap gap-3"><a href="#">INSTAGRAM</a><a href="#">FACEBOOK</a><a href="#">YOUTUBE</a><a href="#">PRIVACY</a><a href="#">TERMS</a><a href="#">REFUNDS</a></span>
+  <span>© 2026 YASHADHYA ORGANICS · ALL RIGHTS RESERVED · FSSAI [NUMBER]</span>
+  <span class="d-flex flex-wrap gap-3"><a href="{{ route('demo', 'contact') }}">CONTACT</a><a href="#">INSTAGRAM</a><a href="#">FACEBOOK</a><a href="#">YOUTUBE</a><a href="#">PRIVACY</a><a href="#">TERMS</a><a href="#">REFUNDS</a></span>
 </footer>
 
 <!-- sticky action bar (mobile) -->
@@ -78,6 +79,7 @@
 <script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/ScrollTrigger.min.js" defer></script>
 <script src="https://cdn.jsdelivr.net/npm/lenis@1.1.13/dist/lenis.min.js" defer></script>
 <script src="{{ asset('dummyassets/script.js') }}?v={{ filemtime(public_path('dummyassets/script.js')) }}" defer></script>
+<script src="{{ asset('dummyassets/protect.js') }}?v={{ filemtime(public_path('dummyassets/protect.js')) }}" defer></script>
 @stack('scripts')
 </body>
 </html>
