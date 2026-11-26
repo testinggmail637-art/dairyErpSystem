@@ -77,6 +77,16 @@ $$('a[href^="#"]').forEach((a) => a.addEventListener('click', (e) => {
   if (lenis) lenis.scrollTo(target, { offset: -60 }); else target.scrollIntoView({ behavior: 'smooth' });
 }));
 
+/* ---------- mobile hero: move the sun into the visible strip ----------
+   The hero SVG is cropped to the middle on a phone, so the desktop sun (x 1020) sat half off-screen behind
+   the title. Runs before the intro/scroll animations read its position. */
+if (matchMedia('(max-width: 767.98px)').matches) {
+  document.querySelectorAll('.hero .sun, .hero .sun-glow').forEach((c) => {
+    c.setAttribute('cx', '860'); c.setAttribute('cy', '190');
+    c.setAttribute('r', c.classList.contains('sun') ? '62' : '105');
+  });
+}
+
 /* ---------- loader → hero intro ---------- */
 function heroIntro() {
   if (!hasGSAP || reduce) return;
