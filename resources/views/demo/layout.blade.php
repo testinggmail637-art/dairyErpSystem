@@ -43,6 +43,7 @@
         <li class="nav-item"><a @class(['nav-link', 'active' => request()->is('demo/herd')]) href="{{ route('demo', 'herd') }}">03 वंश</a></li>
         <li class="nav-item"><a class="nav-link" href="{{ $base }}#ch4">04 प्रमाण</a></li>
         <li class="nav-item"><a class="nav-link" href="{{ $base }}#ch5">05 योजना</a></li>
+        <li class="nav-item"><a @class(['nav-link', 'active' => request()->is('demo/about')]) href="{{ route('demo', 'about') }}">कहानी</a></li>
         <li class="nav-item"><a class="nav-link" href="{{ $base }}#faq">FAQ</a></li>
       </ul>
       <div class="d-flex align-items-center gap-3">
