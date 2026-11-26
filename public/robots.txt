@@ -1,2 +1,4 @@
+# Site is not live yet (Phase 7A design stage) — block all crawlers.
+# Re-open in task 7A.11 (SEO): replace with "Disallow:" + the sitemap line.
 User-agent: *
-Disallow:
+Disallow: /
