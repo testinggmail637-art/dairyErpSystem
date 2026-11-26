@@ -9,12 +9,14 @@
 
   <!-- Fonts -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Anton&family=JetBrains+Mono:wght@400;600&family=Tiro+Devanagari+Hindi:ital@0;1&family=Mukta:wght@400;500;600;700&display=swap" rel="stylesheet">
   <!-- Bootstrap 5 -->
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
   <!-- Site styles -->
   <link href="{{ asset('dummyassets/style.css') }}?v={{ filemtime(public_path('dummyassets/style.css')) }}" rel="stylesheet">
+  <script>try { if (sessionStorage.getItem('ylSeen')) document.documentElement.classList.add('no-loader'); } catch (e) {}</script>
 </head>
 <body>
 
@@ -89,7 +91,7 @@
           <span class="line"><span class="word outline">by</span> <span class="word gold">dawn</span></span>
         </h1>
         <p class="hero-sub mt-4">
-          <span class="hi fs-3 d-block text-cream">शुद्धता परंपरा की।</span>
+          <span class="hero-hi hi d-block">शुद्धता <span class="gold">परंपरा</span> की।</span>
           Desi cow milk from our own goshala. No water, no powder. Tested daily. At your door before 7 AM.
         </p>
         <div class="d-flex flex-wrap gap-3 mt-4 hero-cta">
@@ -285,6 +287,7 @@
 
     <div class="hud p-4 mt-4 compare">
       <div class="d-flex justify-content-between flex-wrap mono small-label mb-2"><span>MOD.02 · PACKET vs YASHADHYA</span><span>TYPICAL PACKET MILK, NO BRAND</span></div>
+      <div class="cmp-track">
       <div class="cmp-row"><span class="mono small-label">SOURCE</span><span class="them">Mixed milk, thousands of animals</span><span class="us">Our own named breeds</span></div>
       <div class="cmp-row"><span class="mono small-label">AGE</span><span class="them">Often 1–2 days old</span><span class="us">Milked the same morning</span></div>
       <div class="cmp-row"><span class="mono small-label">ADULTERATION</span><span class="them">Machine-adjusted; powder common</span><span class="us">Nothing added; every batch tested</span></div>
@@ -293,6 +296,8 @@
       <div class="cmp-row"><span class="mono small-label">FEED</span><span class="them">Unknown</span><span class="us">Green fodder, oil cake, own hay</span></div>
       <div class="cmp-row"><span class="mono small-label">PACKAGING</span><span class="them">Plastic pouch</span><span class="us">Glass bottle, taken back</span></div>
       <div class="cmp-row"><span class="mono small-label">FARM VISIT</span><span class="them">No</span><span class="us">Yes — come and see</span></div>
+      </div>
+      <div class="cmp-hint mono small-label d-md-none"><span>SWIPE</span><span class="cmp-hint-line"></span><span id="cmpPos">1 / 8</span></div>
     </div>
   </div>
 </section>
@@ -481,17 +486,17 @@
 
 <!-- sticky action bar (mobile) -->
 <div class="action-bar d-lg-none">
-  <a href="tel:+91XXXXXXXXXX">Call</a>
-  <a href="https://wa.me/91XXXXXXXXXX" target="_blank" rel="noopener">WhatsApp</a>
-  <a href="#contact" class="ab-main">दूध मंगवाएं</a>
+  <a href="tel:+91XXXXXXXXXX"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6.6 10.8a15.1 15.1 0 0 0 6.6 6.6l2.2-2.2a1 1 0 0 1 1-.25 11.4 11.4 0 0 0 3.6.57 1 1 0 0 1 1 1V20a1 1 0 0 1-1 1A17 17 0 0 1 3 4a1 1 0 0 1 1-1h3.5a1 1 0 0 1 1 1c0 1.25.2 2.45.57 3.57a1 1 0 0 1-.25 1z" fill="currentColor"/></svg>Call</a>
+  <a href="https://wa.me/91XXXXXXXXXX" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2a10 10 0 0 0-8.6 15.1L2 22l5-1.3A10 10 0 1 0 12 2zm5.3 14.1c-.2.6-1.3 1.2-1.8 1.2-.5.1-1 .1-3.3-.8a11.6 11.6 0 0 1-4.5-4c-.3-.5-1-1.6-1-3s.7-2.1 1-2.4a1 1 0 0 1 .7-.3h.5c.2 0 .4 0 .6.5l.8 2c.1.2.1.4 0 .5l-.4.6-.4.4c-.1.2-.3.3-.1.6a8 8 0 0 0 1.5 1.9 7.5 7.5 0 0 0 2.2 1.4c.3.1.4.1.6-.1l.8-1c.2-.3.4-.2.6-.1l1.9.9c.3.1.5.2.5.3a2.3 2.3 0 0 1-.2 1.4z" fill="currentColor"/></svg>WhatsApp</a>
+  <a href="#contact" class="ab-main"><svg class="ab-bottle" viewBox="0 0 20 32" aria-hidden="true"><defs><clipPath id="abBottle"><path d="M7 1h6v5l3 4v18a3 3 0 0 1-3 3H7a3 3 0 0 1-3-3V10l3-4z"/></clipPath></defs><g clip-path="url(#abBottle)"><rect x="0" y="0" width="20" height="32" fill="rgba(7,17,11,.15)"/><path class="ab-milk" d="M-20 15 q5 -3 10 0 t10 0 t10 0 t10 0 t10 0 V40 H-20 Z" fill="#FFF8EC"/></g><path d="M7 1h6v5l3 4v18a3 3 0 0 1-3 3H7a3 3 0 0 1-3-3V10l3-4z" fill="none" stroke="currentColor" stroke-width="1.6"/></svg>दूध मंगवाएं</a>
 </div>
 <a href="#top" class="to-top" aria-label="Back to top">↑</a>
 
 <!-- Scripts: Bootstrap, GSAP + ScrollTrigger, Lenis smooth scroll -->
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/gsap.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/ScrollTrigger.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/lenis@1.1.13/dist/lenis.min.js"></script>
-<script src="{{ asset('dummyassets/script.js') }}?v={{ filemtime(public_path('dummyassets/script.js')) }}"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" defer></script>
+<script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/gsap.min.js" defer></script>
+<script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/ScrollTrigger.min.js" defer></script>
+<script src="https://cdn.jsdelivr.net/npm/lenis@1.1.13/dist/lenis.min.js" defer></script>
+<script src="{{ asset('dummyassets/script.js') }}?v={{ filemtime(public_path('dummyassets/script.js')) }}" defer></script>
 </body>
 </html>

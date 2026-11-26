@@ -279,13 +279,27 @@ footer a { color: var(--cream-2); text-decoration: none; }
 footer a:hover { color: var(--gold); }
 
 /* ---------- action bar / to-top ---------- */
-.action-bar { position: fixed; left: 50%; bottom: 14px; transform: translateX(-50%); z-index: 1200; display: flex; gap: 4px; background: var(--cream); border-radius: 999px; padding: 5px; box-shadow: 0 10px 30px rgba(0,0,0,.4); }
-.action-bar a { text-decoration: none; color: var(--ink); padding: 11px 16px; border-radius: 999px; font-weight: 700; font-size: 14px; }
-.action-bar .ab-main { background: var(--ink); color: var(--gold); }
+/* mobile action bar: full-width dark dock, gold main button on one line */
+.action-bar { position: fixed; left: 12px; right: 12px; bottom: max(12px, env(safe-area-inset-bottom)); z-index: 1200; display: grid; grid-template-columns: 1fr 1fr 1.35fr; gap: 6px; align-items: center;
+  background: rgba(7, 17, 11, .92); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); border: 1px solid var(--line-2); border-radius: 18px; padding: 6px; box-shadow: 0 12px 30px rgba(0,0,0,.45); }
+.action-bar a { display: flex; align-items: center; justify-content: center; gap: 7px; min-height: 46px; padding: 0 10px; border-radius: 12px; text-decoration: none; color: var(--cream); font-weight: 600; font-size: 14px; white-space: nowrap; }
+.action-bar a svg { width: 18px; height: 18px; flex: 0 0 18px; }
+.action-bar a:active { background: rgba(237, 230, 214, .08); }
+.action-bar .ab-main { position: relative; overflow: hidden; background: var(--gold); color: var(--ink); font-weight: 700; font-size: 15px; }
+.action-bar { transition: transform .45s cubic-bezier(.2,.7,.2,1), opacity .3s; }
+.action-bar.ab-hide { transform: translateY(130%); opacity: 0; }
+.ab-bottle { width: 14px !important; height: 22px !important; flex: 0 0 14px !important; }
+.ab-milk { animation: abWave 2.4s linear infinite; }
+@keyframes abWave { to { transform: translateX(20px); } }
+/* a gold shine sweeps across the main button every few seconds */
+.action-bar .ab-main::after { content: ''; position: absolute; top: 0; bottom: 0; left: -60%; width: 40%; background: linear-gradient(100deg, transparent, rgba(255,255,255,.55), transparent); transform: skewX(-20deg); animation: abShine 4.5s ease-in-out 1.5s infinite; }
+@keyframes abShine { 0%, 70% { left: -60%; } 100% { left: 130%; } }
+@media (prefers-reduced-motion: reduce) { .ab-milk, .action-bar .ab-main::after { animation: none; } .action-bar { transition: none; } }
+@media (max-width: 991.98px) { body { padding-bottom: 84px; } }
 .to-top { position: fixed; right: 20px; bottom: 20px; z-index: 1100; width: 48px; height: 48px; border-radius: 50%; background: var(--gold); color: var(--ink);
   display: flex; align-items: center; justify-content: center; text-decoration: none; font-weight: 700; opacity: 0; pointer-events: none; transition: opacity .3s, transform .3s; transform: translateY(10px); }
 .to-top.show { opacity: 1; pointer-events: auto; transform: none; }
-@media (max-width: 991.98px) { .to-top { bottom: 80px; } }
+@media (max-width: 991.98px) { .to-top { bottom: 84px; right: 14px; } }
 
 /* ---------- reduced motion ---------- */
 @media (prefers-reduced-motion: reduce) {
@@ -425,3 +439,36 @@ footer a:hover { color: var(--gold); }
 }
 /* nothing may push the page sideways (footer word slides in from the right) */
 html, body { overflow-x: clip; }
+
+/* ---------- loader: only on the first visit of a session ---------- */
+.no-loader #loader { display: none !important; }
+
+/* ---------- hero: Hindi line as a real headline, gold underline draws in ---------- */
+.hero-hi { font-size: clamp(30px, 4.2vw, 52px); line-height: 1.25; color: var(--cream); margin-bottom: 10px; position: relative; width: fit-content; }
+.hero-hi::after { content: ''; display: block; height: 3px; margin-top: 4px; border-radius: 3px; background: linear-gradient(90deg, var(--gold), transparent); transform: scaleX(0); transform-origin: left; animation: heroLine 1.2s cubic-bezier(.7,0,.2,1) 1.3s forwards; }
+@keyframes heroLine { to { transform: scaleX(1); } }
+@media (prefers-reduced-motion: reduce) { .hero-hi::after { animation: none; transform: none; } }
+
+/* ---------- MOD.02 on phones: swipe cards instead of 8 long rows ---------- */
+.cmp-hint { display: flex; align-items: center; gap: 10px; margin-top: 12px; color: var(--cream-2); }
+.cmp-hint-line { flex: 1; height: 1px; background: linear-gradient(90deg, var(--gold), transparent); }
+@media (max-width: 767.98px) {
+  .cmp-track { display: flex; gap: 12px; overflow-x: auto; scroll-snap-type: x mandatory; -webkit-overflow-scrolling: touch; scrollbar-width: none; margin: 0 -24px; padding: 4px 24px 6px; scroll-padding: 0 24px; }
+  .cmp-track::-webkit-scrollbar { display: none; }
+  .cmp-track .cmp-row { flex: 0 0 82%; scroll-snap-align: start; flex-direction: column; gap: 8px; border: 1px solid var(--line-2); border-radius: 14px; padding: 16px; background: rgba(237,230,214,.03); }
+  .cmp-track .cmp-row .small-label { flex: none; color: var(--gold); }
+  .cmp-track .cmp-row .them, .cmp-track .cmp-row .us { flex: none; }
+  .cmp-track .cmp-row .us { color: var(--green); }
+  /* real strike-through so it follows wrapped lines */
+  .cmp-track .cmp-row .them { text-decoration: line-through; text-decoration-color: rgba(138,150,140,.8); }
+  .cmp-track .cmp-row .them::after { display: none; }
+}
+
+/* ---------- Gauri: typing dots instead of "GAURI IS TYPING…" ---------- */
+.msg.typing { display: inline-flex; gap: 5px; align-items: center; padding: 14px 16px; }
+.msg.typing i { width: 7px; height: 7px; border-radius: 50%; background: var(--cream-2); animation: typeDot 1s ease-in-out infinite; }
+.msg.typing i:nth-child(2) { animation-delay: .15s; } .msg.typing i:nth-child(3) { animation-delay: .3s; }
+@keyframes typeDot { 0%, 60%, 100% { transform: translateY(0); opacity: .4; } 30% { transform: translateY(-5px); opacity: 1; } }
+.msg .msg-wa { display: inline-flex; align-items: center; gap: 6px; margin-top: 10px; padding: 8px 14px; border-radius: 999px; background: #25D366; color: #07110B; font-weight: 700; font-size: 14px; text-decoration: none; }
+/* bigger Hindi line made the hero taller → keep the buttons clear of the bottom line on desktop */
+@media (min-width: 768px) { .hero-inner { padding: 90px 0 90px; } }
