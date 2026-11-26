@@ -41,6 +41,7 @@ a:hover { color: #FFD889; }
 .display-font { font-family: var(--f-display); font-weight: 400; letter-spacing: .01em; }
 .hi { font-family: var(--f-hi); }
 .mono { font-family: var(--f-mono); }
+.ls-0 { letter-spacing: 0; text-transform: none; } /* Hindi inside an English small-label */
 .small-label { font-size: 12px; letter-spacing: .14em; text-transform: uppercase; color: var(--muted); }
 .gold { color: var(--gold) !important; }
 .brown { color: var(--brown) !important; }
