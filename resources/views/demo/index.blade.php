@@ -302,7 +302,7 @@
 <section id="compare" class="section-pad compare">
   <div class="container-xl">
     <div class="text-center mx-auto reveal" style="max-width: 860px">
-      <span class="mono small-label gold">{{ $cmp['eyebrow'] }}</span>
+      <span class="hi gold fs-5">{{ $cmp['eyebrow'] }}</span>
       <h2 class="compare-title hi mt-2">{{ $cmp['title'] }}</h2>
       <p class="compare-sub mt-3">{{ $cmp['text'] }}</p>
     </div>
