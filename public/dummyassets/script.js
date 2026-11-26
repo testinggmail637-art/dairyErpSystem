@@ -93,6 +93,7 @@ function heroIntro() {
   const tl = gsap.timeline({ defaults: { ease: 'expo.out' } });
   tl.from('.hero-title .word', { yPercent: 110, duration: 1.3, stagger: 0.12 })
     .from('.hero-meta > *', { y: 20, opacity: 0, duration: 0.8, stagger: 0.08 }, '-=1')
+    .from('.hero-hi', { y: 40, opacity: 0, duration: 1.1 }, '-=0.9')
     .from('.hero-sub', { y: 30, opacity: 0, duration: 1 }, '-=0.8')
     .from('.hero-cta > *', { y: 30, opacity: 0, duration: 0.9, stagger: 0.1 }, '-=0.8')
     .from('.vertical-hi', { y: 80, opacity: 0, duration: 1.4 }, '-=1.2')
@@ -102,6 +103,9 @@ function heroIntro() {
 (function loader() {
   const el = $('#loader');
   if (!el) return heroIntro();
+  let seen = false;
+  try { seen = !!sessionStorage.getItem('ylSeen'); sessionStorage.setItem('ylSeen', '1'); } catch (e) {}
+  if (seen) { el.remove(); return heroIntro(); }
   document.body.classList.add('is-loading');
   if (lenis) lenis.stop();
   let p = 0, done = false;
@@ -116,16 +120,50 @@ function heroIntro() {
       if (hasGSAP) ScrollTrigger.refresh();
       heroIntro();
     };
-    if (hasGSAP && !reduce) gsap.to(el, { yPercent: -100, duration: 1, ease: 'expo.inOut', delay: 0.15, onComplete: close });
+    if (hasGSAP && !reduce) gsap.to(el, { yPercent: -100, duration: 0.8, ease: 'expo.inOut', delay: 0.1, onComplete: close });
     else close();
   };
   const iv = setInterval(() => {
-    p = Math.min(100, p + Math.ceil(Math.random() * 6));
+    p = Math.min(100, p + 2 + Math.ceil(Math.random() * 6));
     pct.textContent = p; bar.style.width = p + '%';
     if (p >= 100) finish();
   }, 45);
   $('#loaderSkip').addEventListener('click', finish);
-  setTimeout(finish, 4000); // safety
+  setTimeout(finish, 2500); // safety
+})();
+
+/* ---------- MOD.02 swipe cards: "3 / 8" counter ---------- */
+(function cmpSwipe() {
+  const track = document.querySelector('.cmp-track'), pos = document.getElementById('cmpPos');
+  if (!track || !pos) return;
+  const rows = track.children;
+  track.addEventListener('scroll', () => {
+    const i = Math.round(track.scrollLeft / (rows[0].offsetWidth + 12));
+    pos.textContent = `${Math.min(rows.length, i + 1)} / ${rows.length}`;
+  }, { passive: true });
+})();
+
+/* ---------- mobile action bar: hide while scrolling down, back on scroll up or when scrolling stops ---------- */
+(function actionBarAutoHide() {
+  const bar = document.querySelector('.action-bar');
+  if (!bar) return;
+  // while typing (chat, enquiry form) the bar would cover the input → keep it away
+  let typing = false;
+  addEventListener('focusin', (e) => { if (e.target.matches('input, textarea, select')) { typing = true; bar.classList.add('ab-hide'); } });
+  addEventListener('focusout', (e) => { if (e.target.matches('input, textarea, select')) { typing = false; bar.classList.remove('ab-hide'); } });
+  let lastY = scrollY, ticking = false, idle;
+  addEventListener('scroll', () => {
+    // reader stopped on a section → bring the bar back
+    clearTimeout(idle);
+    idle = setTimeout(() => { if (!typing) bar.classList.remove('ab-hide'); }, 600);
+    if (ticking) return;
+    ticking = true;
+    requestAnimationFrame(() => {
+      const y = scrollY, diff = y - lastY;
+      if (Math.abs(diff) > 6) { bar.classList.toggle('ab-hide', typing || (diff > 0 && y > 300)); lastY = y; }
+      ticking = false;
+    });
+  }, { passive: true });
 })();
 
 /* ---------- navbar, progress, to-top ---------- */
@@ -236,15 +274,19 @@ updatePlan();
 /* ---------- Gauri chat ---------- */
 function gauriAnswer(q) {
   const t = q.toLowerCase();
-  if (/a2/.test(t)) return 'A2 is a protein found in the milk of desi cows like Gir, Sahiwal and Tharparkar. Many people find it easier to digest.';
-  if (/price|rate|दाम|कीमत|₹|cost/.test(t)) return 'Prices: [add your price list]. Ghee is on request. Send an enquiry and the team replies the same day.';
-  if (/deliver|डिलीवरी|time|बजे|area|zone|इलाक/.test(t)) return 'Every morning before 7 AM, in [Zone 1], [Zone 2] and [Zone 3]. Daily or alternate days.';
-  if (/pause|रोक|stop|travel/.test(t)) return 'You can pause anytime — [how: call / WhatsApp before X PM]. One bill at the month end.';
-  if (/bottle|बोतल|glass/.test(t)) return 'Glass bottles only — no plastic pouch. Keep the empties out; the farm takes them back.';
-  if (/test|टेस्ट|pure|शुद्ध|water|पानी|powder/.test(t)) return 'At 6 AM every batch is tested for fat/SNF, water, milk powder, preservatives and hormones, then cooled to 4°C. Reports on request.';
-  if (/visit|farm|गौशाला|goshala/.test(t)) return 'Yes! The goshala is open to visitors — call ahead on +91 [phone].';
-  if (/ghee|घी|paneer|पनीर|dahi|दही|curd/.test(t)) return 'Matka dahi (500 g), bilona ghee (500 ml, hand-churned) and fresh paneer (250 g, made daily) — all from our own milk.';
-  return 'Ye main pakka nahi bata sakti — WhatsApp karein, team same day jawab degi.';
+  const has = (re) => re.test(t);
+  if (has(/a2|ए2|ए-2/)) return 'A2 एक प्रोटीन है जो गिर, साहीवाल और थारपारकर जैसी देसी गायों के दूध में होता है। बहुत लोगों को ये पचाने में हल्का लगता है।';
+  if (has(/price|rate|cost|daam|dam|kitne ka|kitna ka|दाम|कीमत|रेट|₹|पैसे/)) return 'दूध का दाम: [₹ प्रति लीटर]। घी, पनीर, दही के दाम: [जोड़ें]। "दूध मंगवाएं" बटन दबाइए, टीम उसी दिन जवाब देगी।';
+  if (has(/deliver|delivery|time|kab|kitne baje|subah|area|zone|डिलीवरी|बजे|सुबह|इलाक|कहाँ|kaha/)) return 'हर सुबह 7 बजे से पहले, [इलाका 1], [इलाका 2] और [इलाका 3] में। रोज़ या एक दिन छोड़कर — जैसा आप चाहें।';
+  if (has(/pause|stop|band|ruk|travel|bahar|रोक|बंद|छुट्टी/)) return 'जब चाहें रोक सकते हैं — बस [कब तक: रात X बजे तक] कॉल या WhatsApp कर दें। महीने के आख़िर में एक ही बिल।';
+  if (has(/bottle|glass|plastic|बोतल|काँच|कांच|थैली/)) return 'सिर्फ़ काँच की बोतल, प्लास्टिक की थैली नहीं। खाली बोतल बाहर रख दें, अगली सुबह हम ले जाते हैं।';
+  if (has(/test|pure|shuddh|milawat|water|paani|powder|टेस्ट|जाँच|जांच|शुद्ध|मिलावट|पानी|पाउडर/)) return 'सुबह 6 बजे हर बैच की जाँच: फैट/SNF, पानी, पाउडर, प्रिज़र्वेटिव और हार्मोन। फिर 4°C पर ठंडा। रिपोर्ट कभी भी माँगिए।';
+  if (has(/visit|farm|goshala|gaushala|dekh|गौशाला|फार्म|देख/)) return 'हाँ! गौशाला आप कभी भी देखने आ सकते हैं — आने से पहले +91 [फ़ोन] पर बता दें।';
+  if (has(/ghee|paneer|dahi|curd|घी|पनीर|दही|मटका/)) return 'मटका दही (500 g), बिलोना घी (500 ml, हाथ से बिलोया) और ताज़ा पनीर (250 g, रोज़ बनता है) — सब हमारे अपने दूध से।';
+  if (has(/pay|upi|bill|bil|paisa|भुगतान|बिल|पेमेंट/)) return 'महीने के आख़िर में एक बिल। UPI, कैश या [और तरीके] — जैसा आपको आसान लगे।';
+  if (has(/trial|sample|try|pehle|ट्रायल|सैंपल|पहले/)) return 'पहले आधा लीटर से शुरू कर सकते हैं। पसंद आए तो रोज़ का प्लान बना लीजिए।';
+  if (has(/^(hi|hello|namaste|hey)|नमस्ते|राम राम|हेलो/)) return 'नमस्ते! 🙏 दूध, डिलीवरी, दाम या गौशाला — कुछ भी पूछिए।';
+  return null; // unknown → WhatsApp button
 }
 (function chat() {
   const log = $('#chatLog'), count = $('#msgCount');
@@ -258,8 +300,21 @@ function gauriAnswer(q) {
   const ask = (q) => {
     if (!q.trim()) return;
     add(q, 'me');
-    const typing = add('GAURI IS TYPING…', 'her typing');
-    setTimeout(() => { typing.remove(); add(gauriAnswer(q), 'her'); }, 650);
+    const typing = add('', 'her typing');
+    typing.innerHTML = '<i></i><i></i><i></i>'; typing.setAttribute('aria-label', 'Gauri is typing');
+    const answer = gauriAnswer(q);
+    // longer answers "type" a little longer, so it feels natural
+    const wait = Math.min(1400, 500 + (answer ? answer.length * 6 : 400));
+    setTimeout(() => {
+      typing.remove();
+      if (answer) return void add(answer, 'her');
+      const d = add('ये मैं पक्का नहीं बता सकती — टीम से सीधे पूछ लीजिए, उसी दिन जवाब मिलेगा।', 'her');
+      const wa = document.createElement('a');
+      wa.className = 'msg-wa'; wa.target = '_blank'; wa.rel = 'noopener'; wa.textContent = 'WhatsApp पर पूछें →';
+      wa.href = `https://wa.me/${CONFIG.whatsapp}?text=${encodeURIComponent('नमस्ते, मेरा सवाल: ' + q)}`;
+      d.appendChild(document.createElement('br')); d.appendChild(wa);
+      log.scrollTop = log.scrollHeight;
+    }, wait);
   };
   $$('#chips .chip').forEach((c) => c.addEventListener('click', () => ask(c.textContent)));
   $('#chatForm').addEventListener('submit', (e) => { e.preventDefault(); const i = $('#chatInput'); ask(i.value); i.value = ''; });
