@@ -78,7 +78,10 @@
           <ul class="pp-points">
             @foreach ($p['points'] as $point)<li>{{ $point }}</li>@endforeach
           </ul>
-          <a class="btn btn-gold rounded-pill px-4 magnetic" href="{{ $wa(str_replace(':name', $p['name'], $t['notify_text'])) }}" target="_blank" rel="noopener">{{ $t['notify'] }} →</a>
+          <div class="d-flex flex-wrap gap-2">
+            <a class="btn btn-gold rounded-pill px-4 magnetic" href="{{ route('demo', 'product') }}?p={{ $p['slug'] }}">{{ $t['detail']['view'] }} →</a>
+            <a class="btn btn-outline-cream rounded-pill px-4 magnetic" href="{{ $wa(str_replace(':name', $p['name'], $t['notify_text'])) }}" target="_blank" rel="noopener">{{ $t['notify'] }}</a>
+          </div>
         </div>
       </article>
     @endforeach

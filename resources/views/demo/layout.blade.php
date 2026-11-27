@@ -39,7 +39,7 @@
     <div class="collapse navbar-collapse" id="navMenu">
       <ul class="navbar-nav mx-auto mono">
         <li class="nav-item"><a class="nav-link" href="{{ $base }}#ch1">01 सुबह</a></li>
-        <li class="nav-item"><a @class(['nav-link', 'active' => request()->is('demo/products')]) href="{{ route('demo', 'products') }}">02 संग्रह</a></li>
+        <li class="nav-item"><a @class(['nav-link', 'active' => request()->is('demo/products') || request()->is('demo/product')]) href="{{ route('demo', 'products') }}">02 संग्रह</a></li>
         <li class="nav-item"><a @class(['nav-link', 'active' => request()->is('demo/herd')]) href="{{ route('demo', 'herd') }}">03 वंश</a></li>
         <li class="nav-item"><a class="nav-link" href="{{ $base }}#ch4">04 प्रमाण</a></li>
         <li class="nav-item"><a class="nav-link" href="{{ $base }}#ch5">05 योजना</a></li>
